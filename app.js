@@ -115,20 +115,15 @@ function showScreen(screenId) {
 // --- Event Listeners Setup ---
 function setupEventListeners() {
   // Auth Form: Send OTP
-  document.getElementById('form-phone').addEventListener('submit', async (e) => {
+  document.getElementById('form-email').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const countryCode = document.getElementById('select-country-code').value;
-    const localPhone = document.getElementById('input-phone').value.trim().replace(/\D/g, '');
-    if (!localPhone) {
-      showToast('Please enter a valid phone number.', 'error');
-      return;
-    }
-    const fullPhone = countryCode + localPhone;
+    const emailInput = document.getElementById('input-email').value.trim();
+    if (!emailInput) return;
     
     setButtonLoading('btn-send-otp', true, 'Sending...');
     
     const { data, error } = await supabaseClient.auth.signInWithOtp({
-      phone: fullPhone
+      email: emailInput
     });
     
     setButtonLoading('btn-send-otp', false, 'Send Verification Code');
@@ -136,8 +131,8 @@ function setupEventListeners() {
     if (error) {
       showToast(error.message, 'error');
     } else {
-      showToast('Verification code sent to your phone!', 'success');
-      document.getElementById('auth-step-phone').classList.add('hidden');
+      showToast('Verification code sent to your email!', 'success');
+      document.getElementById('auth-step-email').classList.add('hidden');
       document.getElementById('auth-step-otp').classList.remove('hidden');
     }
   });
@@ -145,18 +140,16 @@ function setupEventListeners() {
   // Auth Form: Verify OTP
   document.getElementById('form-otp').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const countryCode = document.getElementById('select-country-code').value;
-    const localPhone = document.getElementById('input-phone').value.trim().replace(/\D/g, '');
+    const emailInput = document.getElementById('input-email').value.trim();
     const otpInput = document.getElementById('input-otp').value.trim();
-    if (!localPhone || !otpInput) return;
-    const fullPhone = countryCode + localPhone;
+    if (!emailInput || !otpInput) return;
     
     setButtonLoading('btn-verify-otp', true, 'Verifying...');
     
     const { data, error } = await supabaseClient.auth.verifyOtp({
-      phone: fullPhone,
+      email: emailInput,
       token: otpInput,
-      type: 'sms'
+      type: 'email'
     });
     
     setButtonLoading('btn-verify-otp', false, 'Verify Code');
@@ -168,15 +161,10 @@ function setupEventListeners() {
     }
   });
 
-  // Auth: Change phone number back button
-  document.getElementById('btn-back-phone').addEventListener('button', () => {
+  // Auth: Change email back button
+  document.getElementById('btn-back-email').addEventListener('click', () => {
     document.getElementById('auth-step-otp').classList.add('hidden');
-    document.getElementById('auth-step-phone').classList.remove('hidden');
-  });
-  // Fallback direct click for standard buttons
-  document.getElementById('btn-back-phone').addEventListener('click', () => {
-    document.getElementById('auth-step-otp').classList.add('hidden');
-    document.getElementById('auth-step-phone').classList.remove('hidden');
+    document.getElementById('auth-step-email').classList.remove('hidden');
   });
 
   // Registration Form: File picker preview & compression
@@ -629,12 +617,12 @@ async function loadProfileData() {
     if (error) throw error;
     currentProfile = profile;
 
-    // Mask phone number for display
-    const maskedPhone = maskPhone(profile.phone);
+    // Mask email for display
+    const maskedEmail = maskEmail(profile.email);
 
     // Update profile HTML info
     document.getElementById('profile-avatar').src = profile.avatar_url || DEFAULT_AVATAR;
-    document.getElementById('profile-phone-display').innerText = maskedPhone;
+    document.getElementById('profile-email-display').innerText = maskedEmail;
     document.getElementById('profile-location-display').innerText = `Location: ${profile.state || 'Unknown'} (${profile.latitude.toFixed(3)}, ${profile.longitude.toFixed(3)})`;
     
     document.getElementById('stat-elo').innerText = Math.round(profile.elo);
@@ -662,13 +650,18 @@ async function loadProfileData() {
 }
 
 // --- Utilities ---
-function maskPhone(phone) {
-  if (!phone) return "Anonymous Climber";
-  const cleaned = phone.replace(/\s+/g, '');
-  if (cleaned.length > 4) {
-    return cleaned.slice(0, 3) + "•••" + cleaned.slice(-4);
+function maskEmail(email) {
+  if (!email) return "Anonymous Climber";
+  const parts = email.split('@');
+  if (parts.length === 2) {
+    const name = parts[0];
+    const domain = parts[1];
+    if (name.length > 2) {
+      return name.slice(0, 2) + "•••@" + domain;
+    }
+    return "•••@" + domain;
   }
-  return "Climber " + cleaned;
+  return "Climber";
 }
 
 function setButtonLoading(buttonId, isLoading, text) {
