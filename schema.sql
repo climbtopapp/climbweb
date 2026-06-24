@@ -1,7 +1,7 @@
 -- Create Profiles Table
 CREATE TABLE public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
-  phone text,
+  email text,
   avatar_url text,
   latitude double precision,
   longitude double precision,
@@ -40,7 +40,7 @@ CREATE POLICY "Users can view their own votes" ON public.votes
 -- Create Leaderboard Snapshot Table for caching
 CREATE TABLE public.leaderboard_snapshot (
   user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
-  phone text,
+  email text,
   avatar_url text,
   state text,
   latitude double precision,
@@ -92,10 +92,10 @@ $$;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, phone, elo, votes_cast)
+  INSERT INTO public.profiles (id, email, elo, votes_cast)
   VALUES (
     new.id, 
-    new.phone, 
+    new.email, 
     1200.0, 
     0
   );
@@ -185,10 +185,10 @@ BEGIN
     DELETE FROM public.leaderboard_snapshot;
     
     -- Insert fresh rankings
-    INSERT INTO public.leaderboard_snapshot (user_id, phone, avatar_url, state, latitude, longitude, elo, global_rank)
+    INSERT INTO public.leaderboard_snapshot (user_id, email, avatar_url, state, latitude, longitude, elo, global_rank)
     SELECT 
       p.id, 
-      p.phone, 
+      p.email, 
       p.avatar_url, 
       p.state, 
       p.latitude, 
