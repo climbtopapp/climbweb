@@ -6,6 +6,8 @@ const SUPABASE_KEY = "sb_publishable_ZN4NvIXuymJ2QvbdQ5qDkg_BVf4q7Wz";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Application State
+const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='12' fill='%23e6f0fa'/><circle cx='12' cy='8' r='4' fill='%2363a4ff'/><path d='M12 14c-4 0-6 2-6 3v1h12v-1c0-1-2-3-6-3z' fill='%2363a4ff'/></svg>";
+
 let currentUser = null;
 let currentProfile = null;
 let currentMatchup = [];
@@ -115,13 +117,18 @@ function setupEventListeners() {
   // Auth Form: Send OTP
   document.getElementById('form-phone').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const phoneInput = document.getElementById('input-phone').value.trim();
-    if (!phoneInput) return;
+    const countryCode = document.getElementById('select-country-code').value;
+    const localPhone = document.getElementById('input-phone').value.trim().replace(/\D/g, '');
+    if (!localPhone) {
+      showToast('Please enter a valid phone number.', 'error');
+      return;
+    }
+    const fullPhone = countryCode + localPhone;
     
     setButtonLoading('btn-send-otp', true, 'Sending...');
     
     const { data, error } = await supabaseClient.auth.signInWithOtp({
-      phone: phoneInput
+      phone: fullPhone
     });
     
     setButtonLoading('btn-send-otp', false, 'Send Verification Code');
@@ -138,14 +145,16 @@ function setupEventListeners() {
   // Auth Form: Verify OTP
   document.getElementById('form-otp').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const phoneInput = document.getElementById('input-phone').value.trim();
+    const countryCode = document.getElementById('select-country-code').value;
+    const localPhone = document.getElementById('input-phone').value.trim().replace(/\D/g, '');
     const otpInput = document.getElementById('input-otp').value.trim();
-    if (!phoneInput || !otpInput) return;
+    if (!localPhone || !otpInput) return;
+    const fullPhone = countryCode + localPhone;
     
     setButtonLoading('btn-verify-otp', true, 'Verifying...');
     
     const { data, error } = await supabaseClient.auth.verifyOtp({
-      phone: phoneInput,
+      phone: fullPhone,
       token: otpInput,
       type: 'sms'
     });
@@ -424,13 +433,13 @@ async function loadNextMatchup() {
     // Load left card image and info
     const imgLeft = document.getElementById('img-left');
     const eloLeft = document.getElementById('elo-left');
-    imgLeft.src = data[0].avatar_url;
+    imgLeft.src = data[0].avatar_url || DEFAULT_AVATAR;
     eloLeft.innerText = `${Math.round(data[0].elo)} ELO`;
 
     // Load right card image and info
     const imgRight = document.getElementById('img-right');
     const eloRight = document.getElementById('elo-right');
-    imgRight.src = data[1].avatar_url;
+    imgRight.src = data[1].avatar_url || DEFAULT_AVATAR;
     eloRight.innerText = `${Math.round(data[1].elo)} ELO`;
 
     // Wait for image loading before hiding spinners
@@ -549,7 +558,7 @@ async function loadLeaderboard() {
         rowEl.className = 'rank-row';
         rowEl.innerHTML = `
           <div class="rank-badge">${row.relative_rank}</div>
-          <img class="rank-avatar" src="${row.avatar_url}" alt="Profile Avatar">
+          <img class="rank-avatar" src="${row.avatar_url || DEFAULT_AVATAR}" alt="Profile Avatar">
           <div class="rank-info">
             <div class="rank-name">${row.user_id === currentUser.id ? 'You' : 'Climber'}</div>
             <div class="rank-meta">${row.state || 'Unknown State'}</div>
@@ -589,7 +598,7 @@ async function loadLeaderboard() {
       }
 
       if (displayRank !== '--' && currentProfile) {
-        document.getElementById('sticky-user-avatar').src = currentProfile.avatar_url;
+        document.getElementById('sticky-user-avatar').src = currentProfile.avatar_url || DEFAULT_AVATAR;
         document.getElementById('sticky-user-location').innerText = `${userState} (Rank #${displayRank} of ${displayTotal})`;
         document.getElementById('sticky-user-elo').innerText = `${Math.round(currentProfile.elo)} ELO`;
         stickyRow.querySelector('.user-rank').innerText = displayRank;
@@ -624,7 +633,7 @@ async function loadProfileData() {
     const maskedPhone = maskPhone(profile.phone);
 
     // Update profile HTML info
-    document.getElementById('profile-avatar').src = profile.avatar_url;
+    document.getElementById('profile-avatar').src = profile.avatar_url || DEFAULT_AVATAR;
     document.getElementById('profile-phone-display').innerText = maskedPhone;
     document.getElementById('profile-location-display').innerText = `Location: ${profile.state || 'Unknown'} (${profile.latitude.toFixed(3)}, ${profile.longitude.toFixed(3)})`;
     
