@@ -114,7 +114,7 @@ function showScreen(screenId) {
 
 // --- Event Listeners Setup ---
 function setupEventListeners() {
-  // Auth Form: Send OTP
+  // Auth Form: Send Login Link (Magic Link)
   document.getElementById('form-email').addEventListener('submit', async (e) => {
     e.preventDefault();
     const emailInput = document.getElementById('input-email').value.trim();
@@ -123,47 +123,27 @@ function setupEventListeners() {
     setButtonLoading('btn-send-otp', true, 'Sending...');
     
     const { data, error } = await supabaseClient.auth.signInWithOtp({
-      email: emailInput
-    });
-    
-    setButtonLoading('btn-send-otp', false, 'Send Verification Code');
-    
-    if (error) {
-      showToast(error.message, 'error');
-    } else {
-      showToast('Verification code sent to your email!', 'success');
-      document.getElementById('auth-step-email').classList.add('hidden');
-      document.getElementById('auth-step-otp').classList.remove('hidden');
-    }
-  });
-
-  // Auth Form: Verify OTP
-  document.getElementById('form-otp').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const emailInput = document.getElementById('input-email').value.trim();
-    const otpInput = document.getElementById('input-otp').value.trim();
-    if (!emailInput || !otpInput) return;
-    
-    setButtonLoading('btn-verify-otp', true, 'Verifying...');
-    
-    const { data, error } = await supabaseClient.auth.verifyOtp({
       email: emailInput,
-      token: otpInput,
-      type: 'email'
+      options: {
+        // Set the redirect URL to current location (which will automatically be parsed by Supabase SDK)
+        emailRedirectTo: window.location.origin + window.location.pathname
+      }
     });
     
-    setButtonLoading('btn-verify-otp', false, 'Verify Code');
+    setButtonLoading('btn-send-otp', false, 'Send Login Link');
     
     if (error) {
       showToast(error.message, 'error');
     } else {
-      showToast('Signed in successfully!', 'success');
+      showToast('Magic login link sent to your email!', 'success');
+      document.getElementById('auth-step-email').classList.add('hidden');
+      document.getElementById('auth-step-success').classList.remove('hidden');
     }
   });
 
   // Auth: Change email back button
   document.getElementById('btn-back-email').addEventListener('click', () => {
-    document.getElementById('auth-step-otp').classList.add('hidden');
+    document.getElementById('auth-step-success').classList.add('hidden');
     document.getElementById('auth-step-email').classList.remove('hidden');
   });
 
