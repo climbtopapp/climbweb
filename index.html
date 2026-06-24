@@ -30,32 +30,13 @@
         <h1 class="brand-title">Climb</h1>
         <p class="brand-subtitle">Step up and make your way to the top.</p>
         
-        <!-- Step 1: Phone Entry -->
-        <div id="auth-step-phone">
-          <form id="form-phone">
+        <!-- Step 1: Email Entry -->
+        <div id="auth-step-email">
+          <form id="form-email">
             <div class="input-group">
-              <label for="input-phone">Phone Number</label>
-              <div class="phone-input-container">
-                <select id="select-country-code" required>
-                  <option value="+1" selected>🇺🇸 +1 (US/CA)</option>
-                  <option value="+44">🇬🇧 +44 (UK)</option>
-                  <option value="+61">🇦🇺 +61 (AU)</option>
-                  <option value="+91">🇮🇳 +91 (IN)</option>
-                  <option value="+33">🇫🇷 +33 (FR)</option>
-                  <option value="+49">🇩🇪 +49 (DE)</option>
-                  <option value="+81">🇯🇵 +81 (JP)</option>
-                  <option value="+86">🇨🇳 +86 (CN)</option>
-                  <option value="+52">🇲🇽 +52 (MX)</option>
-                  <option value="+55">🇧🇷 +55 (BR)</option>
-                  <option value="+34">🇪🇸 +34 (ES)</option>
-                  <option value="+39">🇮🇹 +39 (IT)</option>
-                  <option value="+7">🇷🇺 +7 (RU)</option>
-                  <option value="+27">🇿🇦 +27 (ZA)</option>
-                  <option value="+64">🇳🇿 +64 (NZ)</option>
-                </select>
-                <input type="tel" id="input-phone" placeholder="(555) 000-0000" required autocomplete="tel">
-              </div>
-              <p class="input-hint">Select your country code and enter your mobile number.</p>
+              <label for="input-email">Email Address</label>
+              <input type="email" id="input-email" placeholder="you@example.com" required autocomplete="email" style="width: 100%; padding: 14px 18px; font-family: var(--font-body); font-size: 1rem; background-color: var(--bg-primary); border: 2px solid transparent; border-radius: var(--radius-md); color: var(--text-main); outline: none; transition: var(--transition);">
+              <p class="input-hint">Enter your email to receive an OTP verification code.</p>
             </div>
             <button type="submit" class="btn btn-primary btn-block" id="btn-send-otp">
               Send Verification Code
@@ -68,14 +49,14 @@
           <form id="form-otp">
             <div class="input-group">
               <label for="input-otp">Verification Code</label>
-              <input type="text" id="input-otp" placeholder="123456" pattern="[0-9]*" inputmode="numeric" required autocomplete="one-time-code">
-              <p class="input-hint">Enter the 6-digit code sent to your phone.</p>
+              <input type="text" id="input-otp" placeholder="12345678" pattern="[0-9]*" inputmode="numeric" required autocomplete="one-time-code">
+              <p class="input-hint">Enter the code sent to your email.</p>
             </div>
             <button type="submit" class="btn btn-primary btn-block" id="btn-verify-otp">
               Verify Code
             </button>
-            <button type="button" class="btn btn-text btn-block" id="btn-back-phone">
-              Change Phone Number
+            <button type="button" class="btn btn-text btn-block" id="btn-back-email">
+              Change Email Address
             </button>
           </form>
         </div>
@@ -229,7 +210,7 @@
       <div class="profile-card card">
         <div class="profile-header-info">
           <img id="profile-avatar" src="" alt="My Photo" class="profile-large-avatar">
-          <h3 id="profile-phone-display">--</h3>
+          <h3 id="profile-email-display">--</h3>
           <p id="profile-location-display" class="input-hint">Location: Detecting...</p>
         </div>
 
