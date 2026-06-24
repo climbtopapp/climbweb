@@ -35,8 +35,27 @@
           <form id="form-phone">
             <div class="input-group">
               <label for="input-phone">Phone Number</label>
-              <input type="tel" id="input-phone" placeholder="+15550199" required autocomplete="tel">
-              <p class="input-hint">Include country code (e.g., +1 for USA/Canada).</p>
+              <div class="phone-input-container">
+                <select id="select-country-code" required>
+                  <option value="+1" selected>🇺🇸 +1 (US/CA)</option>
+                  <option value="+44">🇬🇧 +44 (UK)</option>
+                  <option value="+61">🇦🇺 +61 (AU)</option>
+                  <option value="+91">🇮🇳 +91 (IN)</option>
+                  <option value="+33">🇫🇷 +33 (FR)</option>
+                  <option value="+49">🇩🇪 +49 (DE)</option>
+                  <option value="+81">🇯🇵 +81 (JP)</option>
+                  <option value="+86">🇨🇳 +86 (CN)</option>
+                  <option value="+52">🇲🇽 +52 (MX)</option>
+                  <option value="+55">🇧🇷 +55 (BR)</option>
+                  <option value="+34">🇪🇸 +34 (ES)</option>
+                  <option value="+39">🇮🇹 +39 (IT)</option>
+                  <option value="+7">🇷🇺 +7 (RU)</option>
+                  <option value="+27">🇿🇦 +27 (ZA)</option>
+                  <option value="+64">🇳🇿 +64 (NZ)</option>
+                </select>
+                <input type="tel" id="input-phone" placeholder="(555) 000-0000" required autocomplete="tel">
+              </div>
+              <p class="input-hint">Select your country code and enter your mobile number.</p>
             </div>
             <button type="submit" class="btn btn-primary btn-block" id="btn-send-otp">
               Send Verification Code
