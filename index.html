@@ -36,29 +36,22 @@
             <div class="input-group">
               <label for="input-email">Email Address</label>
               <input type="email" id="input-email" placeholder="you@example.com" required autocomplete="email" style="width: 100%; padding: 14px 18px; font-family: var(--font-body); font-size: 1rem; background-color: var(--bg-primary); border: 2px solid transparent; border-radius: var(--radius-md); color: var(--text-main); outline: none; transition: var(--transition);">
-              <p class="input-hint">Enter your email to receive an OTP verification code.</p>
+              <p class="input-hint">Enter your email to receive a secure sign-in link.</p>
             </div>
             <button type="submit" class="btn btn-primary btn-block" id="btn-send-otp">
-              Send Verification Code
+              Send Login Link
             </button>
           </form>
         </div>
 
-        <!-- Step 2: OTP Verification (Hidden by default) -->
-        <div id="auth-step-otp" class="hidden">
-          <form id="form-otp">
-            <div class="input-group">
-              <label for="input-otp">Verification Code</label>
-              <input type="text" id="input-otp" placeholder="12345678" pattern="[0-9]*" inputmode="numeric" required autocomplete="one-time-code">
-              <p class="input-hint">Enter the code sent to your email.</p>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block" id="btn-verify-otp">
-              Verify Code
-            </button>
-            <button type="button" class="btn btn-text btn-block" id="btn-back-email">
-              Change Email Address
-            </button>
-          </form>
+        <!-- Step 2: Magic Link Success Message (Hidden by default) -->
+        <div id="auth-step-success" class="hidden text-center" style="padding: 10px 0;">
+          <div style="font-size: 3.5rem; margin-bottom: 16px; text-align: center;">✉️</div>
+          <h3 class="section-title" style="text-align: center;">Check Your Email</h3>
+          <p class="section-desc" style="text-align: center; margin-bottom: 24px;">We sent a secure login link to your email. Open the link to sign in to Climb.</p>
+          <button type="button" class="btn btn-secondary btn-block" id="btn-back-email">
+            Back to Sign In
+          </button>
         </div>
       </div>
     </section>
