@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Climb</title>
+  <!-- Outfit & Inter Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app" class="app-container">
+    
+    <!-- Screen: Loader (Shown during initialization checks) -->
+    <section id="screen-loader" class="screen active">
+      <div class="loader-content">
+        <div class="logo-spinner"></div>
+        <h1 class="brand-title animated">Climb</h1>
+        <p class="loader-text">Loading...</p>
+      </div>
+    </section>
+
+    <!-- Screen: Authentication -->
+    <section id="screen-auth" class="screen">
+      <div class="card auth-card">
+        <h1 class="brand-title">Climb</h1>
+        <p class="brand-subtitle">Step up and make your way to the top.</p>
+        
+        <!-- Step 1: Phone Entry -->
+        <div id="auth-step-phone">
+          <form id="form-phone">
+            <div class="input-group">
+              <label for="input-phone">Phone Number</label>
+              <input type="tel" id="input-phone" placeholder="+15550199" required autocomplete="tel">
+              <p class="input-hint">Include country code (e.g., +1 for USA/Canada).</p>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="btn-send-otp">
+              Send Verification Code
+            </button>
+          </form>
+        </div>
+
+        <!-- Step 2: OTP Verification (Hidden by default) -->
+        <div id="auth-step-otp" class="hidden">
+          <form id="form-otp">
+            <div class="input-group">
+              <label for="input-otp">Verification Code</label>
+              <input type="text" id="input-otp" placeholder="123456" pattern="[0-9]*" inputmode="numeric" required autocomplete="one-time-code">
+              <p class="input-hint">Enter the 6-digit code sent to your phone.</p>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="btn-verify-otp">
+              Verify Code
+            </button>
+            <button type="button" class="btn btn-text btn-block" id="btn-back-phone">
+              Change Phone Number
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen: Register / Profile Completion -->
+    <section id="screen-register" class="screen">
+      <div class="card register-card">
+        <h2 class="section-title">Complete Profile</h2>
+        <p class="section-desc">Upload a photo and enable location to start participating in Climb.</p>
+        
+        <form id="form-register">
+          <!-- Image upload and preview -->
+          <div class="image-upload-container">
+            <input type="file" id="input-avatar" accept="image/*" class="hidden">
+            <label for="input-avatar" class="avatar-picker-label">
+              <div id="avatar-preview-placeholder">
+                <span class="upload-icon">📸</span>
+                <span class="upload-label">Choose Photo</span>
+              </div>
+              <img id="avatar-preview-img" src="" alt="Avatar Preview" class="hidden">
+            </label>
+            <p class="input-hint text-center">Your photo will be compressed to save space.</p>
+          </div>
+
+          <!-- Location Indicator -->
+          <div class="location-status-container">
+            <div class="location-info">
+              <span class="location-icon">📍</span>
+              <div>
+                <h4 id="location-title">Detecting Location...</h4>
+                <p id="location-details" class="input-hint">Allow location access to place you on State and Neighborhood leaderboards.</p>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-retry-location">Detect</button>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-submit-registration" disabled>
+            Start Climbing
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Screen: Mash (The voting arena) -->
+    <section id="screen-mash" class="screen">
+      <header class="app-header">
+        <h1 class="brand-title-sm">Climb</h1>
+        <p class="header-desc">Tap the photo you want to rank higher</p>
+      </header>
+
+      <div class="mash-arena">
+        <!-- Card 1 -->
+        <div class="mash-card" id="card-left">
+          <div class="image-wrapper">
+            <img id="img-left" src="" alt="Option Left">
+            <div class="card-loader"><div class="spinner"></div></div>
+          </div>
+          <div class="mash-card-info">
+            <span class="profile-elo-tag" id="elo-left">ELO 1200</span>
+          </div>
+        </div>
+
+        <div class="mash-vs">or</div>
+
+        <!-- Card 2 -->
+        <div class="mash-card" id="card-right">
+          <div class="image-wrapper">
+            <img id="img-right" src="" alt="Option Right">
+            <div class="card-loader"><div class="spinner"></div></div>
+          </div>
+          <div class="mash-card-info">
+            <span class="profile-elo-tag" id="elo-right">ELO 1200</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Nav (Appended to app screens) -->
+      <nav class="bottom-nav">
+        <button class="nav-item active" data-screen="mash">
+          <span class="nav-icon">🔥</span>
+          <span class="nav-label">Mash</span>
+        </button>
+        <button class="nav-item" data-screen="leaderboard">
+          <span class="nav-icon">🏆</span>
+          <span class="nav-label">Leaderboard</span>
+        </button>
+        <button class="nav-item" data-screen="profile">
+          <span class="nav-icon">👤</span>
+          <span class="nav-label">Profile</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- Screen: Leaderboard -->
+    <section id="screen-leaderboard" class="screen">
+      <header class="app-header">
+        <h1 class="brand-title-sm">Leaderboards</h1>
+        <p class="header-desc">Rankings update hourly to save resources</p>
+      </header>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="global">Global</button>
+        <button class="tab-btn" data-tab="state">State</button>
+        <button class="tab-btn" data-tab="neighborhood">Neighborhood</button>
+      </div>
+
+      <!-- Leaderboard List -->
+      <div class="leaderboard-container">
+        <div id="leaderboard-list" class="leaderboard-list">
+          <!-- Dynamically populated rows -->
+        </div>
+      </div>
+
+      <!-- Sticky User Stats Row -->
+      <div id="user-sticky-rank" class="sticky-rank-row hidden">
+        <div class="rank-badge user-rank">--</div>
+        <img class="rank-avatar" id="sticky-user-avatar" src="" alt="My Avatar">
+        <div class="rank-info">
+          <div class="rank-name">You (My Position)</div>
+          <div class="rank-meta" id="sticky-user-location">--</div>
+        </div>
+        <div class="rank-elo" id="sticky-user-elo">1200 ELO</div>
+      </div>
+
+      <!-- Bottom Nav -->
+      <nav class="bottom-nav">
+        <button class="nav-item" data-screen="mash">
+          <span class="nav-icon">🔥</span>
+          <span class="nav-label">Mash</span>
+        </button>
+        <button class="nav-item active" data-screen="leaderboard">
+          <span class="nav-icon">🏆</span>
+          <span class="nav-label">Leaderboard</span>
+        </button>
+        <button class="nav-item" data-screen="profile">
+          <span class="nav-icon">👤</span>
+          <span class="nav-label">Profile</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- Screen: Profile -->
+    <section id="screen-profile" class="screen">
+      <header class="app-header">
+        <h1 class="brand-title-sm">My Profile</h1>
+      </header>
+
+      <div class="profile-card card">
+        <div class="profile-header-info">
+          <img id="profile-avatar" src="" alt="My Photo" class="profile-large-avatar">
+          <h3 id="profile-phone-display">--</h3>
+          <p id="profile-location-display" class="input-hint">Location: Detecting...</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-value" id="stat-elo">1200</span>
+            <span class="stat-label">ELO Rating</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value" id="stat-votes">0</span>
+            <span class="stat-label">Votes Cast</span>
+          </div>
+        </div>
+
+        <div class="ranks-section">
+          <h3>Your Rankings</h3>
+          <div class="rank-item">
+            <span class="rank-item-label">🌐 Global Rank</span>
+            <span class="rank-item-val" id="rank-val-global">--</span>
+          </div>
+          <div class="rank-item">
+            <span class="rank-item-label">🇺🇸 State Rank</span>
+            <span class="rank-item-val" id="rank-val-state">--</span>
+          </div>
+          <div class="rank-item">
+            <span class="rank-item-label">📍 Neighborhood</span>
+            <span class="rank-item-val" id="rank-val-neighborhood">--</span>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary btn-block" id="btn-logout">Sign Out</button>
+      </div>
+
+      <!-- Bottom Nav -->
+      <nav class="bottom-nav">
+        <button class="nav-item" data-screen="mash">
+          <span class="nav-icon">🔥</span>
+          <span class="nav-label">Mash</span>
+        </button>
+        <button class="nav-item" data-screen="leaderboard">
+          <span class="nav-icon">🏆</span>
+          <span class="nav-label">Leaderboard</span>
+        </button>
+        <button class="nav-item active" data-screen="profile">
+          <span class="nav-icon">👤</span>
+          <span class="nav-label">Profile</span>
+        </button>
+      </nav>
+    </section>
+
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Supabase JS Client Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Client Application Code -->
+  <script src="app.js"></script>
+</body>
+</html>
