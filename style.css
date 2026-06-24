@@ -220,6 +220,44 @@ input[type="text"]:focus {
   box-shadow: 0 0 0 4px rgba(99, 164, 255, 0.15);
 }
 
+.phone-input-container {
+  display: flex;
+  gap: 10px;
+}
+
+#select-country-code {
+  width: 140px;
+  flex-shrink: 0;
+  padding: 14px 12px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  background-color: var(--bg-primary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  outline: none;
+  transition: var(--transition);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232b394a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 32px;
+}
+
+#select-country-code:focus {
+  border-color: var(--primary-color);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(99, 164, 255, 0.15);
+}
+
+.phone-input-container input[type="tel"] {
+  flex: 1;
+}
+
 .input-hint {
   font-size: 0.8rem;
   color: var(--text-muted);
