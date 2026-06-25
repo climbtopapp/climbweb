@@ -18,6 +18,19 @@ let userState = "";
 let userVotePreference = "everyone";
 let currentLeaderboardTab = "global";
 
+let currentCroppingContext = "register";
+let cropState = {
+  imgSrc: null,
+  zoom: 1,
+  x: 0,
+  y: 0,
+  isDragging: false,
+  startX: 0,
+  startY: 0,
+  imgWidth: 0,
+  imgHeight: 0
+};
+
 // DOM Elements
 const screens = {
   loader: document.getElementById('screen-loader'),
@@ -82,6 +95,7 @@ async function fetchUserProfile() {
     }
 
     currentProfile = data;
+    updateNavigationLocks();
 
     // Check if user has completed profile (photo + name + gender)
     if (!currentProfile.avatar_url || !currentProfile.first_name || !currentProfile.gender) {
@@ -154,37 +168,7 @@ function setupEventListeners() {
   document.getElementById('input-avatar').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    const placeholder = document.getElementById('avatar-preview-placeholder');
-    const previewImg = document.getElementById('avatar-preview-img');
-
-    try {
-      showToast('Processing photo...', 'info');
-
-      let imageBlob = file;
-      let isCompressed = false;
-
-      try {
-        // Try compressing and cropping to a 500x500 square
-        imageBlob = await compressImage(file, 500, 0.75);
-        isCompressed = true;
-      } catch (compressErr) {
-        console.warn('Canvas compression/cropping failed, using raw file:', compressErr);
-        imageBlob = file;
-      }
-
-      selectedRegistrationFileBlob = imageBlob;
-      selectedRegistrationFileType = isCompressed ? 'image/jpeg' : file.type;
-
-      previewImg.src = URL.createObjectURL(imageBlob);
-      placeholder.classList.add('hidden');
-      previewImg.classList.remove('hidden');
-
-      checkRegistrationSubmittable();
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to process image. Try another one.', 'error');
-    }
+    openCropModal(file, 'register');
   });
 
   // Registration Form: New field change listeners
@@ -348,12 +332,7 @@ function setupEventListeners() {
         if (currentProfile) currentProfile.avatar_url = newAvatarUrl;
         document.getElementById('profile-avatar').src = newAvatarUrl;
         showToast('Profile photo updated!', 'success');
-      } catch (err) {
-        console.error('Update avatar failed:', err);
-        showToast('Failed to update photo.', 'error');
-      } finally {
-        label.innerText = 'Edit Photo';
-      }
+      openCropModal(file, 'profile');
     });
   }
 
@@ -363,12 +342,12 @@ function setupEventListeners() {
       const targetScreen = e.currentTarget.getAttribute('data-screen');
       if (targetScreen) {
         if (targetScreen === 'leaderboard' && (!currentProfile || currentProfile.votes_cast < 100)) {
-          showToast(`You must cast 100 votes to view leaderboards. (Current: ${currentProfile ? currentProfile.votes_cast : 0})`, 'error');
+          const votes = currentProfile ? currentProfile.votes_cast : 0;
+          showToast(`You need more votes. Cast ${100 - votes} more votes to unlock the Leaderboards.`, 'error');
           return;
         }
         showScreen(targetScreen);
         if (targetScreen === 'mash') {
-          // If matchup list is empty, reload
           if (currentMatchup.length === 0) loadNextMatchup();
         } else if (targetScreen === 'leaderboard') {
           loadLeaderboard();
@@ -377,6 +356,186 @@ function setupEventListeners() {
         }
       }
     });
+  });
+
+  // Settings Modal Controls
+  const settingsModal = document.getElementById('settings-modal');
+  const btnSettings = document.getElementById('btn-settings');
+  const btnCloseSettings = document.getElementById('btn-close-settings');
+  const formSettings = document.getElementById('form-settings');
+  
+  if (btnSettings) {
+    btnSettings.addEventListener('click', () => {
+      if (!currentProfile) return;
+      
+      document.getElementById('input-settings-name').value = currentProfile.first_name || '';
+      document.getElementById('input-settings-gender').value = currentProfile.gender ? (currentProfile.gender.charAt(0).toUpperCase() + currentProfile.gender.slice(1)) : '';
+      document.getElementById('select-settings-vote-pref').value = currentProfile.vote_preference || 'everyone';
+      document.getElementById('select-settings-state').value = currentProfile.state || '';
+      
+      settingsModal.classList.remove('hidden');
+    });
+  }
+  
+  if (btnCloseSettings) {
+    btnCloseSettings.addEventListener('click', () => {
+      settingsModal.classList.add('hidden');
+    });
+  }
+  
+  if (formSettings) {
+    formSettings.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('input-settings-name').value.trim();
+      const votePref = document.getElementById('select-settings-vote-pref').value;
+      const selectedState = document.getElementById('select-settings-state').value;
+      
+      setButtonLoading('btn-save-settings', true, 'Saving...');
+      try {
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({
+            first_name: name,
+            vote_preference: votePref,
+            state: selectedState
+          })
+          .eq('id', currentUser.id);
+        
+        if (error) throw error;
+        
+        // Update local state
+        currentProfile.first_name = name;
+        currentProfile.vote_preference = votePref;
+        currentProfile.state = selectedState;
+        userState = selectedState;
+        userVotePreference = votePref;
+        
+        await loadProfileData();
+        settingsModal.classList.add('hidden');
+        showToast('Settings saved successfully!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to save settings.', 'error');
+      } finally {
+        setButtonLoading('btn-save-settings', false, 'Save Changes');
+      }
+    });
+  }
+
+  // Crop Viewport Dragging & Zooming Controls
+  const cropViewport = document.getElementById('modal-crop-viewport');
+  const cropZoomInput = document.getElementById('modal-crop-zoom');
+  
+  if (cropViewport) {
+    const startDrag = (clientX, clientY) => {
+      if (!cropState.imgSrc) return;
+      cropState.isDragging = true;
+      cropState.startX = clientX - cropState.x;
+      cropState.startY = clientY - cropState.y;
+      cropViewport.style.cursor = 'grabbing';
+    };
+    
+    const moveDrag = (clientX, clientY) => {
+      if (!cropState.isDragging) return;
+      cropState.x = clientX - cropState.startX;
+      cropState.y = clientY - cropState.startY;
+      applyCropStateStyles();
+    };
+    
+    const stopDrag = () => {
+      cropState.isDragging = false;
+      cropViewport.style.cursor = 'move';
+    };
+    
+    cropViewport.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+    window.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
+    window.addEventListener('mouseup', stopDrag);
+    
+    cropViewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        startDrag(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    });
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1) {
+        moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    });
+    window.addEventListener('touchend', stopDrag);
+  }
+  
+  if (cropZoomInput) {
+    cropZoomInput.addEventListener('input', (e) => {
+      cropState.zoom = parseFloat(e.target.value);
+      applyCropStateStyles();
+    });
+  }
+  
+  document.getElementById('btn-cancel-crop').addEventListener('click', () => {
+    document.getElementById('crop-modal').classList.add('hidden');
+    document.getElementById('input-avatar').value = '';
+    document.getElementById('input-update-avatar').value = '';
+  });
+  
+  document.getElementById('btn-apply-crop').addEventListener('click', async () => {
+    document.getElementById('crop-modal').classList.add('hidden');
+    showToast('Cropping and saving...', 'info');
+    
+    try {
+      const croppedBlob = await getCroppedImageBlob(500);
+      
+      if (currentCroppingContext === 'register') {
+        selectedRegistrationFileBlob = croppedBlob;
+        selectedRegistrationFileType = 'image/jpeg';
+        
+        const previewImg = document.getElementById('avatar-preview-img');
+        const placeholder = document.getElementById('avatar-preview-placeholder');
+        
+        previewImg.src = URL.createObjectURL(croppedBlob);
+        placeholder.classList.add('hidden');
+        previewImg.classList.remove('hidden');
+        
+        checkRegistrationSubmittable();
+      } else if (currentCroppingContext === 'profile') {
+        const label = document.querySelector('.edit-photo-btn');
+        label.innerText = 'Uploading...';
+        
+        try {
+          const filePath = `${currentUser.id}/${Date.now()}.jpg`;
+          
+          const { error: uploadError } = await supabaseClient.storage
+            .from('avatars')
+            .upload(filePath, croppedBlob, {
+              cacheControl: '3600',
+              contentType: 'image/jpeg'
+            });
+            
+          if (uploadError) throw uploadError;
+          
+          const { data: publicUrlData } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
+          const newAvatarUrl = publicUrlData.publicUrl;
+          
+          const { error: updateError } = await supabaseClient
+            .from('profiles')
+            .update({ avatar_url: newAvatarUrl })
+            .eq('id', currentUser.id);
+            
+          if (updateError) throw updateError;
+          
+          if (currentProfile) currentProfile.avatar_url = newAvatarUrl;
+          document.getElementById('profile-avatar').src = newAvatarUrl;
+          showToast('Profile photo updated!', 'success');
+        } catch (err) {
+          console.error(err);
+          showToast('Failed to update photo.', 'error');
+        } finally {
+          label.innerText = 'Edit Photo';
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Cropping failed.', 'error');
+    }
   });
 
   // Mash voting click triggers
@@ -618,6 +777,7 @@ async function recordVote(side) {
 
     if (currentProfile) {
       currentProfile.votes_cast = (currentProfile.votes_cast || 0) + 1;
+      updateNavigationLocks();
     }
 
     showToast('Vote registered!', 'success');
@@ -679,7 +839,7 @@ async function loadLeaderboard() {
             displayRank = '--';
           }
           if (votes < 250) {
-            displayElo = 'Locked';
+            displayElo = `${250 - votes} more votes needed`;
           }
         }
 
@@ -731,7 +891,7 @@ async function loadLeaderboard() {
         document.getElementById('sticky-user-avatar').src = currentProfile.avatar_url || DEFAULT_AVATAR;
         
         if (votes < 1000) {
-          document.getElementById('sticky-user-location').innerText = `${userState} (Rank Locked < 1000 votes)`;
+          document.getElementById('sticky-user-location').innerText = `${userState} (${1000 - votes} more votes needed)`;
           stickyRow.querySelector('.user-rank').innerText = '--';
         } else {
           document.getElementById('sticky-user-location').innerText = `${userState} (Rank #${displayRank} of ${displayTotal})`;
@@ -739,7 +899,7 @@ async function loadLeaderboard() {
         }
 
         if (votes < 250) {
-          document.getElementById('sticky-user-elo').innerText = 'Locked';
+          document.getElementById('sticky-user-elo').innerText = `${250 - votes} more votes needed`;
         } else {
           document.getElementById('sticky-user-elo').innerText = `Grade ${eloToGrade(currentProfile.elo)}`;
         }
@@ -782,7 +942,7 @@ async function loadProfileData() {
     document.getElementById('stat-votes').innerText = votes;
 
     if (votes < 250) {
-      document.getElementById('stat-elo').innerText = `Locked (${votes}/250)`;
+      document.getElementById('stat-elo').innerText = `${250 - votes} more votes needed`;
     } else {
       document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
     }
@@ -796,9 +956,9 @@ async function loadProfileData() {
     });
 
     if (votes < 1000) {
-      document.getElementById('rank-val-global').innerText = `Locked (${votes}/1000)`;
-      document.getElementById('rank-val-state').innerText = `Locked (${votes}/1000)`;
-      document.getElementById('rank-val-neighborhood').innerText = `Locked (${votes}/1000)`;
+      document.getElementById('rank-val-global').innerText = `${1000 - votes} more votes needed`;
+      document.getElementById('rank-val-state').innerText = `${1000 - votes} more votes needed`;
+      document.getElementById('rank-val-neighborhood').innerText = `${1000 - votes} more votes needed`;
     } else if (!statsError && rankStats && rankStats.length > 0) {
       const stats = rankStats[0];
       document.getElementById('rank-val-global').innerText = stats.global_rank > 0 ? `#${stats.global_rank} of ${stats.total_global}` : 'Not Ranked';
@@ -869,4 +1029,113 @@ function eloToGrade(elo) {
   if (val >= 800) return 'C-';
   if (val >= 700) return 'D';
   return 'F';
+}
+
+function updateNavigationLocks() {
+  const votes = (currentProfile && currentProfile.votes_cast) || 0;
+  const isLocked = votes < 100;
+  
+  document.querySelectorAll('.bottom-nav .nav-item[data-screen="leaderboard"]').forEach(btn => {
+    if (isLocked) {
+      btn.classList.add('locked-nav');
+      btn.querySelector('.nav-label').innerText = 'Leaderboard 🔒';
+    } else {
+      btn.classList.remove('locked-nav');
+      btn.querySelector('.nav-label').innerText = 'Leaderboard';
+    }
+  });
+}
+
+function openCropModal(file, context) {
+  currentCroppingContext = context;
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = (e) => {
+    cropState.imgSrc = e.target.result;
+    
+    const modalImg = document.getElementById('modal-crop-image');
+    modalImg.src = e.target.result;
+    modalImg.style.display = 'block';
+    
+    document.getElementById('crop-modal').classList.remove('hidden');
+    
+    modalImg.onload = () => {
+      const viewportSize = 250;
+      const naturalWidth = modalImg.naturalWidth;
+      const naturalHeight = modalImg.naturalHeight;
+      
+      if (naturalWidth > naturalHeight) {
+        cropState.imgHeight = viewportSize;
+        cropState.imgWidth = (naturalWidth / naturalHeight) * viewportSize;
+      } else {
+        cropState.imgWidth = viewportSize;
+        cropState.imgHeight = (naturalHeight / naturalWidth) * viewportSize;
+      }
+      
+      cropState.x = (viewportSize - cropState.imgWidth) / 2;
+      cropState.y = (viewportSize - cropState.imgHeight) / 2;
+      cropState.zoom = 1;
+      
+      const zoomSlider = document.getElementById('modal-crop-zoom');
+      zoomSlider.value = 1;
+      
+      applyCropStateStyles();
+    };
+  };
+}
+
+function applyCropStateStyles() {
+  const modalImg = document.getElementById('modal-crop-image');
+  const viewportSize = 250;
+  
+  const width = cropState.imgWidth * cropState.zoom;
+  const height = cropState.imgHeight * cropState.zoom;
+  
+  cropState.x = Math.max(viewportSize - width, Math.min(0, cropState.x));
+  cropState.y = Math.max(viewportSize - height, Math.min(0, cropState.y));
+  
+  modalImg.style.width = width + 'px';
+  modalImg.style.height = height + 'px';
+  modalImg.style.left = cropState.x + 'px';
+  modalImg.style.top = cropState.y + 'px';
+}
+
+function getCroppedImageBlob(targetSize = 500) {
+  return new Promise((resolve, reject) => {
+    if (!cropState.imgSrc) {
+      reject(new Error("No image loaded"));
+      return;
+    }
+    const img = new Image();
+    img.src = cropState.imgSrc;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+      const ctx = canvas.getContext('2d');
+
+      const viewportSize = 250;
+      const currentWidth = cropState.imgWidth * cropState.zoom;
+      const currentHeight = cropState.imgHeight * cropState.zoom;
+
+      const ratioX = img.naturalWidth / currentWidth;
+      const ratioY = img.naturalHeight / currentHeight;
+
+      const sx = -cropState.x * ratioX;
+      const sy = -cropState.y * ratioY;
+      const sWidth = viewportSize * ratioX;
+      const sHeight = viewportSize * ratioY;
+
+      ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, targetSize, targetSize);
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("Failed to crop image"));
+        }
+      }, 'image/jpeg', 0.85);
+    };
+    img.onerror = (err) => reject(err);
+  });
 }
