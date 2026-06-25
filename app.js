@@ -100,7 +100,6 @@ async function fetchUserProfile() {
     // Check if user has completed profile (photo + name + gender)
     if (!currentProfile.avatar_url || !currentProfile.first_name || !currentProfile.gender) {
       showScreen('register');
-      initLocationDetection();
     } else {
       // Save location from profile
       userCoordinates.lat = currentProfile.latitude;
@@ -177,10 +176,7 @@ function setupEventListeners() {
   document.getElementById('select-vote-pref').addEventListener('change', () => checkRegistrationSubmittable());
   document.getElementById('select-state').addEventListener('change', () => checkRegistrationSubmittable());
 
-  // Registration Form: Retry Location
-  document.getElementById('btn-retry-location').addEventListener('click', () => {
-    initLocationDetection();
-  });
+
 
   // Registration Form: Submit Profile Setup
   document.getElementById('form-register').addEventListener('submit', async (e) => {
@@ -190,7 +186,7 @@ function setupEventListeners() {
     const votePref = document.getElementById('select-vote-pref').value;
     const selectedState = document.getElementById('select-state').value;
 
-    if (!selectedRegistrationFileBlob || !userCoordinates.lat || !currentUser || !firstName || !gender || !votePref || !selectedState) return;
+    if (!selectedRegistrationFileBlob || !currentUser || !firstName || !gender || !votePref || !selectedState) return;
 
     setButtonLoading('btn-submit-registration', true, 'Uploading details...');
 
@@ -616,57 +612,36 @@ function compressImage(file, targetSize, quality) {
 }
 
 // --- Geolocation & Reverse Geocoding ---
-function initLocationDetection() {
-  const locTitle = document.getElementById('location-title');
-  const locDetails = document.getElementById('location-details');
-  const submitBtn = document.getElementById('btn-submit-registration');
-
-  locTitle.innerText = "Accessing GPS...";
-  locDetails.innerText = "Please confirm the location prompt in your browser.";
-
-  if (!navigator.geolocation) {
-    locTitle.innerText = "Not Supported";
-    locDetails.innerText = "Your browser does not support Geolocation. State/Neighborhood rankings will not function.";
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      userCoordinates.lat = position.coords.latitude;
-      userCoordinates.lng = position.coords.longitude;
-
-      locTitle.innerText = "Geocoding location...";
-      locDetails.innerText = `Lat: ${userCoordinates.lat.toFixed(4)}, Lng: ${userCoordinates.lng.toFixed(4)}`;
-
-      try {
-        // Reverse Geocode state via OpenStreetMap Nominatim API
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${userCoordinates.lat}&lon=${userCoordinates.lng}&zoom=5`,
-          { headers: { 'Accept-Language': 'en' } }
-        );
-        const data = await response.json();
-
-        userState = data.address?.state || data.address?.region || "Unknown State";
-
-        locTitle.innerText = `Located: ${userState}`;
-        locDetails.innerText = `Lat: ${userCoordinates.lat.toFixed(4)}, Lng: ${userCoordinates.lng.toFixed(4)}`;
-
-        checkRegistrationSubmittable();
-      } catch (err) {
-        console.error('Reverse Geocode error:', err);
-        userState = "Unknown State";
-        locTitle.innerText = "Location Found (Unnamed State)";
-        checkRegistrationSubmittable();
-      }
-    },
-    (err) => {
-      console.warn('Geolocation error:', err);
-      locTitle.innerText = "Location Denied";
-      locDetails.innerText = "Please enable location in your device settings to register.";
-      showToast('Location is required to calculate neighborhood ranks.', 'error');
-    },
-    { enableHighAccuracy: true, timeout: 8000 }
-  );
+function requestNeighborhoodLocation() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      showToast('Geolocation not supported by browser.', 'error');
+      resolve(false);
+      return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        userCoordinates.lat = position.coords.latitude;
+        userCoordinates.lng = position.coords.longitude;
+        
+        // Update user profile in Supabase to save location
+        if (currentUser) {
+          await supabaseClient.from('profiles').update({
+            latitude: userCoordinates.lat,
+            longitude: userCoordinates.lng
+          }).eq('id', currentUser.id);
+        }
+        resolve(true);
+      },
+      (err) => {
+        console.warn('Geolocation error:', err);
+        showToast('Please enable location access for Neighborhood rankings.', 'error');
+        resolve(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  });
 }
 
 function checkRegistrationSubmittable() {
@@ -676,7 +651,7 @@ function checkRegistrationSubmittable() {
   const votePref = document.getElementById('select-vote-pref').value;
   const selectedState = document.getElementById('select-state').value;
 
-  if (selectedRegistrationFileBlob && userCoordinates.lat !== null && firstName && gender && votePref && selectedState) {
+  if (selectedRegistrationFileBlob && firstName && gender && votePref && selectedState) {
     submitBtn.removeAttribute('disabled');
   } else {
     submitBtn.setAttribute('disabled', 'true');
@@ -819,6 +794,12 @@ async function loadLeaderboard() {
   if (!currentUser) return;
 
   const listContainer = document.getElementById('leaderboard-list');
+  
+  if (currentLeaderboardTab === 'neighborhood') {
+    listContainer.innerHTML = '<div class="text-center py-4"><div class="spinner" style="margin: 20px auto;"></div><p style="color: var(--text-muted);">Detecting location...</p></div>';
+    await requestNeighborhoodLocation();
+  }
+
   listContainer.innerHTML = '<div class="text-center py-4"><div class="spinner" style="margin: 20px auto;"></div><p style="color: var(--text-muted);">Rebuilding rankings...</p></div>';
 
   try {
@@ -1187,6 +1168,12 @@ async function loadSurroundingLeaderboard() {
   if (!currentUser) return;
 
   const listContainer = document.getElementById('surrounding-leaderboard-list');
+
+  if (currentSurroundingTab === 'neighborhood') {
+    listContainer.innerHTML = '<div class="text-center py-4"><div class="spinner" style="margin: 20px auto;"></div><p style="color: var(--text-muted);">Detecting location...</p></div>';
+    await requestNeighborhoodLocation();
+  }
+
   listContainer.innerHTML = '<div class="text-center py-4"><div class="spinner" style="margin: 20px auto;"></div><p style="color: var(--text-muted);">Fetching surrounding ranks...</p></div>';
 
   try {
