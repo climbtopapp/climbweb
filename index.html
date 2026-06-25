@@ -63,53 +63,53 @@
         <p class="section-desc">Fill out your details and upload a photo to start climbing.</p>
         
         <form id="form-register">
+          <!-- Step 1: Basic Info -->
           <div id="reg-step-1" class="wizard-step wizard-active">
-              <img id="avatar-preview-img" src="" alt="Avatar Preview" class="hidden">
-            </label>
-            <p class="input-hint text-center">Your photo will be compressed to save space.</p>
-          </div>
+            <!-- First Name -->
+            <div class="input-group">
+              <label for="input-first-name">First Name</label>
+              <input type="text" id="input-first-name" placeholder="Your first name" required>
+            </div>
 
-          <!-- First Name -->
-          <div class="input-group">
-            <label for="input-first-name">First Name</label>
-            <input type="text" id="input-first-name" placeholder="Your first name" required>
-          </div>
+            <!-- Gender -->
+            <div class="input-group">
+              <label for="select-gender">I am</label>
+              <select id="select-gender" class="form-select" required>
+                <option value="" disabled selected>Select your gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="nonbinary">Non-binary</option>
+              </select>
+              <p class="input-hint" style="color: #ffaa00; font-weight: 500;">Gender cannot be changed later.</p>
+            </div>
 
-          <!-- Gender -->
-          <div class="input-group">
-            <label for="select-gender">I am</label>
-            <select id="select-gender" class="form-select" required>
-              <option value="" disabled selected>Select your gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="nonbinary">Non-binary</option>
-            </select>
-          </div>
-
-          <!-- Vote Preference -->
-          <div class="input-group">
-            <label for="select-vote-pref">I want to vote on</label>
-            <select id="select-vote-pref" class="form-select" required>
-              <option value="" disabled selected>Who do you want to rank?</option>
-              <option value="male">Men</option>
-              <option value="female">Women</option>
-              <option value="everyone">Everyone</option>
-            </select>
-          </div>
+            <!-- Vote Preference -->
+            <div class="input-group">
+              <label for="select-vote-pref">I want to vote on</label>
+              <select id="select-vote-pref" class="form-select" required>
+                <option value="" disabled selected>Who do you want to rank?</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="everyone">Everyone</option>
+              </select>
+            </div>
 
             <button type="button" class="btn btn-primary btn-block" id="btn-next-step-1">Next</button>
           </div>
 
           <!-- Step 2: Photo Upload -->
           <div id="reg-step-2" class="wizard-step hidden">
-          <!-- Image upload and preview -->
-          <div class="image-upload-container">
-            <input type="file" id="input-avatar" accept="image/*" class="hidden">
-            <label for="input-avatar" class="avatar-picker-label">
-              <div id="avatar-preview-placeholder">
-                <span class="upload-icon">📸</span>
-                <span class="upload-label">Choose Photo</span>
+            <div class="image-upload-container" style="text-align: center;">
+              <div class="avatar-preview-wrapper" style="margin: 0 auto 15px; width: 150px; height: 150px; border-radius: var(--radius-md); overflow: hidden; border: 2px dashed var(--border-color); display: flex; justify-content: center; align-items: center; position: relative; background-color: var(--bg-secondary);">
+                <img id="avatar-preview-img" src="" alt="Avatar Preview" class="hidden" style="width: 100%; height: 100%; object-fit: cover;">
+                <div id="avatar-preview-placeholder">
+                  <span class="upload-icon" style="font-size: 2rem;">📸</span>
+                </div>
               </div>
+              <input type="file" id="input-avatar" accept="image/*" class="hidden">
+              <label for="input-avatar" class="btn btn-secondary btn-sm" style="display: inline-block; margin-bottom: 10px;">Choose Photo</label>
+              <p class="input-hint">Your photo will be cropped and compressed.</p>
+            </div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
               <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-prev-step-2">Back</button>
               <button type="button" class="btn btn-primary" style="flex: 2;" id="btn-next-step-2">Next</button>
@@ -118,82 +118,83 @@
 
           <!-- Step 3: Location -->
           <div id="reg-step-3" class="wizard-step hidden">
-          <!-- State Picker -->
-          <div class="input-group">
-            <label for="select-state">State</label>
-            <select id="select-state" class="form-select" required>
-              <option value="" disabled selected>Select your state</option>
-              <option value="Alabama">Alabama</option>
-              <option value="Alaska">Alaska</option>
-              <option value="Arizona">Arizona</option>
-              <option value="Arkansas">Arkansas</option>
-              <option value="California">California</option>
-              <option value="Colorado">Colorado</option>
-              <option value="Connecticut">Connecticut</option>
-              <option value="Delaware">Delaware</option>
-              <option value="Florida">Florida</option>
-              <option value="Georgia">Georgia</option>
-              <option value="Hawaii">Hawaii</option>
-              <option value="Idaho">Idaho</option>
-              <option value="Illinois">Illinois</option>
-              <option value="Indiana">Indiana</option>
-              <option value="Iowa">Iowa</option>
-              <option value="Kansas">Kansas</option>
-              <option value="Kentucky">Kentucky</option>
-              <option value="Louisiana">Louisiana</option>
-              <option value="Maine">Maine</option>
-              <option value="Maryland">Maryland</option>
-              <option value="Massachusetts">Massachusetts</option>
-              <option value="Michigan">Michigan</option>
-              <option value="Minnesota">Minnesota</option>
-              <option value="Mississippi">Mississippi</option>
-              <option value="Missouri">Missouri</option>
-              <option value="Montana">Montana</option>
-              <option value="Nebraska">Nebraska</option>
-              <option value="Nevada">Nevada</option>
-              <option value="New Hampshire">New Hampshire</option>
-              <option value="New Jersey">New Jersey</option>
-              <option value="New Mexico">New Mexico</option>
-              <option value="New York">New York</option>
-              <option value="North Carolina">North Carolina</option>
-              <option value="North Dakota">North Dakota</option>
-              <option value="Ohio">Ohio</option>
-              <option value="Oklahoma">Oklahoma</option>
-              <option value="Oregon">Oregon</option>
-              <option value="Pennsylvania">Pennsylvania</option>
-              <option value="Rhode Island">Rhode Island</option>
-              <option value="South Carolina">South Carolina</option>
-              <option value="South Dakota">South Dakota</option>
-              <option value="Tennessee">Tennessee</option>
-              <option value="Texas">Texas</option>
-              <option value="Utah">Utah</option>
-              <option value="Vermont">Vermont</option>
-              <option value="Virginia">Virginia</option>
-              <option value="Washington">Washington</option>
-              <option value="West Virginia">West Virginia</option>
-              <option value="Wisconsin">Wisconsin</option>
-              <option value="Wyoming">Wyoming</option>
-              <option value="District of Columbia">District of Columbia</option>
-            </select>
-          </div>
-
-          <!-- Location Indicator -->
-          <div class="location-status-container">
-            <div class="location-info">
-              <span class="location-icon">📍</span>
-              <div>
-                <h4 id="location-title">Detecting Location...</h4>
-                <p id="location-details" class="input-hint">Allow location access for neighborhood rankings.</p>
-              </div>
+            <!-- State Picker -->
+            <div class="input-group">
+              <label for="select-state">State</label>
+              <select id="select-state" class="form-select" required>
+                <option value="" disabled selected>Select your state</option>
+                <option value="Alabama">Alabama</option>
+                <option value="Alaska">Alaska</option>
+                <option value="Arizona">Arizona</option>
+                <option value="Arkansas">Arkansas</option>
+                <option value="California">California</option>
+                <option value="Colorado">Colorado</option>
+                <option value="Connecticut">Connecticut</option>
+                <option value="Delaware">Delaware</option>
+                <option value="Florida">Florida</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Hawaii">Hawaii</option>
+                <option value="Idaho">Idaho</option>
+                <option value="Illinois">Illinois</option>
+                <option value="Indiana">Indiana</option>
+                <option value="Iowa">Iowa</option>
+                <option value="Kansas">Kansas</option>
+                <option value="Kentucky">Kentucky</option>
+                <option value="Louisiana">Louisiana</option>
+                <option value="Maine">Maine</option>
+                <option value="Maryland">Maryland</option>
+                <option value="Massachusetts">Massachusetts</option>
+                <option value="Michigan">Michigan</option>
+                <option value="Minnesota">Minnesota</option>
+                <option value="Mississippi">Mississippi</option>
+                <option value="Missouri">Missouri</option>
+                <option value="Montana">Montana</option>
+                <option value="Nebraska">Nebraska</option>
+                <option value="Nevada">Nevada</option>
+                <option value="New Hampshire">New Hampshire</option>
+                <option value="New Jersey">New Jersey</option>
+                <option value="New Mexico">New Mexico</option>
+                <option value="New York">New York</option>
+                <option value="North Carolina">North Carolina</option>
+                <option value="North Dakota">North Dakota</option>
+                <option value="Ohio">Ohio</option>
+                <option value="Oklahoma">Oklahoma</option>
+                <option value="Oregon">Oregon</option>
+                <option value="Pennsylvania">Pennsylvania</option>
+                <option value="Rhode Island">Rhode Island</option>
+                <option value="South Carolina">South Carolina</option>
+                <option value="South Dakota">South Dakota</option>
+                <option value="Tennessee">Tennessee</option>
+                <option value="Texas">Texas</option>
+                <option value="Utah">Utah</option>
+                <option value="Vermont">Vermont</option>
+                <option value="Virginia">Virginia</option>
+                <option value="Washington">Washington</option>
+                <option value="West Virginia">West Virginia</option>
+                <option value="Wisconsin">Wisconsin</option>
+                <option value="Wyoming">Wyoming</option>
+                <option value="District of Columbia">District of Columbia</option>
+              </select>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-retry-location">Detect</button>
-          </div>
 
-          <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-prev-step-3">Back</button>
-            <button type="submit" class="btn btn-primary" style="flex: 2;" id="btn-submit-registration" disabled>Start Climbing</button>
+            <!-- Location Indicator -->
+            <div class="location-status-container">
+              <div class="location-info">
+                <span class="location-icon">📍</span>
+                <div>
+                  <h4 id="location-title">Detecting Location...</h4>
+                  <p id="location-details" class="input-hint">Allow location access for neighborhood rankings.</p>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-retry-location">Detect</button>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+              <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-prev-step-3">Back</button>
+              <button type="submit" class="btn btn-primary" style="flex: 2;" id="btn-submit-registration" disabled>Start Climbing</button>
+            </div>
           </div>
-          </div>
+        </form>
         </form>
       </div>
     </section>
@@ -311,6 +312,7 @@
           </div>
           <h3 id="profile-email-display">--</h3>
           <p id="profile-location-display" class="input-hint">State: Detecting...</p>
+          <button id="btn-settings" class="btn btn-secondary btn-sm" style="margin-top: 10px; width: auto; padding: 6px 16px; display: inline-flex; align-items: center; gap: 6px;">⚙️ Settings</button>
         </div>
 
         <div class="stats-grid">
@@ -360,6 +362,126 @@
       </nav>
     </section>
 
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-content card">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-family: var(--font-display); font-weight: 700;">Edit Profile</h3>
+        <button id="btn-close-settings" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+      
+      <form id="form-settings">
+        <!-- First Name -->
+        <div class="input-group">
+          <label for="input-settings-name">First Name</label>
+          <input type="text" id="input-settings-name" placeholder="Your first name" required style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; outline: none; transition: var(--transition);">
+        </div>
+        
+        <!-- Gender (Disabled / Read Only) -->
+        <div class="input-group">
+          <label for="input-settings-gender">Gender</label>
+          <input type="text" id="input-settings-gender" disabled style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-secondary); color: var(--text-muted); font-family: var(--font-body); font-size: 0.95rem; cursor: not-allowed;">
+          <p class="input-hint" style="margin-top: 4px;">Gender cannot be changed.</p>
+        </div>
+
+        <!-- Vote Preference -->
+        <div class="input-group">
+          <label for="select-settings-vote-pref">I want to vote on</label>
+          <select id="select-settings-vote-pref" class="form-select" required style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; outline: none; transition: var(--transition);">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="everyone">Everyone</option>
+          </select>
+        </div>
+
+        <!-- State -->
+        <div class="input-group">
+          <label for="select-settings-state">State</label>
+          <select id="select-settings-state" class="form-select" required style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; outline: none; transition: var(--transition);">
+            <option value="Alabama">Alabama</option>
+            <option value="Alaska">Alaska</option>
+            <option value="Arizona">Arizona</option>
+            <option value="Arkansas">Arkansas</option>
+            <option value="California">California</option>
+            <option value="Colorado">Colorado</option>
+            <option value="Connecticut">Connecticut</option>
+            <option value="Delaware">Delaware</option>
+            <option value="Florida">Florida</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Hawaii">Hawaii</option>
+            <option value="Idaho">Idaho</option>
+            <option value="Illinois">Illinois</option>
+            <option value="Indiana">Indiana</option>
+            <option value="Iowa">Iowa</option>
+            <option value="Kansas">Kansas</option>
+            <option value="Kentucky">Kentucky</option>
+            <option value="Louisiana">Louisiana</option>
+            <option value="Maine">Maine</option>
+            <option value="Maryland">Maryland</option>
+            <option value="Massachusetts">Massachusetts</option>
+            <option value="Michigan">Michigan</option>
+            <option value="Minnesota">Minnesota</option>
+            <option value="Mississippi">Mississippi</option>
+            <option value="Missouri">Missouri</option>
+            <option value="Montana">Montana</option>
+            <option value="Nebraska">Nebraska</option>
+            <option value="Nevada">Nevada</option>
+            <option value="New Hampshire">New Hampshire</option>
+            <option value="New Jersey">New Jersey</option>
+            <option value="New Mexico">New Mexico</option>
+            <option value="New York">New York</option>
+            <option value="North Carolina">North Carolina</option>
+            <option value="North Dakota">North Dakota</option>
+            <option value="Ohio">Ohio</option>
+            <option value="Oklahoma">Oklahoma</option>
+            <option value="Oregon">Oregon</option>
+            <option value="Pennsylvania">Pennsylvania</option>
+            <option value="Rhode Island">Rhode Island</option>
+            <option value="South Carolina">South Carolina</option>
+            <option value="South Dakota">South Dakota</option>
+            <option value="Tennessee">Tennessee</option>
+            <option value="Texas">Texas</option>
+            <option value="Utah">Utah</option>
+            <option value="Vermont">Vermont</option>
+            <option value="Virginia">Virginia</option>
+            <option value="Washington">Washington</option>
+            <option value="West Virginia">West Virginia</option>
+            <option value="Wisconsin">Wisconsin</option>
+            <option value="Wyoming">Wyoming</option>
+            <option value="District of Columbia">District of Columbia</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="btn-save-settings">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Image Cropping Modal -->
+  <div id="crop-modal" class="modal-overlay hidden">
+    <div class="modal-content card" style="max-width: 320px; text-align: center;">
+      <h3 style="font-family: var(--font-display); font-weight: 700; margin-bottom: 5px;">Crop Photo</h3>
+      <p class="input-hint" style="margin-bottom: 15px;">Drag and zoom to focus on your face.</p>
+      
+      <div class="crop-viewport-wrapper" style="margin: 0 auto 15px; position: relative; width: 250px; height: 250px;">
+        <div id="modal-crop-viewport" class="crop-viewport" style="width: 250px; height: 250px; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--border-color); position: relative; background-color: var(--bg-secondary); cursor: move;">
+          <img id="modal-crop-image" src="" alt="To Crop" style="position: absolute; pointer-events: none; user-select: none; max-width: none;">
+        </div>
+      </div>
+
+      <div class="zoom-slider-container" style="display: flex; align-items: center; gap: 10px; margin: 15px 0;">
+        <span style="font-size: 0.9rem;">➖</span>
+        <input type="range" id="modal-crop-zoom" min="1" max="3" step="0.01" value="1" style="flex: 1; cursor: pointer;">
+        <span style="font-size: 0.9rem;">➕</span>
+      </div>
+      
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-crop" style="flex: 1;">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-apply-crop" style="flex: 1;">Apply</button>
+      </div>
+    </div>
   </div>
 
   <!-- Toast Notification System -->
