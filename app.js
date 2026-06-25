@@ -272,11 +272,100 @@ function setupEventListeners() {
     }
   });
 
+  // Registration Wizard Logic
+  document.getElementById('btn-next-step-1').addEventListener('click', () => {
+    const fName = document.getElementById('input-first-name').value.trim();
+    const gender = document.getElementById('select-gender').value;
+    const pref = document.getElementById('select-vote-pref').value;
+    if (!fName || !gender || !pref) {
+      showToast('Please fill out all fields.', 'error');
+      return;
+    }
+    document.getElementById('reg-step-1').classList.remove('wizard-active');
+    document.getElementById('reg-step-1').classList.add('hidden');
+    document.getElementById('reg-step-2').classList.remove('hidden');
+    document.getElementById('reg-step-2').classList.add('wizard-active');
+  });
+
+  document.getElementById('btn-prev-step-2').addEventListener('click', () => {
+    document.getElementById('reg-step-2').classList.remove('wizard-active');
+    document.getElementById('reg-step-2').classList.add('hidden');
+    document.getElementById('reg-step-1').classList.remove('hidden');
+    document.getElementById('reg-step-1').classList.add('wizard-active');
+  });
+
+  document.getElementById('btn-next-step-2').addEventListener('click', () => {
+    if (!selectedRegistrationFileBlob) {
+      showToast('Please upload a photo.', 'error');
+      return;
+    }
+    document.getElementById('reg-step-2').classList.remove('wizard-active');
+    document.getElementById('reg-step-2').classList.add('hidden');
+    document.getElementById('reg-step-3').classList.remove('hidden');
+    document.getElementById('reg-step-3').classList.add('wizard-active');
+  });
+
+  document.getElementById('btn-prev-step-3').addEventListener('click', () => {
+    document.getElementById('reg-step-3').classList.remove('wizard-active');
+    document.getElementById('reg-step-3').classList.add('hidden');
+    document.getElementById('reg-step-2').classList.remove('hidden');
+    document.getElementById('reg-step-2').classList.add('wizard-active');
+  });
+
+  // Profile: Edit Photo Update
+  const updateAvatarInput = document.getElementById('input-update-avatar');
+  if (updateAvatarInput) {
+    updateAvatarInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file || !currentUser) return;
+      
+      const label = document.querySelector('.edit-photo-btn');
+      label.innerText = 'Uploading...';
+      
+      try {
+        const compressedFile = await compressImage(file, 600, 600, 0.7);
+        let fileExt = file.name.split('.').pop();
+        if (compressedFile.type === 'image/jpeg') fileExt = 'jpg';
+        if (compressedFile.type === 'image/png') fileExt = 'png';
+        const filePath = `${currentUser.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabaseClient.storage
+          .from('avatars')
+          .upload(filePath, compressedFile);
+          
+        if (uploadError) throw uploadError;
+        
+        const { data: publicUrlData } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
+        const newAvatarUrl = publicUrlData.publicUrl;
+        
+        const { error: updateError } = await supabaseClient
+          .from('profiles')
+          .update({ avatar_url: newAvatarUrl })
+          .eq('id', currentUser.id);
+          
+        if (updateError) throw updateError;
+        
+        if (currentProfile) currentProfile.avatar_url = newAvatarUrl;
+        document.getElementById('profile-avatar').src = newAvatarUrl;
+        showToast('Profile photo updated!', 'success');
+      } catch (err) {
+        console.error('Update avatar failed:', err);
+        showToast('Failed to update photo.', 'error');
+      } finally {
+        label.innerText = 'Edit Photo';
+      }
+    });
+  }
+
   // Navigation Items
   document.querySelectorAll('.bottom-nav .nav-item').forEach(button => {
     button.addEventListener('click', (e) => {
       const targetScreen = e.currentTarget.getAttribute('data-screen');
       if (targetScreen) {
+        if (targetScreen === 'leaderboard' && (!currentProfile || currentProfile.votes_cast < 100)) {
+          showToast(`You must cast 100 votes to view leaderboards. (Current: ${currentProfile ? currentProfile.votes_cast : 0})`, 'error');
+          return;
+        }
         showScreen(targetScreen);
         if (targetScreen === 'mash') {
           // If matchup list is empty, reload
@@ -455,13 +544,13 @@ async function loadNextMatchup() {
     const imgLeft = document.getElementById('img-left');
     const eloLeft = document.getElementById('elo-left');
     imgLeft.src = data[0].avatar_url || DEFAULT_AVATAR;
-    eloLeft.innerText = `${Math.round(data[0].elo)} ELO`;
+    eloLeft.innerText = `Grade ${eloToGrade(data[0].elo)}`;
 
     // Load right card image and info
     const imgRight = document.getElementById('img-right');
     const eloRight = document.getElementById('elo-right');
     imgRight.src = data[1].avatar_url || DEFAULT_AVATAR;
-    eloRight.innerText = `${Math.round(data[1].elo)} ELO`;
+    eloRight.innerText = `Grade ${eloToGrade(data[1].elo)}`;
 
     // Wait for image loading before hiding spinners
     let loadedCount = 0;
@@ -527,6 +616,10 @@ async function recordVote(side) {
 
     if (error) throw error;
 
+    if (currentProfile) {
+      currentProfile.votes_cast = (currentProfile.votes_cast || 0) + 1;
+    }
+
     showToast('Vote registered!', 'success');
 
   } catch (err) {
@@ -575,16 +668,31 @@ async function loadLeaderboard() {
         </div>`;
     } else {
       leaderboardData.forEach((row) => {
+        const isSelf = row.user_id === currentUser.id;
+        const votes = (currentProfile && currentProfile.votes_cast) || 0;
+        
+        let displayRank = row.relative_rank;
+        let displayElo = `Grade ${eloToGrade(row.elo)}`;
+        
+        if (isSelf) {
+          if (votes < 1000) {
+            displayRank = '--';
+          }
+          if (votes < 250) {
+            displayElo = 'Locked';
+          }
+        }
+
         const rowEl = document.createElement('div');
         rowEl.className = 'rank-row';
         rowEl.innerHTML = `
-          <div class="rank-badge">${row.relative_rank}</div>
+          <div class="rank-badge">${displayRank}</div>
           <img class="rank-avatar" src="${row.avatar_url || DEFAULT_AVATAR}" alt="Profile Avatar">
           <div class="rank-info">
-            <div class="rank-name">${row.user_id === currentUser.id ? 'You' : (row.first_name || 'Climber')}</div>
+            <div class="rank-name">${isSelf ? 'You' : (row.first_name || 'Climber')}</div>
             <div class="rank-meta">${row.state || 'Unknown State'}</div>
           </div>
-          <div class="rank-elo">${Math.round(row.elo)} ELO</div>
+          <div class="rank-elo">${displayElo}</div>
         `;
         listContainer.appendChild(rowEl);
       });
@@ -619,10 +727,22 @@ async function loadLeaderboard() {
       }
 
       if (displayRank !== '--' && currentProfile) {
+        const votes = currentProfile.votes_cast || 0;
         document.getElementById('sticky-user-avatar').src = currentProfile.avatar_url || DEFAULT_AVATAR;
-        document.getElementById('sticky-user-location').innerText = `${userState} (Rank #${displayRank} of ${displayTotal})`;
-        document.getElementById('sticky-user-elo').innerText = `${Math.round(currentProfile.elo)} ELO`;
-        stickyRow.querySelector('.user-rank').innerText = displayRank;
+        
+        if (votes < 1000) {
+          document.getElementById('sticky-user-location').innerText = `${userState} (Rank Locked < 1000 votes)`;
+          stickyRow.querySelector('.user-rank').innerText = '--';
+        } else {
+          document.getElementById('sticky-user-location').innerText = `${userState} (Rank #${displayRank} of ${displayTotal})`;
+          stickyRow.querySelector('.user-rank').innerText = displayRank;
+        }
+
+        if (votes < 250) {
+          document.getElementById('sticky-user-elo').innerText = 'Locked';
+        } else {
+          document.getElementById('sticky-user-elo').innerText = `Grade ${eloToGrade(currentProfile.elo)}`;
+        }
         stickyRow.classList.remove('hidden');
       } else {
         stickyRow.classList.add('hidden');
@@ -656,10 +776,16 @@ async function loadProfileData() {
     // Update profile HTML info
     document.getElementById('profile-avatar').src = profile.avatar_url || DEFAULT_AVATAR;
     document.getElementById('profile-email-display').innerText = displayName;
-    document.getElementById('profile-location-display').innerText = `Location: ${profile.state || 'Unknown'} (${(profile.latitude || 0).toFixed(3)}, ${(profile.longitude || 0).toFixed(3)})`;
+    document.getElementById('profile-location-display').innerText = `State: ${profile.state || 'Unknown'}`;
 
-    document.getElementById('stat-elo').innerText = Math.round(profile.elo);
-    document.getElementById('stat-votes').innerText = profile.votes_cast;
+    const votes = profile.votes_cast || 0;
+    document.getElementById('stat-votes').innerText = votes;
+
+    if (votes < 250) {
+      document.getElementById('stat-elo').innerText = `Locked (${votes}/250)`;
+    } else {
+      document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
+    }
 
     // Fetch user ranks for stats list
     const { data: rankStats, error: statsError } = await supabaseClient.rpc('get_user_ranks', {
@@ -669,7 +795,11 @@ async function loadProfileData() {
       viewer_state: profile.state || 'Unknown State'
     });
 
-    if (!statsError && rankStats && rankStats.length > 0) {
+    if (votes < 1000) {
+      document.getElementById('rank-val-global').innerText = `Locked (${votes}/1000)`;
+      document.getElementById('rank-val-state').innerText = `Locked (${votes}/1000)`;
+      document.getElementById('rank-val-neighborhood').innerText = `Locked (${votes}/1000)`;
+    } else if (!statsError && rankStats && rankStats.length > 0) {
       const stats = rankStats[0];
       document.getElementById('rank-val-global').innerText = stats.global_rank > 0 ? `#${stats.global_rank} of ${stats.total_global}` : 'Not Ranked';
       document.getElementById('rank-val-state').innerText = stats.state_rank > 0 ? `#${stats.state_rank} in ${profile.state}` : 'Not Ranked';
@@ -723,4 +853,20 @@ function showToast(message, type = 'info') {
     toast.classList.remove('show');
     toast.addEventListener('transitionend', () => toast.remove());
   }, 3000);
+}
+
+function eloToGrade(elo) {
+  if (elo === null || elo === undefined) return '--';
+  const val = Math.round(elo);
+  if (val >= 1600) return 'A+';
+  if (val >= 1500) return 'A';
+  if (val >= 1400) return 'A-';
+  if (val >= 1300) return 'B+';
+  if (val >= 1200) return 'B';
+  if (val >= 1100) return 'B-';
+  if (val >= 1000) return 'C+';
+  if (val >= 900) return 'C';
+  if (val >= 800) return 'C-';
+  if (val >= 700) return 'D';
+  return 'F';
 }
