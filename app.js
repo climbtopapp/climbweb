@@ -117,20 +117,37 @@ function showScreen(screenId) {
 
 // --- Event Listeners Setup ---
 function setupEventListeners() {
-  // Auth: Google Sign-In
-  document.getElementById('btn-login-google').addEventListener('click', async () => {
-    try {
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin + window.location.pathname
-        }
-      });
-      if (error) throw error;
-    } catch (err) {
-      console.error('Google login error:', err);
-      showToast('Failed to start Google login.', 'error');
+  // Auth Form: Send Login Link (Magic Link)
+  document.getElementById('form-email').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById('input-email').value.trim();
+    if (!emailInput) return;
+
+    setButtonLoading('btn-send-otp', true, 'Sending...');
+
+    const { data, error } = await supabaseClient.auth.signInWithOtp({
+      email: emailInput,
+      options: {
+        // Set the redirect URL to current location (which will automatically be parsed by Supabase SDK)
+        emailRedirectTo: window.location.origin + window.location.pathname
+      }
+    });
+
+    setButtonLoading('btn-send-otp', false, 'Send Login Link');
+
+    if (error) {
+      showToast(error.message, 'error');
+    } else {
+      showToast('Magic login link sent to your email!', 'success');
+      document.getElementById('auth-step-email').classList.add('hidden');
+      document.getElementById('auth-step-success').classList.remove('hidden');
     }
+  });
+
+  // Auth: Change email back button
+  document.getElementById('btn-back-email').addEventListener('click', () => {
+    document.getElementById('auth-step-success').classList.add('hidden');
+    document.getElementById('auth-step-email').classList.remove('hidden');
   });
 
   // Registration Form: File picker preview & compression
