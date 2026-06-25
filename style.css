@@ -364,58 +364,6 @@ input[type="text"]:focus {
   width: 100%;
 }
 
-/* OAuth Buttons */
-.oauth-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.btn-oauth {
-  background-color: #ffffff;
-  color: #3c4043;
-  border: 1px solid #dadce0;
-  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 12px 24px;
-  width: 100%;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  transition: background-color 0.2s, box-shadow 0.2s;
-}
-
-.btn-oauth:hover:not(:disabled) {
-  background-color: #f8f9fa;
-  box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
-}
-
-.btn-oauth:active:not(:disabled) {
-  background-color: #e8eaed;
-  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-}
-
-.btn-apple {
-  background-color: #000000;
-  color: #ffffff;
-  border: none;
-}
-
-.btn-apple:hover:not(:disabled) {
-  background-color: #333333;
-}
-
-.btn-apple:active:not(:disabled) {
-  background-color: #000000;
-}
-
-.oauth-icon {
-  flex-shrink: 0;
-}
-
 /* Image Upload Widget */
 .image-upload-container {
   display: flex;
