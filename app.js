@@ -557,6 +557,9 @@ function setupEventListeners() {
 
   // Profile: Logout Button
   document.getElementById('btn-logout').addEventListener('click', async () => {
+    const confirmLogout = window.confirm("Are you sure you want to sign out?");
+    if (!confirmLogout) return;
+
     showToast('Signing out...', 'info');
     await supabaseClient.auth.signOut();
   });
@@ -720,6 +723,12 @@ async function loadNextMatchup() {
       loadedCount++;
       if (loadedCount === 2) {
         document.querySelectorAll('.card-loader').forEach(loader => loader.classList.add('hidden'));
+        const cardLeft = document.getElementById('card-left');
+        const cardRight = document.getElementById('card-right');
+        cardLeft.classList.remove('fade-out');
+        cardRight.classList.remove('fade-out');
+        cardLeft.style.pointerEvents = 'auto';
+        cardRight.style.pointerEvents = 'auto';
       }
     };
 
@@ -793,12 +802,15 @@ async function recordVote(side) {
     setTimeout(() => {
       document.getElementById('card-left').style.borderColor = 'var(--border-color)';
       document.getElementById('card-right').style.borderColor = 'var(--border-color)';
-      document.getElementById('card-left').style.pointerEvents = 'auto';
-      document.getElementById('card-right').style.pointerEvents = 'auto';
+      
+      document.getElementById('card-left').classList.add('fade-out');
+      document.getElementById('card-right').classList.add('fade-out');
 
-      // Load next comparison
-      loadNextMatchup();
-    }, 400);
+      setTimeout(() => {
+        // Load next comparison
+        loadNextMatchup();
+      }, 300);
+    }, 300);
   }
 }
 
@@ -838,7 +850,11 @@ async function loadLeaderboard() {
         let displayElo = `Grade ${eloToGrade(row.elo)}`;
         
         if (isSelf) {
-          if (votes < 1000) {
+          let rankThreshold = 1000;
+          if (currentLeaderboardTab === 'global') rankThreshold = 500;
+          if (currentLeaderboardTab === 'state') rankThreshold = 750;
+
+          if (votes < rankThreshold) {
             displayRank = '--';
           }
           if (votes < 250) {
@@ -944,8 +960,26 @@ async function loadProfileData() {
     const votes = profile.votes_cast || 0;
     document.getElementById('stat-votes').innerText = votes;
 
+    if (votes < 500) {
+      document.getElementById('stat-global').innerText = 'Locked';
+    } else {
+      document.getElementById('stat-global').innerText = '--';
+    }
+
+    if (votes < 750) {
+      document.getElementById('stat-state').innerText = 'Locked';
+    } else {
+      document.getElementById('stat-state').innerText = '--';
+    }
+
+    if (votes < 1000) {
+      document.getElementById('stat-local').innerText = 'Locked';
+    } else {
+      document.getElementById('stat-local').innerText = '--';
+    }
+
     if (votes < 250) {
-      document.getElementById('stat-elo').innerText = `${250 - votes} more votes needed`;
+      document.getElementById('stat-elo').innerText = 'Locked';
     } else {
       document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
     }
@@ -968,15 +1002,10 @@ async function loadProfileData() {
       viewer_state: profile.state || 'Unknown State'
     });
 
-    if (votes < 1000) {
-      document.getElementById('rank-val-global').innerText = `${1000 - votes} more votes needed`;
-      document.getElementById('rank-val-state').innerText = `${1000 - votes} more votes needed`;
-      document.getElementById('rank-val-neighborhood').innerText = `${1000 - votes} more votes needed`;
-    } else if (!statsError && rankStats && rankStats.length > 0) {
-      const stats = rankStats[0];
-      document.getElementById('rank-val-global').innerText = stats.global_rank > 0 ? `#${stats.global_rank} of ${stats.total_global}` : 'Not Ranked';
-      document.getElementById('rank-val-state').innerText = stats.state_rank > 0 ? `#${stats.state_rank} in ${profile.state}` : 'Not Ranked';
-      document.getElementById('rank-val-neighborhood').innerText = stats.neighborhood_rank > 0 ? `#${stats.neighborhood_rank} within 5mi` : 'Not Ranked';
+    if (!statsError && rankStats && rankStats.length > 0) {
+      document.getElementById('stat-global').innerText = votes >= 500 ? (rankStats[0].total_global > 0 ? `${rankStats[0].global_rank} / ${rankStats[0].total_global}` : '--') : 'Locked';
+      document.getElementById('stat-state').innerText = votes >= 750 ? (rankStats[0].total_state > 0 ? `${rankStats[0].state_rank} / ${rankStats[0].total_state}` : '--') : 'Locked';
+      document.getElementById('stat-local').innerText = votes >= 1000 ? (rankStats[0].total_neighborhood > 0 ? `${rankStats[0].neighborhood_rank} / ${rankStats[0].total_neighborhood}` : '--') : 'Locked';
     }
 
   } catch (err) {
