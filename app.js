@@ -942,21 +942,21 @@ async function loadProfileData() {
     document.getElementById('stat-votes').innerText = votes;
 
     if (votes < 500) {
-      document.getElementById('stat-global').innerText = 'Locked';
+      document.getElementById('rank-val-global').innerText = 'Locked';
     } else {
-      document.getElementById('stat-global').innerText = '--';
+      document.getElementById('rank-val-global').innerText = '--';
     }
 
     if (votes < 750) {
-      document.getElementById('stat-state').innerText = 'Locked';
+      document.getElementById('rank-val-state').innerText = 'Locked';
     } else {
-      document.getElementById('stat-state').innerText = '--';
+      document.getElementById('rank-val-state').innerText = '--';
     }
 
     if (votes < 1000) {
-      document.getElementById('stat-local').innerText = 'Locked';
+      document.getElementById('rank-val-neighborhood').innerText = 'Locked';
     } else {
-      document.getElementById('stat-local').innerText = '--';
+      document.getElementById('rank-val-neighborhood').innerText = '--';
     }
 
     if (votes < 250) {
@@ -984,9 +984,9 @@ async function loadProfileData() {
     });
 
     if (!statsError && rankStats && rankStats.length > 0) {
-      document.getElementById('stat-global').innerText = votes >= 500 ? (rankStats[0].total_global > 0 ? `${rankStats[0].global_rank} / ${rankStats[0].total_global}` : '--') : 'Locked';
-      document.getElementById('stat-state').innerText = votes >= 750 ? (rankStats[0].total_state > 0 ? `${rankStats[0].state_rank} / ${rankStats[0].total_state}` : '--') : 'Locked';
-      document.getElementById('stat-local').innerText = votes >= 1000 ? (rankStats[0].total_neighborhood > 0 ? `${rankStats[0].neighborhood_rank} / ${rankStats[0].total_neighborhood}` : '--') : 'Locked';
+      document.getElementById('rank-val-global').innerText = votes >= 500 ? (rankStats[0].total_global > 0 ? `${rankStats[0].global_rank} / ${rankStats[0].total_global}` : '--') : 'Locked';
+      document.getElementById('rank-val-state').innerText = votes >= 750 ? (rankStats[0].total_state > 0 ? `${rankStats[0].state_rank} / ${rankStats[0].total_state}` : '--') : 'Locked';
+      document.getElementById('rank-val-neighborhood').innerText = votes >= 1000 ? (rankStats[0].total_neighborhood > 0 ? `${rankStats[0].neighborhood_rank} / ${rankStats[0].total_neighborhood}` : '--') : 'Locked';
     }
 
   } catch (err) {
