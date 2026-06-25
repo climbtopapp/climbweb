@@ -812,14 +812,12 @@ input[type="text"]:focus {
 }
 
 .edit-photo-btn {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 4px 12px;
-  font-size: 0.75rem;
-  box-shadow: var(--shadow-md);
+  margin-top: 10px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  box-shadow: var(--shadow-sm);
   white-space: nowrap;
+  display: inline-block;
 }
 
 .profile-header-info {
