@@ -1027,6 +1027,15 @@ input[type="text"]:focus {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
+.mash-card {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+}
+
+.mash-card.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
 @keyframes modal-slide-in {
   from {
     transform: scale(0.9) translateY(20px);
