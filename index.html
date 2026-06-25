@@ -60,7 +60,7 @@
     <section id="screen-register" class="screen">
       <div class="card register-card">
         <h2 class="section-title">Complete Profile</h2>
-        <p class="section-desc">Upload a photo and enable location to start participating in Climb.</p>
+        <p class="section-desc">Fill out your details and upload a photo to start climbing.</p>
         
         <form id="form-register">
           <!-- Image upload and preview -->
@@ -76,13 +76,100 @@
             <p class="input-hint text-center">Your photo will be compressed to save space.</p>
           </div>
 
+          <!-- First Name -->
+          <div class="input-group">
+            <label for="input-first-name">First Name</label>
+            <input type="text" id="input-first-name" placeholder="Your first name" required>
+          </div>
+
+          <!-- Gender -->
+          <div class="input-group">
+            <label for="select-gender">I am</label>
+            <select id="select-gender" class="form-select" required>
+              <option value="" disabled selected>Select your gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="nonbinary">Non-binary</option>
+            </select>
+          </div>
+
+          <!-- Vote Preference -->
+          <div class="input-group">
+            <label for="select-vote-pref">I want to vote on</label>
+            <select id="select-vote-pref" class="form-select" required>
+              <option value="" disabled selected>Who do you want to rank?</option>
+              <option value="male">Men</option>
+              <option value="female">Women</option>
+              <option value="everyone">Everyone</option>
+            </select>
+          </div>
+
+          <!-- State Picker -->
+          <div class="input-group">
+            <label for="select-state">State</label>
+            <select id="select-state" class="form-select" required>
+              <option value="" disabled selected>Select your state</option>
+              <option value="Alabama">Alabama</option>
+              <option value="Alaska">Alaska</option>
+              <option value="Arizona">Arizona</option>
+              <option value="Arkansas">Arkansas</option>
+              <option value="California">California</option>
+              <option value="Colorado">Colorado</option>
+              <option value="Connecticut">Connecticut</option>
+              <option value="Delaware">Delaware</option>
+              <option value="Florida">Florida</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Hawaii">Hawaii</option>
+              <option value="Idaho">Idaho</option>
+              <option value="Illinois">Illinois</option>
+              <option value="Indiana">Indiana</option>
+              <option value="Iowa">Iowa</option>
+              <option value="Kansas">Kansas</option>
+              <option value="Kentucky">Kentucky</option>
+              <option value="Louisiana">Louisiana</option>
+              <option value="Maine">Maine</option>
+              <option value="Maryland">Maryland</option>
+              <option value="Massachusetts">Massachusetts</option>
+              <option value="Michigan">Michigan</option>
+              <option value="Minnesota">Minnesota</option>
+              <option value="Mississippi">Mississippi</option>
+              <option value="Missouri">Missouri</option>
+              <option value="Montana">Montana</option>
+              <option value="Nebraska">Nebraska</option>
+              <option value="Nevada">Nevada</option>
+              <option value="New Hampshire">New Hampshire</option>
+              <option value="New Jersey">New Jersey</option>
+              <option value="New Mexico">New Mexico</option>
+              <option value="New York">New York</option>
+              <option value="North Carolina">North Carolina</option>
+              <option value="North Dakota">North Dakota</option>
+              <option value="Ohio">Ohio</option>
+              <option value="Oklahoma">Oklahoma</option>
+              <option value="Oregon">Oregon</option>
+              <option value="Pennsylvania">Pennsylvania</option>
+              <option value="Rhode Island">Rhode Island</option>
+              <option value="South Carolina">South Carolina</option>
+              <option value="South Dakota">South Dakota</option>
+              <option value="Tennessee">Tennessee</option>
+              <option value="Texas">Texas</option>
+              <option value="Utah">Utah</option>
+              <option value="Vermont">Vermont</option>
+              <option value="Virginia">Virginia</option>
+              <option value="Washington">Washington</option>
+              <option value="West Virginia">West Virginia</option>
+              <option value="Wisconsin">Wisconsin</option>
+              <option value="Wyoming">Wyoming</option>
+              <option value="District of Columbia">District of Columbia</option>
+            </select>
+          </div>
+
           <!-- Location Indicator -->
           <div class="location-status-container">
             <div class="location-info">
               <span class="location-icon">📍</span>
               <div>
                 <h4 id="location-title">Detecting Location...</h4>
-                <p id="location-details" class="input-hint">Allow location access to place you on State and Neighborhood leaderboards.</p>
+                <p id="location-details" class="input-hint">Allow location access for neighborhood rankings.</p>
               </div>
             </div>
             <button type="button" class="btn btn-secondary btn-sm" id="btn-retry-location">Detect</button>
