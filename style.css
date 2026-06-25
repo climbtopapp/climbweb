@@ -795,6 +795,12 @@ input[type="text"]:focus {
 }
 
 /* Profile Screen CSS */
+.profile-avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
 .profile-large-avatar {
   width: 110px;
   height: 110px;
@@ -802,7 +808,18 @@ input[type="text"]:focus {
   object-fit: cover;
   border: 4px solid var(--primary-light);
   box-shadow: var(--shadow-sm);
-  margin-bottom: 12px;
+  display: block;
+}
+
+.edit-photo-btn {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  box-shadow: var(--shadow-md);
+  white-space: nowrap;
 }
 
 .profile-header-info {
