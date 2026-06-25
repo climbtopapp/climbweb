@@ -41,7 +41,7 @@ async function initAuthListener() {
   if (error) {
     console.error('Error fetching session:', error);
   }
-  
+
   handleAuthStateChange(session?.user || null);
 
   // Listen for auth state modifications
@@ -66,23 +66,23 @@ async function handleAuthStateChange(user) {
 
 async function fetchUserProfile() {
   if (!currentUser) return;
-  
+
   try {
     const { data, error } = await supabaseClient
       .from('profiles')
       .select('*')
       .eq('id', currentUser.id)
       .single();
-      
+
     if (error) {
       // If profile doesn't exist yet, wait (it might be created by trigger)
       console.warn('Profile not found, retrying...');
       setTimeout(fetchUserProfile, 1000);
       return;
     }
-    
+
     currentProfile = data;
-    
+
     // Check if user has completed profile (photo + name + gender)
     if (!currentProfile.avatar_url || !currentProfile.first_name || !currentProfile.gender) {
       showScreen('register');
@@ -93,7 +93,7 @@ async function fetchUserProfile() {
       userCoordinates.lng = currentProfile.longitude;
       userState = currentProfile.state || "Unknown State";
       userVotePreference = currentProfile.vote_preference || "everyone";
-      
+
       // Go to main Mash screen
       showScreen('mash');
       loadNextMatchup();
@@ -117,37 +117,20 @@ function showScreen(screenId) {
 
 // --- Event Listeners Setup ---
 function setupEventListeners() {
-  // Auth Form: Send Login Link (Magic Link)
-  document.getElementById('form-email').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const emailInput = document.getElementById('input-email').value.trim();
-    if (!emailInput) return;
-    
-    setButtonLoading('btn-send-otp', true, 'Sending...');
-    
-    const { data, error } = await supabaseClient.auth.signInWithOtp({
-      email: emailInput,
-      options: {
-        // Set the redirect URL to current location (which will automatically be parsed by Supabase SDK)
-        emailRedirectTo: window.location.origin + window.location.pathname
-      }
-    });
-    
-    setButtonLoading('btn-send-otp', false, 'Send Login Link');
-    
-    if (error) {
-      showToast(error.message, 'error');
-    } else {
-      showToast('Magic login link sent to your email!', 'success');
-      document.getElementById('auth-step-email').classList.add('hidden');
-      document.getElementById('auth-step-success').classList.remove('hidden');
+  // Auth: Google Sign-In
+  document.getElementById('btn-login-google').addEventListener('click', async () => {
+    try {
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + window.location.pathname
+        }
+      });
+      if (error) throw error;
+    } catch (err) {
+      console.error('Google login error:', err);
+      showToast('Failed to start Google login.', 'error');
     }
-  });
-
-  // Auth: Change email back button
-  document.getElementById('btn-back-email').addEventListener('click', () => {
-    document.getElementById('auth-step-success').classList.add('hidden');
-    document.getElementById('auth-step-email').classList.remove('hidden');
   });
 
   // Registration Form: File picker preview & compression
@@ -157,13 +140,13 @@ function setupEventListeners() {
 
     const placeholder = document.getElementById('avatar-preview-placeholder');
     const previewImg = document.getElementById('avatar-preview-img');
-    
+
     try {
       showToast('Processing photo...', 'info');
-      
+
       let imageBlob = file;
       let isCompressed = false;
-      
+
       try {
         // Try compressing and cropping to a 500x500 square
         imageBlob = await compressImage(file, 500, 0.75);
@@ -172,14 +155,14 @@ function setupEventListeners() {
         console.warn('Canvas compression/cropping failed, using raw file:', compressErr);
         imageBlob = file;
       }
-      
+
       selectedRegistrationFileBlob = imageBlob;
       selectedRegistrationFileType = isCompressed ? 'image/jpeg' : file.type;
-      
+
       previewImg.src = URL.createObjectURL(imageBlob);
       placeholder.classList.add('hidden');
       previewImg.classList.remove('hidden');
-      
+
       checkRegistrationSubmittable();
     } catch (err) {
       console.error(err);
@@ -222,7 +205,7 @@ function setupEventListeners() {
       } else if (selectedRegistrationFileType === 'image/webp') {
         fileExt = 'webp';
       }
-      
+
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${currentUser.id}/${fileName}`;
 
@@ -260,10 +243,10 @@ function setupEventListeners() {
       userState = selectedState;
       userVotePreference = votePref;
       showToast('Profile ready! Welcome to Climb.', 'success');
-      
+
       // Fetch latest profile state and navigate
       await fetchUserProfile();
-      
+
     } catch (err) {
       console.error('Registration failed:', err);
       showToast(err.message || 'Failed to complete registration.', 'error');
@@ -323,7 +306,7 @@ function compressImage(file, targetSize, quality) {
         // Handle natural dimensions, especially for SVGs
         let sWidth = img.naturalWidth || img.width;
         let sHeight = img.naturalHeight || img.height;
-        
+
         if (!sWidth || !sHeight || sWidth <= 0 || sHeight <= 0) {
           reject(new Error('Invalid image dimensions'));
           return;
@@ -333,20 +316,20 @@ function compressImage(file, targetSize, quality) {
         canvas.width = targetSize;
         canvas.height = targetSize;
         const ctx = canvas.getContext('2d');
-        
+
         // Calculate source rectangle for center crop to square
         let sx = 0;
         let sy = 0;
         let sSize = Math.min(sWidth, sHeight);
-        
+
         if (sWidth > sHeight) {
           sx = (sWidth - sHeight) / 2;
         } else if (sHeight > sWidth) {
           sy = (sHeight - sWidth) / 2;
         }
-        
+
         ctx.drawImage(img, sx, sy, sSize, sSize, 0, 0, targetSize, targetSize);
-        
+
         canvas.toBlob((blob) => {
           if (blob) {
             resolve(blob);
@@ -380,10 +363,10 @@ function initLocationDetection() {
     async (position) => {
       userCoordinates.lat = position.coords.latitude;
       userCoordinates.lng = position.coords.longitude;
-      
+
       locTitle.innerText = "Geocoding location...";
       locDetails.innerText = `Lat: ${userCoordinates.lat.toFixed(4)}, Lng: ${userCoordinates.lng.toFixed(4)}`;
-      
+
       try {
         // Reverse Geocode state via OpenStreetMap Nominatim API
         const response = await fetch(
@@ -391,12 +374,12 @@ function initLocationDetection() {
           { headers: { 'Accept-Language': 'en' } }
         );
         const data = await response.json();
-        
+
         userState = data.address?.state || data.address?.region || "Unknown State";
-        
+
         locTitle.innerText = `Located: ${userState}`;
         locDetails.innerText = `Lat: ${userCoordinates.lat.toFixed(4)}, Lng: ${userCoordinates.lng.toFixed(4)}`;
-        
+
         checkRegistrationSubmittable();
       } catch (err) {
         console.error('Reverse Geocode error:', err);
@@ -421,7 +404,7 @@ function checkRegistrationSubmittable() {
   const gender = document.getElementById('select-gender').value;
   const votePref = document.getElementById('select-vote-pref').value;
   const selectedState = document.getElementById('select-state').value;
-  
+
   if (selectedRegistrationFileBlob && userCoordinates.lat !== null && firstName && gender && votePref && selectedState) {
     submitBtn.removeAttribute('disabled');
   } else {
@@ -474,7 +457,7 @@ async function loadNextMatchup() {
 
     imgLeft.onload = hideLoaderIfReady;
     imgRight.onload = hideLoaderIfReady;
-    
+
     // In case images are already cached
     if (imgLeft.complete) hideLoaderIfReady();
     if (imgRight.complete) hideLoaderIfReady();
@@ -502,9 +485,9 @@ async function recordVote(side) {
 
   const leftUser = currentMatchup[0];
   const rightUser = currentMatchup[1];
-  
+
   let winnerId, loserId;
-  
+
   if (side === 'left') {
     winnerId = leftUser.id;
     loserId = rightUser.id;
@@ -526,7 +509,7 @@ async function recordVote(side) {
     });
 
     if (error) throw error;
-    
+
     showToast('Vote registered!', 'success');
 
   } catch (err) {
@@ -539,7 +522,7 @@ async function recordVote(side) {
       document.getElementById('card-right').style.borderColor = 'var(--border-color)';
       document.getElementById('card-left').style.pointerEvents = 'auto';
       document.getElementById('card-right').style.pointerEvents = 'auto';
-      
+
       // Load next comparison
       loadNextMatchup();
     }, 400);
@@ -567,7 +550,7 @@ async function loadLeaderboard() {
 
     // 2. Populate rankings in UI
     listContainer.innerHTML = '';
-    
+
     if (!leaderboardData || leaderboardData.length === 0) {
       listContainer.innerHTML = `
         <div class="text-center py-4" style="color: var(--text-muted); font-size: 0.9rem; padding: 40px 0;">
@@ -599,7 +582,7 @@ async function loadLeaderboard() {
     });
 
     const stickyRow = document.getElementById('user-sticky-rank');
-    
+
     if (statsError || !rankStats || rankStats.length === 0) {
       stickyRow.classList.add('hidden');
     } else {
@@ -657,7 +640,7 @@ async function loadProfileData() {
     document.getElementById('profile-avatar').src = profile.avatar_url || DEFAULT_AVATAR;
     document.getElementById('profile-email-display').innerText = displayName;
     document.getElementById('profile-location-display').innerText = `Location: ${profile.state || 'Unknown'} (${(profile.latitude || 0).toFixed(3)}, ${(profile.longitude || 0).toFixed(3)})`;
-    
+
     document.getElementById('stat-elo').innerText = Math.round(profile.elo);
     document.getElementById('stat-votes').innerText = profile.votes_cast;
 
@@ -714,11 +697,11 @@ function showToast(message, type = 'info') {
   toast.className = `toast toast-${type}`;
   toast.innerText = message;
   container.appendChild(toast);
-  
+
   // Force browser layout reflow to trigger slide-in transition
   toast.offsetHeight;
   toast.classList.add('show');
-  
+
   setTimeout(() => {
     toast.classList.remove('show');
     toast.addEventListener('transitionend', () => toast.remove());
