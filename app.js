@@ -303,35 +303,6 @@ function setupEventListeners() {
       const file = e.target.files[0];
       if (!file || !currentUser) return;
       
-      const label = document.querySelector('.edit-photo-btn');
-      label.innerText = 'Uploading...';
-      
-      try {
-        const compressedFile = await compressImage(file, 600, 600, 0.7);
-        let fileExt = file.name.split('.').pop();
-        if (compressedFile.type === 'image/jpeg') fileExt = 'jpg';
-        if (compressedFile.type === 'image/png') fileExt = 'png';
-        const filePath = `${currentUser.id}/${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabaseClient.storage
-          .from('avatars')
-          .upload(filePath, compressedFile);
-          
-        if (uploadError) throw uploadError;
-        
-        const { data: publicUrlData } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
-        const newAvatarUrl = publicUrlData.publicUrl;
-        
-        const { error: updateError } = await supabaseClient
-          .from('profiles')
-          .update({ avatar_url: newAvatarUrl })
-          .eq('id', currentUser.id);
-          
-        if (updateError) throw updateError;
-        
-        if (currentProfile) currentProfile.avatar_url = newAvatarUrl;
-        document.getElementById('profile-avatar').src = newAvatarUrl;
-        showToast('Profile photo updated!', 'success');
       openCropModal(file, 'profile');
     });
   }
@@ -363,6 +334,36 @@ function setupEventListeners() {
   const btnSettings = document.getElementById('btn-settings');
   const btnCloseSettings = document.getElementById('btn-close-settings');
   const formSettings = document.getElementById('form-settings');
+  
+  // Surrounding Ranks Modal Controls
+  const surroundingModal = document.getElementById('surrounding-modal');
+  const btnSurrounding = document.getElementById('btn-surrounding-ranks');
+  const btnCloseSurrounding = document.getElementById('btn-close-surrounding');
+  let currentSurroundingTab = 'global';
+
+  if (btnSurrounding) {
+    btnSurrounding.addEventListener('click', () => {
+      if (currentProfile && currentProfile.votes_cast >= 2500) {
+        surroundingModal.classList.remove('hidden');
+        loadSurroundingLeaderboard();
+      }
+    });
+  }
+
+  if (btnCloseSurrounding) {
+    btnCloseSurrounding.addEventListener('click', () => {
+      surroundingModal.classList.add('hidden');
+    });
+  }
+
+  document.querySelectorAll('.tab-btn-surrounding').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.tab-btn-surrounding').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentSurroundingTab = e.target.getAttribute('data-tab');
+      loadSurroundingLeaderboard();
+    });
+  });
   
   if (btnSettings) {
     btnSettings.addEventListener('click', () => {
@@ -949,6 +950,16 @@ async function loadProfileData() {
       document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
     }
 
+    if (votes < 2500) {
+      const btnSurrounding = document.getElementById('btn-surrounding-ranks');
+      btnSurrounding.setAttribute('disabled', 'true');
+      btnSurrounding.innerText = `See Surrounding Ranks (${2500 - votes} more votes needed)`;
+    } else {
+      const btnSurrounding = document.getElementById('btn-surrounding-ranks');
+      btnSurrounding.removeAttribute('disabled');
+      btnSurrounding.innerText = 'See Surrounding Ranks';
+    }
+
     // Fetch user ranks for stats list
     const { data: rankStats, error: statsError } = await supabaseClient.rpc('get_user_ranks', {
       user_id_param: currentUser.id,
@@ -1140,4 +1151,61 @@ function getCroppedImageBlob(targetSize = 500) {
     };
     img.onerror = (err) => reject(err);
   });
+}
+
+// --- Surrounding Ranks Functions ---
+async function loadSurroundingLeaderboard() {
+  if (!currentUser) return;
+
+  const listContainer = document.getElementById('surrounding-leaderboard-list');
+  listContainer.innerHTML = '<div class="text-center py-4"><div class="spinner" style="margin: 20px auto;"></div><p style="color: var(--text-muted);">Fetching surrounding ranks...</p></div>';
+
+  try {
+    const { data: leaderboardData, error } = await supabaseClient.rpc('get_surrounding_leaderboard', {
+      user_id_param: currentUser.id,
+      viewer_lat: userCoordinates.lat || 0,
+      viewer_lon: userCoordinates.lng || 0,
+      viewer_state: userState || 'Unknown State',
+      lb_type: currentSurroundingTab
+    });
+
+    if (error) throw error;
+
+    listContainer.innerHTML = '';
+
+    if (!leaderboardData || leaderboardData.length === 0) {
+      listContainer.innerHTML = `
+        <div class="text-center py-4" style="color: var(--text-muted); font-size: 0.9rem; padding: 40px 0;">
+          No surrounding rank records found.
+        </div>`;
+    } else {
+      leaderboardData.forEach((row) => {
+        const isSelf = row.user_id === currentUser.id;
+        let displayRank = row.relative_rank;
+        let displayElo = \`Grade \${eloToGrade(row.elo)}\`;
+
+        const rowEl = document.createElement('div');
+        rowEl.className = 'rank-row';
+        if (isSelf) {
+          rowEl.style.backgroundColor = 'var(--bg-secondary)';
+          rowEl.style.border = '2px solid var(--primary-color)';
+        }
+        
+        rowEl.innerHTML = \`
+          <div class="rank-badge">\${displayRank}</div>
+          <img class="rank-avatar" src="\${row.avatar_url || DEFAULT_AVATAR}" alt="Profile Avatar">
+          <div class="rank-info">
+            <div class="rank-name">\${isSelf ? 'You' : (row.first_name || 'Climber')}</div>
+            <div class="rank-meta">\${row.state || 'Unknown State'}</div>
+          </div>
+          <div class="rank-elo">\${displayElo}</div>
+        \`;
+        listContainer.appendChild(rowEl);
+      });
+    }
+
+  } catch (err) {
+    console.error('Failed to load surrounding leaderboard:', err);
+    showToast('Failed to load surrounding rankings.', 'error');
+  }
 }
