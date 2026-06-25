@@ -372,6 +372,7 @@ function setupEventListeners() {
       document.getElementById('input-settings-gender').value = currentProfile.gender ? (currentProfile.gender.charAt(0).toUpperCase() + currentProfile.gender.slice(1)) : '';
       document.getElementById('select-settings-vote-pref').value = currentProfile.vote_preference || 'everyone';
       document.getElementById('select-settings-state').value = currentProfile.state || '';
+      document.getElementById('settings-avatar-preview').src = currentProfile.avatar_url || DEFAULT_AVATAR;
       
       settingsModal.classList.remove('hidden');
     });
@@ -524,12 +525,13 @@ function setupEventListeners() {
           
           if (currentProfile) currentProfile.avatar_url = newAvatarUrl;
           document.getElementById('profile-avatar').src = newAvatarUrl;
+          document.getElementById('settings-avatar-preview').src = newAvatarUrl;
           showToast('Profile photo updated!', 'success');
         } catch (err) {
           console.error(err);
           showToast('Failed to update photo.', 'error');
         } finally {
-          label.innerText = 'Edit Photo';
+          label.innerText = 'Change Photo';
         }
       }
     } catch (err) {
@@ -1038,7 +1040,7 @@ function updateNavigationLocks() {
   document.querySelectorAll('.bottom-nav .nav-item[data-screen="leaderboard"]').forEach(btn => {
     if (isLocked) {
       btn.classList.add('locked-nav');
-      btn.querySelector('.nav-label').innerText = 'Leaderboard 🔒';
+      btn.querySelector('.nav-label').innerText = `${100 - votes} More Votes`;
     } else {
       btn.classList.remove('locked-nav');
       btn.querySelector('.nav-label').innerText = 'Leaderboard';
