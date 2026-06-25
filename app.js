@@ -12,6 +12,7 @@ let currentUser = null;
 let currentProfile = null;
 let currentMatchup = [];
 let selectedRegistrationFileBlob = null;
+let selectedRegistrationFileType = "image/jpeg";
 let userCoordinates = { lat: null, lng: null };
 let userState = "";
 let userVotePreference = "everyone";
@@ -158,12 +159,24 @@ function setupEventListeners() {
     const previewImg = document.getElementById('avatar-preview-img');
     
     try {
-      showToast('Compressing photo...', 'info');
-      // Compress to max 500x500px, 75% quality Jpeg to save Supabase free tier storage
-      const compressedBlob = await compressImage(file, 500, 500, 0.75);
-      selectedRegistrationFileBlob = compressedBlob;
+      showToast('Processing photo...', 'info');
       
-      previewImg.src = URL.createObjectURL(compressedBlob);
+      let imageBlob = file;
+      let isCompressed = false;
+      
+      try {
+        // Try compressing and cropping to a 500x500 square
+        imageBlob = await compressImage(file, 500, 0.75);
+        isCompressed = true;
+      } catch (compressErr) {
+        console.warn('Canvas compression/cropping failed, using raw file:', compressErr);
+        imageBlob = file;
+      }
+      
+      selectedRegistrationFileBlob = imageBlob;
+      selectedRegistrationFileType = isCompressed ? 'image/jpeg' : file.type;
+      
+      previewImg.src = URL.createObjectURL(imageBlob);
       placeholder.classList.add('hidden');
       previewImg.classList.remove('hidden');
       
@@ -198,15 +211,26 @@ function setupEventListeners() {
     setButtonLoading('btn-submit-registration', true, 'Uploading details...');
 
     try {
-      // 1. Upload compressed avatar to storage bucket 'avatars'
-      const fileExt = 'jpg';
-      const fileName = `${currentUser.id}_${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      // 1. Upload avatar to storage bucket 'avatars' in the user's specific folder
+      let fileExt = 'jpg';
+      if (selectedRegistrationFileType === 'image/png') {
+        fileExt = 'png';
+      } else if (selectedRegistrationFileType === 'image/svg+xml') {
+        fileExt = 'svg';
+      } else if (selectedRegistrationFileType === 'image/gif') {
+        fileExt = 'gif';
+      } else if (selectedRegistrationFileType === 'image/webp') {
+        fileExt = 'webp';
+      }
+      
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${currentUser.id}/${fileName}`;
 
       const { error: uploadError } = await supabaseClient.storage
         .from('avatars')
         .upload(filePath, selectedRegistrationFileBlob, {
           cacheControl: '3600',
+          contentType: selectedRegistrationFileType,
           upsert: true
         });
 
@@ -287,8 +311,8 @@ function setupEventListeners() {
   });
 }
 
-// --- Image Compression Engine ---
-function compressImage(file, maxWidth, maxHeight, quality) {
+// --- Image Compression Engine with Square Center-Cropping ---
+function compressImage(file, targetSize, quality) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -296,27 +320,32 @@ function compressImage(file, maxWidth, maxHeight, quality) {
       const img = new Image();
       img.src = event.target.result;
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
+        // Handle natural dimensions, especially for SVGs
+        let sWidth = img.naturalWidth || img.width;
+        let sHeight = img.naturalHeight || img.height;
         
-        // Calculate new dimensions matching max constraints
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
-          }
+        if (!sWidth || !sHeight || sWidth <= 0 || sHeight <= 0) {
+          reject(new Error('Invalid image dimensions'));
+          return;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetSize;
+        canvas.height = targetSize;
+        const ctx = canvas.getContext('2d');
+        
+        // Calculate source rectangle for center crop to square
+        let sx = 0;
+        let sy = 0;
+        let sSize = Math.min(sWidth, sHeight);
+        
+        if (sWidth > sHeight) {
+          sx = (sWidth - sHeight) / 2;
+        } else if (sHeight > sWidth) {
+          sy = (sHeight - sWidth) / 2;
         }
         
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
+        ctx.drawImage(img, sx, sy, sSize, sSize, 0, 0, targetSize, targetSize);
         
         canvas.toBlob((blob) => {
           if (blob) {
