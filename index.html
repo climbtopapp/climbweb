@@ -242,8 +242,8 @@
           <span class="nav-label">Leaderboard</span>
         </button>
         <button class="nav-item" data-screen="profile">
-          <span class="nav-icon">👤</span>
-          <span class="nav-label">Profile</span>
+          <span class="nav-icon">🧗</span>
+          <span class="nav-label">Me</span>
         </button>
       </nav>
     </section>
@@ -291,19 +291,15 @@
           <span class="nav-label">Leaderboard</span>
         </button>
         <button class="nav-item" data-screen="profile">
-          <span class="nav-icon">👤</span>
-          <span class="nav-label">Profile</span>
+          <span class="nav-icon">🧗</span>
+          <span class="nav-label">Me</span>
         </button>
       </nav>
     </section>
 
-    <!-- Screen: Profile -->
+    <!-- Screen: Profile / Me -->
     <section id="screen-profile" class="screen">
-      <header class="app-header">
-        <h1 class="brand-title-sm">My Profile</h1>
-      </header>
-
-      <div class="profile-card card">
+      <div class="profile-card card" style="margin-top: 20px;">
         <div class="profile-header-info">
           <div class="profile-avatar-wrapper">
             <img id="profile-avatar" src="" alt="My Photo" class="profile-large-avatar">
@@ -340,7 +336,7 @@
           </div>
         </div>
 
-        <button class="btn btn-secondary btn-block" id="btn-logout">Sign Out</button>
+        <button class="btn btn-secondary btn-block" id="btn-surrounding-ranks" style="margin-top: 15px;" disabled>See Surrounding Ranks (Requires 2,500 Votes)</button>
       </div>
 
       <!-- Bottom Nav -->
@@ -354,8 +350,8 @@
           <span class="nav-label">Leaderboard</span>
         </button>
         <button class="nav-item active" data-screen="profile">
-          <span class="nav-icon">👤</span>
-          <span class="nav-label">Profile</span>
+          <span class="nav-icon">🧗</span>
+          <span class="nav-label">Me</span>
         </button>
       </nav>
     </section>
@@ -461,6 +457,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary btn-block" id="btn-save-settings">Save Changes</button>
+        <button type="button" class="btn btn-secondary btn-block" id="btn-logout" style="margin-top: 10px; border-color: #ff4d4d; color: #ff4d4d;">Sign Out</button>
       </form>
     </div>
   </div>
@@ -486,6 +483,30 @@
       <div style="display: flex; gap: 10px; margin-top: 20px;">
         <button type="button" class="btn btn-secondary" id="btn-cancel-crop" style="flex: 1;">Cancel</button>
         <button type="button" class="btn btn-primary" id="btn-apply-crop" style="flex: 1;">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Surrounding Ranks Modal -->
+  <div id="surrounding-modal" class="modal-overlay hidden">
+    <div class="modal-content card" style="display: flex; flex-direction: column; max-height: 90vh;">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
+        <h3 style="margin: 0; font-family: var(--font-display); font-weight: 700;">Surrounding Ranks</h3>
+        <button id="btn-close-surrounding" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+      
+      <!-- Tabs for Surrounding Modal -->
+      <div class="tabs" style="flex-shrink: 0;">
+        <button class="tab-btn-surrounding active" data-tab="global">Global</button>
+        <button class="tab-btn-surrounding" data-tab="state">State</button>
+        <button class="tab-btn-surrounding" data-tab="neighborhood">Neighborhood</button>
+      </div>
+
+      <!-- Surrounding Leaderboard List -->
+      <div class="leaderboard-container" style="flex-grow: 1; overflow-y: auto;">
+        <div id="surrounding-leaderboard-list" class="leaderboard-list">
+          <!-- Dynamically populated rows -->
+        </div>
       </div>
     </div>
   </div>
