@@ -14,6 +14,7 @@ let currentMatchup = [];
 let selectedRegistrationFileBlob = null;
 let userCoordinates = { lat: null, lng: null };
 let userState = "";
+let userVotePreference = "everyone";
 let currentLeaderboardTab = "global";
 
 // DOM Elements
@@ -81,8 +82,8 @@ async function fetchUserProfile() {
     
     currentProfile = data;
     
-    // Check if user has uploaded a photo
-    if (!currentProfile.avatar_url) {
+    // Check if user has completed profile (photo + name + gender)
+    if (!currentProfile.avatar_url || !currentProfile.first_name || !currentProfile.gender) {
       showScreen('register');
       initLocationDetection();
     } else {
@@ -90,6 +91,7 @@ async function fetchUserProfile() {
       userCoordinates.lat = currentProfile.latitude;
       userCoordinates.lng = currentProfile.longitude;
       userState = currentProfile.state || "Unknown State";
+      userVotePreference = currentProfile.vote_preference || "everyone";
       
       // Go to main Mash screen
       showScreen('mash');
@@ -172,6 +174,12 @@ function setupEventListeners() {
     }
   });
 
+  // Registration Form: New field change listeners
+  document.getElementById('input-first-name').addEventListener('input', () => checkRegistrationSubmittable());
+  document.getElementById('select-gender').addEventListener('change', () => checkRegistrationSubmittable());
+  document.getElementById('select-vote-pref').addEventListener('change', () => checkRegistrationSubmittable());
+  document.getElementById('select-state').addEventListener('change', () => checkRegistrationSubmittable());
+
   // Registration Form: Retry Location
   document.getElementById('btn-retry-location').addEventListener('click', () => {
     initLocationDetection();
@@ -180,7 +188,12 @@ function setupEventListeners() {
   // Registration Form: Submit Profile Setup
   document.getElementById('form-register').addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!selectedRegistrationFileBlob || !userCoordinates.lat || !currentUser) return;
+    const firstName = document.getElementById('input-first-name').value.trim();
+    const gender = document.getElementById('select-gender').value;
+    const votePref = document.getElementById('select-vote-pref').value;
+    const selectedState = document.getElementById('select-state').value;
+
+    if (!selectedRegistrationFileBlob || !userCoordinates.lat || !currentUser || !firstName || !gender || !votePref || !selectedState) return;
 
     setButtonLoading('btn-submit-registration', true, 'Uploading details...');
 
@@ -204,19 +217,24 @@ function setupEventListeners() {
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // 3. Update profile row
+      // 3. Update profile row with all new fields
       const { error: profileError } = await supabaseClient
         .from('profiles')
         .update({
           avatar_url: publicUrl,
+          first_name: firstName,
+          gender: gender,
+          vote_preference: votePref,
           latitude: userCoordinates.lat,
           longitude: userCoordinates.lng,
-          state: userState
+          state: selectedState
         })
         .eq('id', currentUser.id);
 
       if (profileError) throw profileError;
 
+      userState = selectedState;
+      userVotePreference = votePref;
       showToast('Profile ready! Welcome to Climb.', 'success');
       
       // Fetch latest profile state and navigate
@@ -370,7 +388,12 @@ function initLocationDetection() {
 
 function checkRegistrationSubmittable() {
   const submitBtn = document.getElementById('btn-submit-registration');
-  if (selectedRegistrationFileBlob && userCoordinates.lat !== null) {
+  const firstName = document.getElementById('input-first-name').value.trim();
+  const gender = document.getElementById('select-gender').value;
+  const votePref = document.getElementById('select-vote-pref').value;
+  const selectedState = document.getElementById('select-state').value;
+  
+  if (selectedRegistrationFileBlob && userCoordinates.lat !== null && firstName && gender && votePref && selectedState) {
     submitBtn.removeAttribute('disabled');
   } else {
     submitBtn.setAttribute('disabled', 'true');
@@ -386,7 +409,8 @@ async function loadNextMatchup() {
 
   try {
     const { data, error } = await supabaseClient.rpc('get_matchup', {
-      voter_id: currentUser.id
+      voter_id: currentUser.id,
+      pref: userVotePreference || 'everyone'
     });
 
     if (error) throw error;
@@ -528,7 +552,7 @@ async function loadLeaderboard() {
           <div class="rank-badge">${row.relative_rank}</div>
           <img class="rank-avatar" src="${row.avatar_url || DEFAULT_AVATAR}" alt="Profile Avatar">
           <div class="rank-info">
-            <div class="rank-name">${row.user_id === currentUser.id ? 'You' : 'Climber'}</div>
+            <div class="rank-name">${row.user_id === currentUser.id ? 'You' : (row.first_name || 'Climber')}</div>
             <div class="rank-meta">${row.state || 'Unknown State'}</div>
           </div>
           <div class="rank-elo">${Math.round(row.elo)} ELO</div>
@@ -597,13 +621,13 @@ async function loadProfileData() {
     if (error) throw error;
     currentProfile = profile;
 
-    // Mask email for display
-    const maskedEmail = maskEmail(profile.email);
+    // Display name
+    const displayName = profile.first_name || maskEmail(profile.email);
 
     // Update profile HTML info
     document.getElementById('profile-avatar').src = profile.avatar_url || DEFAULT_AVATAR;
-    document.getElementById('profile-email-display').innerText = maskedEmail;
-    document.getElementById('profile-location-display').innerText = `Location: ${profile.state || 'Unknown'} (${profile.latitude.toFixed(3)}, ${profile.longitude.toFixed(3)})`;
+    document.getElementById('profile-email-display').innerText = displayName;
+    document.getElementById('profile-location-display').innerText = `Location: ${profile.state || 'Unknown'} (${(profile.latitude || 0).toFixed(3)}, ${(profile.longitude || 0).toFixed(3)})`;
     
     document.getElementById('stat-elo').innerText = Math.round(profile.elo);
     document.getElementById('stat-votes').innerText = profile.votes_cast;
