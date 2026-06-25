@@ -263,7 +263,7 @@ BEGIN
       ls.first_name
     FROM public.leaderboard_snapshot ls
     ORDER BY ls.global_rank ASC
-    LIMIT 100;
+    LIMIT 99;
     
   ELSIF lb_type = 'state' THEN
     RETURN QUERY
@@ -278,7 +278,7 @@ BEGIN
     FROM public.leaderboard_snapshot ls
     WHERE ls.state = viewer_state
     ORDER BY ls.global_rank ASC
-    LIMIT 100;
+    LIMIT 99;
     
   ELSIF lb_type = 'neighborhood' THEN
     RETURN QUERY
@@ -293,7 +293,7 @@ BEGIN
     FROM public.leaderboard_snapshot ls
     WHERE public.calculate_distance(viewer_lat, viewer_lon, ls.latitude, ls.longitude) <= 5.0
     ORDER BY ls.global_rank ASC
-    LIMIT 100;
+    LIMIT 99;
   END IF;
 END;
 $$;
@@ -360,5 +360,76 @@ BEGIN
     coalesce((SELECT g_total FROM global_stats), 0),
     coalesce((SELECT s_total FROM state_stats), 0),
     coalesce((SELECT n_total FROM neighborhood_stats), 0);
+END;
+$$;
+
+-- 8. Retrieve surrounding leaderboards (9 above, 9 below)
+CREATE OR REPLACE FUNCTION public.get_surrounding_leaderboard(
+  user_id_param uuid,
+  viewer_lat double precision,
+  viewer_lon double precision,
+  viewer_state text,
+  lb_type text
+)
+RETURNS TABLE (
+  user_id uuid,
+  avatar_url text,
+  state text,
+  elo double precision,
+  global_rank integer,
+  relative_rank integer,
+  first_name text
+) LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  target_rank integer;
+BEGIN
+  PERFORM public.refresh_leaderboard_if_needed();
+
+  IF lb_type = 'global' THEN
+    SELECT ls.global_rank INTO target_rank FROM public.leaderboard_snapshot ls WHERE ls.user_id = user_id_param;
+    
+    RETURN QUERY
+    SELECT 
+      ls.user_id, ls.avatar_url, ls.state, ls.elo, ls.global_rank, ls.global_rank as relative_rank, ls.first_name
+    FROM public.leaderboard_snapshot ls
+    WHERE ls.global_rank >= target_rank - 9 AND ls.global_rank <= target_rank + 9
+    ORDER BY ls.global_rank ASC;
+
+  ELSIF lb_type = 'state' THEN
+    SELECT sub_rank INTO target_rank
+    FROM (
+      SELECT ls2.user_id, row_number() OVER (ORDER BY ls2.global_rank ASC) as sub_rank
+      FROM public.leaderboard_snapshot ls2 WHERE ls2.state = viewer_state
+    ) s WHERE s.user_id = user_id_param;
+
+    RETURN QUERY
+    SELECT * FROM (
+      SELECT 
+        ls.user_id, ls.avatar_url, ls.state, ls.elo, ls.global_rank, 
+        row_number() OVER (ORDER BY ls.global_rank ASC)::integer as relative_rank, ls.first_name
+      FROM public.leaderboard_snapshot ls WHERE ls.state = viewer_state
+    ) t
+    WHERE t.relative_rank >= target_rank - 9 AND t.relative_rank <= target_rank + 9
+    ORDER BY t.relative_rank ASC;
+
+  ELSIF lb_type = 'neighborhood' THEN
+    SELECT sub_rank INTO target_rank
+    FROM (
+      SELECT ls3.user_id, row_number() OVER (ORDER BY ls3.global_rank ASC) as sub_rank
+      FROM public.leaderboard_snapshot ls3 
+      WHERE public.calculate_distance(viewer_lat, viewer_lon, ls3.latitude, ls3.longitude) <= 5.0
+    ) s WHERE s.user_id = user_id_param;
+
+    RETURN QUERY
+    SELECT * FROM (
+      SELECT 
+        ls.user_id, ls.avatar_url, ls.state, ls.elo, ls.global_rank, 
+        row_number() OVER (ORDER BY ls.global_rank ASC)::integer as relative_rank, ls.first_name
+      FROM public.leaderboard_snapshot ls 
+      WHERE public.calculate_distance(viewer_lat, viewer_lon, ls.latitude, ls.longitude) <= 5.0
+    ) t
+    WHERE t.relative_rank >= target_rank - 9 AND t.relative_rank <= target_rank + 9
+    ORDER BY t.relative_rank ASC;
+  END IF;
 END;
 $$;
