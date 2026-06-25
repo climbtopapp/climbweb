@@ -1182,7 +1182,7 @@ async function loadSurroundingLeaderboard() {
       leaderboardData.forEach((row) => {
         const isSelf = row.user_id === currentUser.id;
         let displayRank = row.relative_rank;
-        let displayElo = \`Grade \${eloToGrade(row.elo)}\`;
+        let displayElo = `Grade ${eloToGrade(row.elo)}`;
 
         const rowEl = document.createElement('div');
         rowEl.className = 'rank-row';
@@ -1191,15 +1191,15 @@ async function loadSurroundingLeaderboard() {
           rowEl.style.border = '2px solid var(--primary-color)';
         }
         
-        rowEl.innerHTML = \`
-          <div class="rank-badge">\${displayRank}</div>
-          <img class="rank-avatar" src="\${row.avatar_url || DEFAULT_AVATAR}" alt="Profile Avatar">
+        rowEl.innerHTML = `
+          <div class="rank-badge">${displayRank}</div>
+          <img class="rank-avatar" src="${row.avatar_url || DEFAULT_AVATAR}" alt="Profile Avatar">
           <div class="rank-info">
-            <div class="rank-name">\${isSelf ? 'You' : (row.first_name || 'Climber')}</div>
-            <div class="rank-meta">\${row.state || 'Unknown State'}</div>
+            <div class="rank-name">${isSelf ? 'You' : (row.first_name || 'Climber')}</div>
+            <div class="rank-meta">${row.state || 'Unknown State'}</div>
           </div>
-          <div class="rank-elo">\${displayElo}</div>
-        \`;
+          <div class="rank-elo">${displayElo}</div>
+        `;
         listContainer.appendChild(rowEl);
       });
     }
