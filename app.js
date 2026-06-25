@@ -942,25 +942,25 @@ async function loadProfileData() {
     document.getElementById('stat-votes').innerText = votes;
 
     if (votes < 500) {
-      document.getElementById('rank-val-global').innerText = 'Locked';
+      document.getElementById('rank-val-global').innerText = `${500 - votes} more votes needed`;
     } else {
       document.getElementById('rank-val-global').innerText = '--';
     }
 
     if (votes < 750) {
-      document.getElementById('rank-val-state').innerText = 'Locked';
+      document.getElementById('rank-val-state').innerText = `${750 - votes} more votes needed`;
     } else {
       document.getElementById('rank-val-state').innerText = '--';
     }
 
     if (votes < 1000) {
-      document.getElementById('rank-val-neighborhood').innerText = 'Locked';
+      document.getElementById('rank-val-neighborhood').innerText = `${1000 - votes} more votes needed`;
     } else {
       document.getElementById('rank-val-neighborhood').innerText = '--';
     }
 
     if (votes < 250) {
-      document.getElementById('stat-elo').innerText = 'Locked';
+      document.getElementById('stat-elo').innerText = `${250 - votes} more votes needed`;
     } else {
       document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
     }
