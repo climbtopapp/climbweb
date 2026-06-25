@@ -2,6 +2,9 @@
 CREATE TABLE public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
   email text,
+  first_name text,
+  gender text,
+  vote_preference text DEFAULT 'everyone',
   avatar_url text,
   latitude double precision,
   longitude double precision,
@@ -17,6 +20,9 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 -- Profiles Policies
 CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles
   FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert their own profile" ON public.profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Users can update their own profile" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
@@ -37,10 +43,15 @@ ALTER TABLE public.votes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own votes" ON public.votes
   FOR SELECT USING (auth.uid() = voter_id);
 
+CREATE POLICY "Authenticated users can insert votes" ON public.votes
+  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
 -- Create Leaderboard Snapshot Table for caching
 CREATE TABLE public.leaderboard_snapshot (
   user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
   email text,
+  first_name text,
+  gender text,
   avatar_url text,
   state text,
   latitude double precision,
@@ -108,20 +119,30 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 
--- 3. Get two random profiles for comparison
-CREATE OR REPLACE FUNCTION public.get_matchup(voter_id uuid)
+-- 3. Get two random profiles for comparison (filtered by gender preference)
+CREATE OR REPLACE FUNCTION public.get_matchup(voter_id uuid, pref text DEFAULT 'everyone')
 RETURNS TABLE (
   id uuid,
   avatar_url text,
-  elo double precision
+  elo double precision,
+  first_name text
 ) LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
-  RETURN QUERY
-  SELECT p.id, p.avatar_url, p.elo
-  FROM public.profiles p
-  WHERE p.id != voter_id AND p.avatar_url IS NOT NULL
-  ORDER BY random()
-  LIMIT 2;
+  IF pref = 'everyone' THEN
+    RETURN QUERY
+    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    FROM public.profiles p
+    WHERE p.id != voter_id AND p.avatar_url IS NOT NULL
+    ORDER BY random()
+    LIMIT 2;
+  ELSE
+    RETURN QUERY
+    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    FROM public.profiles p
+    WHERE p.id != voter_id AND p.avatar_url IS NOT NULL AND p.gender = pref
+    ORDER BY random()
+    LIMIT 2;
+  END IF;
 END;
 $$;
 
@@ -185,7 +206,7 @@ BEGIN
     DELETE FROM public.leaderboard_snapshot;
     
     -- Insert fresh rankings
-    INSERT INTO public.leaderboard_snapshot (user_id, email, avatar_url, state, latitude, longitude, elo, global_rank)
+    INSERT INTO public.leaderboard_snapshot (user_id, email, avatar_url, state, latitude, longitude, elo, global_rank, first_name, gender)
     SELECT 
       p.id, 
       p.email, 
@@ -194,7 +215,9 @@ BEGIN
       p.latitude, 
       p.longitude, 
       p.elo,
-      row_number() OVER (ORDER BY p.elo DESC)::integer as global_rank
+      row_number() OVER (ORDER BY p.elo DESC)::integer as global_rank,
+      p.first_name,
+      p.gender
     FROM public.profiles p
     WHERE p.avatar_url IS NOT NULL;
     
@@ -221,7 +244,8 @@ RETURNS TABLE (
   state text,
   elo double precision,
   global_rank integer,
-  relative_rank integer
+  relative_rank integer,
+  first_name text
 ) LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   -- Perform hourly refresh check
@@ -235,7 +259,8 @@ BEGIN
       ls.state,
       ls.elo,
       ls.global_rank,
-      ls.global_rank as relative_rank
+      ls.global_rank as relative_rank,
+      ls.first_name
     FROM public.leaderboard_snapshot ls
     ORDER BY ls.global_rank ASC
     LIMIT 100;
@@ -248,7 +273,8 @@ BEGIN
       ls.state,
       ls.elo,
       ls.global_rank,
-      row_number() OVER (ORDER BY ls.global_rank ASC)::integer as relative_rank
+      row_number() OVER (ORDER BY ls.global_rank ASC)::integer as relative_rank,
+      ls.first_name
     FROM public.leaderboard_snapshot ls
     WHERE ls.state = viewer_state
     ORDER BY ls.global_rank ASC
@@ -262,7 +288,8 @@ BEGIN
       ls.state,
       ls.elo,
       ls.global_rank,
-      row_number() OVER (ORDER BY ls.global_rank ASC)::integer as relative_rank
+      row_number() OVER (ORDER BY ls.global_rank ASC)::integer as relative_rank,
+      ls.first_name
     FROM public.leaderboard_snapshot ls
     WHERE public.calculate_distance(viewer_lat, viewer_lon, ls.latitude, ls.longitude) <= 5.0
     ORDER BY ls.global_rank ASC
