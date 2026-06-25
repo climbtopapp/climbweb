@@ -63,14 +63,7 @@
         <p class="section-desc">Fill out your details and upload a photo to start climbing.</p>
         
         <form id="form-register">
-          <!-- Image upload and preview -->
-          <div class="image-upload-container">
-            <input type="file" id="input-avatar" accept="image/*" class="hidden">
-            <label for="input-avatar" class="avatar-picker-label">
-              <div id="avatar-preview-placeholder">
-                <span class="upload-icon">📸</span>
-                <span class="upload-label">Choose Photo</span>
-              </div>
+          <div id="reg-step-1" class="wizard-step wizard-active">
               <img id="avatar-preview-img" src="" alt="Avatar Preview" class="hidden">
             </label>
             <p class="input-hint text-center">Your photo will be compressed to save space.</p>
@@ -104,6 +97,27 @@
             </select>
           </div>
 
+            <button type="button" class="btn btn-primary btn-block" id="btn-next-step-1">Next</button>
+          </div>
+
+          <!-- Step 2: Photo Upload -->
+          <div id="reg-step-2" class="wizard-step hidden">
+          <!-- Image upload and preview -->
+          <div class="image-upload-container">
+            <input type="file" id="input-avatar" accept="image/*" class="hidden">
+            <label for="input-avatar" class="avatar-picker-label">
+              <div id="avatar-preview-placeholder">
+                <span class="upload-icon">📸</span>
+                <span class="upload-label">Choose Photo</span>
+              </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+              <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-prev-step-2">Back</button>
+              <button type="button" class="btn btn-primary" style="flex: 2;" id="btn-next-step-2">Next</button>
+            </div>
+          </div>
+
+          <!-- Step 3: Location -->
+          <div id="reg-step-3" class="wizard-step hidden">
           <!-- State Picker -->
           <div class="input-group">
             <label for="select-state">State</label>
@@ -175,9 +189,11 @@
             <button type="button" class="btn btn-secondary btn-sm" id="btn-retry-location">Detect</button>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block" id="btn-submit-registration" disabled>
-            Start Climbing
-          </button>
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-prev-step-3">Back</button>
+            <button type="submit" class="btn btn-primary" style="flex: 2;" id="btn-submit-registration" disabled>Start Climbing</button>
+          </div>
+          </div>
         </form>
       </div>
     </section>
@@ -186,7 +202,6 @@
     <section id="screen-mash" class="screen">
       <header class="app-header">
         <h1 class="brand-title-sm">Climb</h1>
-        <p class="header-desc">Tap the photo you want to rank higher</p>
       </header>
 
       <div class="mash-arena">
@@ -218,8 +233,8 @@
       <!-- Bottom Nav (Appended to app screens) -->
       <nav class="bottom-nav">
         <button class="nav-item active" data-screen="mash">
-          <span class="nav-icon">🔥</span>
-          <span class="nav-label">Mash</span>
+          <span class="nav-icon">⛰️</span>
+          <span class="nav-label">Climb</span>
         </button>
         <button class="nav-item" data-screen="leaderboard">
           <span class="nav-icon">🏆</span>
@@ -236,7 +251,7 @@
     <section id="screen-leaderboard" class="screen">
       <header class="app-header">
         <h1 class="brand-title-sm">Leaderboards</h1>
-        <p class="header-desc">Rankings update hourly to save resources</p>
+        <p class="header-desc">Rankings update every hour</p>
       </header>
 
       <!-- Tabs -->
@@ -267,8 +282,8 @@
       <!-- Bottom Nav -->
       <nav class="bottom-nav">
         <button class="nav-item" data-screen="mash">
-          <span class="nav-icon">🔥</span>
-          <span class="nav-label">Mash</span>
+          <span class="nav-icon">⛰️</span>
+          <span class="nav-label">Climb</span>
         </button>
         <button class="nav-item active" data-screen="leaderboard">
           <span class="nav-icon">🏆</span>
@@ -289,9 +304,13 @@
 
       <div class="profile-card card">
         <div class="profile-header-info">
-          <img id="profile-avatar" src="" alt="My Photo" class="profile-large-avatar">
+          <div class="profile-avatar-wrapper">
+            <img id="profile-avatar" src="" alt="My Photo" class="profile-large-avatar">
+            <input type="file" id="input-update-avatar" accept="image/*" class="hidden">
+            <label for="input-update-avatar" class="btn btn-secondary btn-sm edit-photo-btn">Edit Photo</label>
+          </div>
           <h3 id="profile-email-display">--</h3>
-          <p id="profile-location-display" class="input-hint">Location: Detecting...</p>
+          <p id="profile-location-display" class="input-hint">State: Detecting...</p>
         </div>
 
         <div class="stats-grid">
@@ -327,8 +346,8 @@
       <!-- Bottom Nav -->
       <nav class="bottom-nav">
         <button class="nav-item" data-screen="mash">
-          <span class="nav-icon">🔥</span>
-          <span class="nav-label">Mash</span>
+          <span class="nav-icon">⛰️</span>
+          <span class="nav-label">Climb</span>
         </button>
         <button class="nav-item" data-screen="leaderboard">
           <span class="nav-icon">🏆</span>
