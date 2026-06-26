@@ -88,7 +88,7 @@ CREATE OR REPLACE FUNCTION public.calculate_distance(
   lon1 double precision, 
   lat2 double precision, 
   lon2 double precision
-) RETURNS double precision LANGUAGE sql IMMUTABLE AS $$
+) RETURNS double precision LANGUAGE sql IMMUTABLE SET search_path = public, pg_catalog AS $$
   -- 3959 is the Earth's radius in miles.
   -- Safe acos to handle floating point precision boundaries:
   SELECT 3959.0 * acos(
@@ -112,7 +112,7 @@ BEGIN
   );
   RETURN new;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -126,7 +126,7 @@ RETURNS TABLE (
   avatar_url text,
   elo double precision,
   first_name text
-) LANGUAGE plpgsql SECURITY DEFINER AS $$
+) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   IF pref = 'everyone' THEN
     RETURN QUERY
@@ -149,7 +149,7 @@ $$;
 
 -- 4. Cast a vote and update Chess ELO rating
 CREATE OR REPLACE FUNCTION public.cast_vote(winner_id uuid, loser_id uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   voter_id uuid;
   r_w double precision;
@@ -190,7 +190,7 @@ $$;
 
 -- 5. Lazy Leaderboard snapshot refresh (Hourly check)
 CREATE OR REPLACE FUNCTION public.refresh_leaderboard_if_needed()
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   last_upd timestamp with time zone;
   should_refresh boolean := false;
@@ -246,7 +246,7 @@ RETURNS TABLE (
   global_rank integer,
   relative_rank integer,
   first_name text
-) LANGUAGE plpgsql SECURITY DEFINER AS $$
+) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   -- Perform hourly refresh check
   PERFORM public.refresh_leaderboard_if_needed();
@@ -313,7 +313,7 @@ RETURNS TABLE (
   total_global integer,
   total_state integer,
   total_neighborhood integer
-) LANGUAGE plpgsql SECURITY DEFINER AS $$
+) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.refresh_leaderboard_if_needed();
   
@@ -379,7 +379,7 @@ RETURNS TABLE (
   global_rank integer,
   relative_rank integer,
   first_name text
-) LANGUAGE plpgsql SECURITY DEFINER AS $$
+) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   target_rank integer;
 BEGIN
@@ -433,3 +433,32 @@ BEGIN
   END IF;
 END;
 $$;
+
+
+
+-- Revoke default public execution privileges
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.refresh_leaderboard_if_needed() FROM PUBLIC;
+
+REVOKE EXECUTE ON FUNCTION public.get_matchup(uuid, text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.cast_vote(uuid, uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_leaderboard_data(uuid, double precision, double precision, text, text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_user_ranks(uuid, double precision, double precision, text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_surrounding_leaderboard(uuid, double precision, double precision, text, text) FROM PUBLIC;
+
+-- Grant execution to authenticated & service_role
+GRANT EXECUTE ON FUNCTION public.get_matchup(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_matchup(uuid, text) TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.cast_vote(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.cast_vote(uuid, uuid) TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.get_leaderboard_data(uuid, double precision, double precision, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_leaderboard_data(uuid, double precision, double precision, text, text) TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.get_user_ranks(uuid, double precision, double precision, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_user_ranks(uuid, double precision, double precision, text) TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.get_surrounding_leaderboard(uuid, double precision, double precision, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_surrounding_leaderboard(uuid, double precision, double precision, text, text) TO service_role;
+
