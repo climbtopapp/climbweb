@@ -119,7 +119,7 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 
--- 3. Get two random profiles for comparison (filtered by gender preference)
+-- 3. Get two random profiles for comparison (filtered by gender preference, excludes recently seen)
 CREATE OR REPLACE FUNCTION public.get_matchup(voter_id uuid, pref text DEFAULT 'everyone')
 RETURNS TABLE (
   id uuid,
@@ -133,6 +133,11 @@ BEGIN
     SELECT p.id, p.avatar_url, p.elo, p.first_name
     FROM public.profiles p
     WHERE p.id != voter_id AND p.avatar_url IS NOT NULL
+      AND p.id NOT IN (
+        SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '1 day'
+        UNION
+        SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '1 day'
+      )
     ORDER BY random()
     LIMIT 2;
   ELSE
@@ -140,6 +145,11 @@ BEGIN
     SELECT p.id, p.avatar_url, p.elo, p.first_name
     FROM public.profiles p
     WHERE p.id != voter_id AND p.avatar_url IS NOT NULL AND p.gender = pref
+      AND p.id NOT IN (
+        SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '1 day'
+        UNION
+        SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '1 day'
+      )
     ORDER BY random()
     LIMIT 2;
   END IF;
@@ -435,6 +445,9 @@ END;
 $$;
 
 
+-- =============================================
+-- Revoke execution from PUBLIC and grant to authenticated
+-- =============================================
 
 -- Revoke default public execution privileges
 REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM PUBLIC;
