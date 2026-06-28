@@ -469,14 +469,14 @@ input[type="text"]:focus {
 
 .mash-card {
   width: 100%;
-  max-width: 320px;
+  max-width: 260px;
   background-color: #ffffff;
   border: 1px solid var(--border-color);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: var(--transition);
+  transition: var(--transition), filter 0.3s ease;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -489,6 +489,17 @@ input[type="text"]:focus {
 
 .mash-card:active {
   transform: scale(0.98);
+}
+
+/* When hovering one card, gray out the other */
+.mash-arena:has(#card-left:hover) #card-right {
+  filter: grayscale(80%) brightness(0.7);
+  transform: scale(0.97);
+}
+
+.mash-arena:has(#card-right:hover) #card-left {
+  filter: grayscale(80%) brightness(0.7);
+  transform: scale(0.97);
 }
 
 .image-wrapper {
@@ -540,6 +551,9 @@ input[type="text"]:focus {
   border: 2px solid #ffffff;
   box-shadow: var(--shadow-sm);
   z-index: 2;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
 }
 
 .card-loader {
