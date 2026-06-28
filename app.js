@@ -214,7 +214,10 @@ function setupEventListeners() {
           upsert: true
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('STORAGE UPLOAD ERROR:', uploadError);
+        throw uploadError;
+      }
 
       // 2. Fetch public url
       const { data: { publicUrl } } = supabaseClient.storage
@@ -235,7 +238,10 @@ function setupEventListeners() {
         })
         .eq('id', currentUser.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('PROFILE UPDATE ERROR:', profileError);
+        throw profileError;
+      }
 
       userState = selectedState;
       userVotePreference = votePref;
@@ -680,17 +686,13 @@ async function loadNextMatchup() {
 
     currentMatchup = data;
 
-    // Load left card image and info
+    // Load left card image
     const imgLeft = document.getElementById('img-left');
-    const eloLeft = document.getElementById('elo-left');
     imgLeft.src = data[0].avatar_url || DEFAULT_AVATAR;
-    eloLeft.innerText = `Grade ${eloToGrade(data[0].elo)}`;
 
-    // Load right card image and info
+    // Load right card image
     const imgRight = document.getElementById('img-right');
-    const eloRight = document.getElementById('elo-right');
     imgRight.src = data[1].avatar_url || DEFAULT_AVATAR;
-    eloRight.innerText = `Grade ${eloToGrade(data[1].elo)}`;
 
     // Wait for image loading before hiding spinners
     let loadedCount = 0;
@@ -761,6 +763,11 @@ async function recordVote(side) {
     });
 
     if (error) throw error;
+
+    // Haptic feedback on successful vote
+    if (navigator.vibrate) {
+      navigator.vibrate(15);
+    }
 
     if (currentProfile) {
       currentProfile.votes_cast = (currentProfile.votes_cast || 0) + 1;
