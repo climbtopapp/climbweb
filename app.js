@@ -422,6 +422,44 @@ function setupEventListeners() {
       settingsModal.classList.remove('hidden');
     });
   }
+
+  const btnShareProfile = document.getElementById('btn-share-profile');
+  if (btnShareProfile) {
+    btnShareProfile.addEventListener('click', async () => {
+      if (!currentProfile) return;
+      
+      const firstName = currentProfile.first_name || 'A climber';
+      const eloGrade = document.getElementById('stat-elo').innerText || '--';
+      const globalRank = document.getElementById('rank-val-global').innerText || '--';
+      
+      const shareTitle = `Climb Profile: ${firstName}`;
+      const shareText = `Check out ${firstName}'s profile on Climb! Current Grade: ${eloGrade} (Global Rank: #${globalRank}). Join Climb to step up and make your way to the top!`;
+      const shareUrl = window.location.origin + window.location.pathname;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: shareTitle,
+            text: shareText,
+            url: shareUrl
+          });
+          showToast('Profile shared successfully!', 'success');
+        } catch (err) {
+          console.log('Share error or cancelled:', err);
+        }
+      } else {
+        // Fallback: copy to clipboard
+        try {
+          const fullMessage = `${shareText}\n${shareUrl}`;
+          await navigator.clipboard.writeText(fullMessage);
+          showToast('Profile link & stats copied to clipboard!', 'success');
+        } catch (err) {
+          console.error('Failed to copy profile link:', err);
+          showToast('Failed to copy link. Please copy URL manually.', 'error');
+        }
+      }
+    });
+  }
   
   if (btnCloseSettings) {
     btnCloseSettings.addEventListener('click', () => {
