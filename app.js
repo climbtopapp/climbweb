@@ -22,6 +22,7 @@ let currentClubMembers = [];
 let isMashClubMode = false;
 
 let currentCroppingContext = "register";
+let isSignUp = false;
 let cropState = {
   imgSrc: null,
   zoom: 1,
@@ -145,10 +146,57 @@ function showScreen(screenId) {
       screens[key].classList.remove('active');
     }
   });
+
+  if (screenId === 'auth') {
+    document.getElementById('auth-step-welcome').classList.remove('hidden');
+    document.getElementById('auth-step-email').classList.add('hidden');
+    document.getElementById('auth-step-success').classList.add('hidden');
+  }
+
+  const bottomNav = document.querySelector('.bottom-nav');
+  if (bottomNav) {
+    const noNavScreens = ['loader', 'auth', 'register'];
+    if (noNavScreens.includes(screenId)) {
+      bottomNav.classList.add('hidden');
+    } else {
+      bottomNav.classList.remove('hidden');
+      document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
+        if (btn.getAttribute('data-screen') === screenId) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+  }
 }
 
 // --- Event Listeners Setup ---
 function setupEventListeners() {
+  // Welcome Screen: Create Account Button
+  document.getElementById('btn-welcome-create').addEventListener('click', () => {
+    isSignUp = true;
+    document.getElementById('label-email-title').innerText = 'Create Account Email';
+    document.getElementById('btn-send-otp').innerText = 'Send Sign Up Link';
+    document.getElementById('auth-step-welcome').classList.add('hidden');
+    document.getElementById('auth-step-email').classList.remove('hidden');
+  });
+
+  // Welcome Screen: Sign In Button
+  document.getElementById('btn-welcome-signin').addEventListener('click', () => {
+    isSignUp = false;
+    document.getElementById('label-email-title').innerText = 'Email Address';
+    document.getElementById('btn-send-otp').innerText = 'Send Login Link';
+    document.getElementById('auth-step-welcome').classList.add('hidden');
+    document.getElementById('auth-step-email').classList.remove('hidden');
+  });
+
+  // Welcome Screen: Go Back from email
+  document.getElementById('btn-back-welcome').addEventListener('click', () => {
+    document.getElementById('auth-step-email').classList.add('hidden');
+    document.getElementById('auth-step-welcome').classList.remove('hidden');
+  });
+
   // Auth Form: Send Login Link (Magic Link)
   document.getElementById('form-email').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -165,7 +213,7 @@ function setupEventListeners() {
       }
     });
 
-    setButtonLoading('btn-send-otp', false, 'Send Login Link');
+    setButtonLoading('btn-send-otp', false, isSignUp ? 'Send Sign Up Link' : 'Send Login Link');
 
     if (error) {
       showToast(error.message, 'error');
