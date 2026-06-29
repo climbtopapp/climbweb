@@ -1095,3 +1095,75 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.2);
 }
 
+/* Challenges Coming Soon Screen */
+.challenges-coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  flex: 1;
+  opacity: 0.55;
+  filter: saturate(0.3);
+}
+
+.challenges-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  filter: grayscale(40%);
+}
+
+.challenges-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.8rem;
+  color: var(--text-main);
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+
+.challenges-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 340px;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.challenges-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 28px;
+}
+
+.challenge-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--bg-secondary);
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.feature-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.feature-text {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.challenges-footer {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
