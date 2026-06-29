@@ -17,6 +17,9 @@ let userCoordinates = { lat: null, lng: null };
 let userState = "";
 let userVotePreference = "everyone";
 let currentLeaderboardTab = "global";
+let currentClubInfo = null;
+let currentClubMembers = [];
+let isMashClubMode = false;
 
 let currentCroppingContext = "register";
 let cropState = {
@@ -39,6 +42,7 @@ const screens = {
   mash: document.getElementById('screen-mash'),
   leaderboard: document.getElementById('screen-leaderboard'),
   challenges: document.getElementById('screen-challenges'),
+  clubs: document.getElementById('screen-clubs'),
   profile: document.getElementById('screen-profile')
 };
 
@@ -107,6 +111,20 @@ async function fetchUserProfile() {
       userCoordinates.lng = currentProfile.longitude;
       userState = currentProfile.state || "Unknown State";
       userVotePreference = currentProfile.vote_preference || "everyone";
+
+      // Fetch club info
+      try {
+        const { data: clubData, error: clubError } = await supabaseClient.rpc('get_my_club');
+        if (!clubError && clubData) {
+          currentClubInfo = clubData.club;
+          currentClubMembers = clubData.members || [];
+        } else {
+          currentClubInfo = null;
+          currentClubMembers = [];
+        }
+      } catch (e) {
+        console.error('Error fetching club info', e);
+      }
 
       // Go to main Mash screen
       showScreen('mash');
@@ -551,12 +569,69 @@ function setupEventListeners() {
   // Leaderboard Tab Toggle Buttons
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      // Don't affect climb tabs
+      if (e.target.id === 'btn-climb-global' || e.target.id === 'btn-climb-club') return;
+      
+      const tabsDiv = e.target.closest('.tabs');
+      tabsDiv.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       e.target.classList.add('active');
       currentLeaderboardTab = e.target.getAttribute('data-tab');
       loadLeaderboard();
     });
   });
+
+  // Climb Tab Toggle Buttons
+  const btnClimbGlobal = document.getElementById('btn-climb-global');
+  const btnClimbClub = document.getElementById('btn-climb-club');
+  
+  if (btnClimbGlobal && btnClimbClub) {
+    btnClimbGlobal.addEventListener('click', () => {
+      btnClimbGlobal.classList.add('active');
+      btnClimbClub.classList.remove('active');
+      isMashClubMode = false;
+      loadNextMatchup();
+    });
+    
+    btnClimbClub.addEventListener('click', () => {
+      if (!currentClubInfo) {
+        showToast('You must join a club first to climb against members.', 'error');
+        showScreen('clubs');
+        loadClubScreen();
+        return;
+      }
+      
+      btnClimbClub.classList.add('active');
+      btnClimbGlobal.classList.remove('active');
+      isMashClubMode = true;
+      loadNextMatchup();
+    });
+  }
+
+  // Club Screen Listeners
+  const btnCreateClub = document.getElementById('btn-create-club');
+  if (btnCreateClub) btnCreateClub.addEventListener('click', createClub);
+
+  const btnJoinClub = document.getElementById('btn-join-club');
+  if (btnJoinClub) btnJoinClub.addEventListener('click', joinClub);
+
+  const btnLeaveClub = document.getElementById('btn-leave-club');
+  if (btnLeaveClub) btnLeaveClub.addEventListener('click', leaveClub);
+
+  const btnShareClub = document.getElementById('btn-share-club');
+  if (btnShareClub) btnShareClub.addEventListener('click', shareClubCode);
+
+  const btnEditClubName = document.getElementById('btn-edit-club-name');
+  if (btnEditClubName) {
+    btnEditClubName.addEventListener('click', () => {
+      document.getElementById('club-name-display').classList.add('hidden');
+      document.getElementById('club-name-edit').classList.remove('hidden');
+      document.getElementById('input-edit-club-name').value = currentClubInfo?.name || '';
+      document.getElementById('input-edit-club-name').focus();
+    });
+  }
+
+  const btnSaveClubName = document.getElementById('btn-save-club-name');
+  if (btnSaveClubName) btnSaveClubName.addEventListener('click', saveClubName);
 
   // Profile: Logout Button
   document.getElementById('btn-logout').addEventListener('click', async () => {
@@ -642,10 +717,22 @@ async function loadNextMatchup() {
   document.querySelectorAll('.card-loader').forEach(loader => loader.classList.remove('hidden'));
 
   try {
-    const { data, error } = await supabaseClient.rpc('get_matchup', {
+    let rpcName = 'get_matchup';
+    let rpcArgs = {
       voter_id: currentUser.id,
       pref: userVotePreference || 'everyone'
-    });
+    };
+
+    if (isMashClubMode && currentClubInfo) {
+      rpcName = 'get_matchup_club';
+      rpcArgs = {
+        voter_id: currentUser.id,
+        pref: userVotePreference || 'everyone',
+        filter_club_id: currentClubInfo.id
+      };
+    }
+
+    const { data, error } = await supabaseClient.rpc(rpcName, rpcArgs);
 
     if (error) throw error;
 
@@ -776,15 +863,32 @@ async function loadLeaderboard() {
 
   try {
     // 1. Fetch rankings list
-    const { data: leaderboardData, error } = await supabaseClient.rpc('get_leaderboard_data', {
-      viewer_id: currentUser.id,
-      viewer_lat: userCoordinates.lat || 0,
-      viewer_lon: userCoordinates.lng || 0,
-      viewer_state: userState || 'Unknown State',
-      lb_type: currentLeaderboardTab
-    });
-
-    if (error) throw error;
+    let leaderboardData = [];
+    
+    if (currentLeaderboardTab === 'club') {
+      if (!currentClubInfo) {
+        listContainer.innerHTML = `
+          <div class="text-center py-4" style="color: var(--text-muted); font-size: 0.9rem; padding: 40px 0;">
+            You must join a club to view its leaderboard.
+          </div>`;
+        return;
+      }
+      const { data, error } = await supabaseClient.rpc('get_club_leaderboard', {
+        target_club_id: currentClubInfo.id
+      });
+      if (error) throw error;
+      leaderboardData = data;
+    } else {
+      const { data, error } = await supabaseClient.rpc('get_leaderboard_data', {
+        viewer_id: currentUser.id,
+        viewer_lat: userCoordinates.lat || 0,
+        viewer_lon: userCoordinates.lng || 0,
+        viewer_state: userState || 'Unknown State',
+        lb_type: currentLeaderboardTab
+      });
+      if (error) throw error;
+      leaderboardData = data;
+    }
 
     // 2. Populate rankings in UI
     listContainer.innerHTML = '';
@@ -795,16 +899,17 @@ async function loadLeaderboard() {
           No ranking records found for this category yet.
         </div>`;
     } else {
-      leaderboardData.forEach((row) => {
+      leaderboardData.forEach((row, index) => {
         const isSelf = row.user_id === currentUser.id;
         const votes = (currentProfile && currentProfile.votes_cast) || 0;
         
-        let displayRank = row.relative_rank;
+        let displayRank = currentLeaderboardTab === 'club' ? (index + 1) : row.relative_rank;
         let displayElo = `Grade ${eloToGrade(row.elo)}`;
         
         if (isSelf) {
           let rankThreshold = 1000;
           if (currentLeaderboardTab === 'global') rankThreshold = 500;
+          else if (currentLeaderboardTab === 'club') rankThreshold = 1500;
 
           if (votes < rankThreshold) {
             displayRank = '--';
@@ -925,6 +1030,19 @@ async function loadProfileData() {
       document.getElementById('stat-elo').innerText = `${250 - votes} more votes needed`;
     } else {
       document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
+    }
+
+    if (votes < 1500) {
+      document.getElementById('rank-val-club').innerText = `${1500 - votes} more votes needed`;
+    } else if (!currentClubInfo) {
+      document.getElementById('rank-val-club').innerText = 'No Club';
+    } else {
+      let myClubRank = '--';
+      if (currentClubMembers && currentClubMembers.length > 0) {
+        const myIndex = currentClubMembers.findIndex(m => m.user_id === currentUser.id);
+        if (myIndex !== -1) myClubRank = `${myIndex + 1} / ${currentClubMembers.length}`;
+      }
+      document.getElementById('rank-val-club').innerText = myClubRank;
     }
 
     if (votes < 2500) {
@@ -1179,5 +1297,205 @@ async function loadSurroundingLeaderboard() {
   } catch (err) {
     console.error('Failed to load surrounding leaderboard:', err);
     showToast('Failed to load surrounding rankings.', 'error');
+  }
+}
+
+// =============================================
+// Clubs Feature Logic
+// =============================================
+
+function loadClubScreen() {
+  const viewNoClub = document.getElementById('view-no-club');
+  const viewHasClub = document.getElementById('view-has-club');
+
+  if (!currentClubInfo) {
+    viewNoClub.style.display = 'flex';
+    viewHasClub.style.display = 'none';
+  } else {
+    viewNoClub.style.display = 'none';
+    viewHasClub.style.display = 'flex';
+
+    document.getElementById('text-club-name').innerText = currentClubInfo.name;
+    document.getElementById('text-club-code').innerText = currentClubInfo.code;
+    document.getElementById('text-club-member-count').innerText = currentClubMembers.length;
+    
+    // Edit features for creator
+    if (currentClubInfo.created_by === currentUser.id) {
+      document.getElementById('btn-edit-club-name').classList.remove('hidden');
+      document.getElementById('text-leave-club-warning').classList.remove('hidden');
+    } else {
+      document.getElementById('btn-edit-club-name').classList.add('hidden');
+      document.getElementById('text-leave-club-warning').classList.add('hidden');
+    }
+
+    // Render Members List
+    const membersListContainer = document.getElementById('club-members-list');
+    membersListContainer.innerHTML = '';
+    
+    currentClubMembers.forEach((member, index) => {
+      const isSelf = member.user_id === currentUser.id;
+      const isCreator = currentClubInfo.created_by === currentUser.id;
+      
+      const rowEl = document.createElement('div');
+      rowEl.className = 'rank-row';
+      
+      let removeBtnHtml = '';
+      if (isCreator && !isSelf) {
+        removeBtnHtml = `<button class="btn btn-sm" onclick="removeClubMember('${member.user_id}')" style="background:transparent; color:#ff4d4d; border:none; padding:4px;">✕</button>`;
+      }
+
+      rowEl.innerHTML = `
+        <div class="rank-badge">${index + 1}</div>
+        <img class="rank-avatar" src="${member.avatar_url || DEFAULT_AVATAR}" alt="Avatar">
+        <div class="rank-info" style="flex-grow: 1;">
+          <div class="rank-name">${isSelf ? 'You' : member.first_name} ${member.user_id === currentClubInfo.created_by ? '(Creator)' : ''}</div>
+          <div class="rank-meta">${member.state || 'Unknown'}</div>
+        </div>
+        <div class="rank-elo">Grade ${eloToGrade(member.elo)}</div>
+        ${removeBtnHtml}
+      `;
+      membersListContainer.appendChild(rowEl);
+    });
+  }
+}
+
+async function createClub() {
+  const nameInput = document.getElementById('input-create-club-name');
+  const name = nameInput.value.trim();
+  if (!name) return;
+
+  setButtonLoading('btn-create-club', true, 'Creating...');
+  try {
+    const { data, error } = await supabaseClient.rpc('create_club', { club_name: name });
+    if (error) throw error;
+    
+    showToast('Club created!', 'success');
+    nameInput.value = '';
+    
+    // Refresh club state
+    const { data: clubData, error: clubError } = await supabaseClient.rpc('get_my_club');
+    if (!clubError && clubData) {
+      currentClubInfo = clubData.club;
+      currentClubMembers = clubData.members || [];
+      loadClubScreen();
+    }
+  } catch (err) {
+    showToast(err.message || 'Failed to create club', 'error');
+  } finally {
+    setButtonLoading('btn-create-club', false, 'Create Club');
+  }
+}
+
+async function joinClub() {
+  const codeInput = document.getElementById('input-join-club-code');
+  const code = codeInput.value.trim().toUpperCase();
+  if (!code || code.length !== 6) {
+    showToast('Please enter a valid 6-character code', 'error');
+    return;
+  }
+
+  setButtonLoading('btn-join-club', true, 'Joining...');
+  try {
+    const { data, error } = await supabaseClient.rpc('join_club', { invite_code: code });
+    if (error) throw error;
+    
+    showToast('Joined club successfully!', 'success');
+    codeInput.value = '';
+    
+    // Refresh club state
+    const { data: clubData, error: clubError } = await supabaseClient.rpc('get_my_club');
+    if (!clubError && clubData) {
+      currentClubInfo = clubData.club;
+      currentClubMembers = clubData.members || [];
+      loadClubScreen();
+    }
+  } catch (err) {
+    showToast(err.message || 'Failed to join club', 'error');
+  } finally {
+    setButtonLoading('btn-join-club', false, 'Join Club');
+  }
+}
+
+async function leaveClub() {
+  const isCreator = currentClubInfo && currentClubInfo.created_by === currentUser.id;
+  const msg = isCreator ? "Are you sure? Since you are the creator, this will permanently delete the club and remove all members." : "Are you sure you want to leave this club?";
+  if (!confirm(msg)) return;
+
+  try {
+    const { error } = await supabaseClient.rpc('leave_club');
+    if (error) throw error;
+    
+    showToast(isCreator ? 'Club deleted.' : 'You have left the club.', 'success');
+    
+    // Clear state
+    currentClubInfo = null;
+    currentClubMembers = [];
+    isMashClubMode = false;
+    document.getElementById('btn-climb-global')?.click(); // Reset mash screen toggle
+    loadClubScreen();
+  } catch (err) {
+    showToast(err.message || 'Failed to leave club', 'error');
+  }
+}
+
+async function saveClubName() {
+  const nameInput = document.getElementById('input-edit-club-name');
+  const newName = nameInput.value.trim();
+  if (!newName || newName === currentClubInfo.name) {
+    document.getElementById('club-name-display').classList.remove('hidden');
+    document.getElementById('club-name-edit').classList.add('hidden');
+    return;
+  }
+
+  setButtonLoading('btn-save-club-name', true, 'Saving...');
+  try {
+    const { error } = await supabaseClient.rpc('update_club_name', { new_name: newName });
+    if (error) throw error;
+    
+    showToast('Club name updated', 'success');
+    currentClubInfo.name = newName;
+    document.getElementById('text-club-name').innerText = newName;
+  } catch (err) {
+    showToast(err.message || 'Failed to update club name', 'error');
+  } finally {
+    setButtonLoading('btn-save-club-name', false, 'Save');
+    document.getElementById('club-name-display').classList.remove('hidden');
+    document.getElementById('club-name-edit').classList.add('hidden');
+  }
+}
+
+window.removeClubMember = async function(userId) {
+  if (!confirm('Are you sure you want to remove this member?')) return;
+  
+  try {
+    const { error } = await supabaseClient.rpc('remove_club_member', { target_user_id: userId });
+    if (error) throw error;
+    
+    showToast('Member removed', 'success');
+    
+    // Refresh club state
+    const { data: clubData, error: clubError } = await supabaseClient.rpc('get_my_club');
+    if (!clubError && clubData) {
+      currentClubMembers = clubData.members || [];
+      loadClubScreen();
+    }
+  } catch (err) {
+    showToast(err.message || 'Failed to remove member', 'error');
+  }
+};
+
+function shareClubCode() {
+  if (!currentClubInfo) return;
+  const shareText = `Join my Climb club: ${currentClubInfo.name}! Invite Code: ${currentClubInfo.code}`;
+  
+  if (navigator.share) {
+    navigator.share({
+      title: 'Join my Club on Climb',
+      text: shareText
+    }).catch(console.error);
+  } else {
+    navigator.clipboard.writeText(shareText).then(() => {
+      showToast('Invite code copied to clipboard!', 'success');
+    });
   }
 }
