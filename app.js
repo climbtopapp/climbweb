@@ -819,7 +819,18 @@ function displayNoMatchups() {
   const arena = document.querySelector('.mash-arena');
   if (arena) arena.classList.add('hidden');
   const noMatchupsView = document.getElementById('view-no-matchups');
-  if (noMatchupsView) noMatchupsView.classList.remove('hidden');
+  if (noMatchupsView) {
+    const titleEl = noMatchupsView.querySelector('h3');
+    const descEl = noMatchupsView.querySelector('p');
+    if (isMashClubMode) {
+      if (titleEl) titleEl.innerText = 'Not Enough Members';
+      if (descEl) descEl.innerText = 'There are not enough active members in this club with photos to vote on. Invite more club members to join!';
+    } else {
+      if (titleEl) titleEl.innerText = 'No Matchups Yet';
+      if (descEl) descEl.innerText = 'To start voting, invite more friends to join Climb and upload their photos!';
+    }
+    noMatchupsView.classList.remove('hidden');
+  }
 }
 
 async function recordVote(side) {
@@ -1163,10 +1174,20 @@ function updateNavigationLocks() {
   document.querySelectorAll('.bottom-nav .nav-item[data-screen="leaderboard"]').forEach(btn => {
     if (isLocked) {
       btn.classList.add('locked-nav');
-      btn.querySelector('.nav-label').innerText = `${100 - votes} More Votes`;
+      btn.querySelector('.nav-label').innerText = `${100 - votes} Votes`;
     } else {
       btn.classList.remove('locked-nav');
       btn.querySelector('.nav-label').innerText = 'Summit';
+    }
+  });
+
+  document.querySelectorAll('.bottom-nav .nav-item[data-screen="clubs"]').forEach(btn => {
+    if (isLocked) {
+      btn.classList.add('locked-nav');
+      btn.querySelector('.nav-label').innerText = `${100 - votes} Votes`;
+    } else {
+      btn.classList.remove('locked-nav');
+      btn.querySelector('.nav-label').innerText = 'Clubs';
     }
   });
 }
