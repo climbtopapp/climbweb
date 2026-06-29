@@ -1,17 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
 
 :root {
-  /* Color Palette - Cyber / Retro Arcade Dark Mode */
-  --bg-primary: #0a0a0c;
-  --bg-secondary: #141418;
-  --primary-color: #b5ff00; /* Neon Lime/Yellow-Green */
-  --primary-hover: #9cdb00;
-  --primary-light: #202712;
-  --text-main: #ffffff;
-  --text-muted: #8c8c9a;
+  /* Color Palette - Bright Neo-Brutalist Light Mode */
+  --bg-primary: #f2f4f7;
+  --bg-secondary: #ffffff;
+  --primary-color: #ffd60a; /* Vibrant Arcade Yellow */
+  --primary-hover: #ffc300;
+  --primary-light: #fffbea;
+  --text-main: #000000;
+  --text-muted: #555566;
   --border-color: #000000;
-  --accent-color: #ff8c00; /* Neon Orange */
-  --success-color: #39ff14;
+  --accent-color: #ff3366; /* Hot Pink */
+  --success-color: #00c853;
   --error-color: #ff3b30;
   --shadow-sm: 3px 3px 0px #000000;
   --shadow-md: 5px 5px 0px #000000;
@@ -249,12 +249,12 @@ input[type="email"]:focus {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 16px;
   padding-right: 32px;
-  box-shadow: inset 2px 2px 0px rgba(0,0,0,0.5);
+  box-shadow: inset 2px 2px 0px rgba(0,0,0,0.15);
 }
 
 #select-country-code:focus {
@@ -282,12 +282,12 @@ input[type="email"]:focus {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 16px;
   padding-right: 38px;
-  box-shadow: inset 2px 2px 0px rgba(0,0,0,0.5);
+  box-shadow: inset 2px 2px 0px rgba(0,0,0,0.15);
 }
 
 .form-select:focus {
@@ -338,8 +338,8 @@ input[type="email"]:focus {
 }
 
 .btn-primary:disabled {
-  background-color: #3b3b44;
-  color: #72727a;
+  background-color: #e4e4eb;
+  color: #a1a1aa;
   box-shadow: none;
   cursor: not-allowed;
   transform: none;
@@ -351,7 +351,7 @@ input[type="email"]:focus {
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #24242b;
+  background-color: #f2f4f7;
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0px #000000;
 }
@@ -551,7 +551,7 @@ input[type="email"]:focus {
   font-family: var(--font-body);
   font-weight: bold;
   font-size: 0.85rem;
-  color: var(--bg-primary);
+  color: #000000;
   background-color: var(--primary-color);
   padding: 4px 12px;
   border: 2px solid var(--border-color);
@@ -561,11 +561,11 @@ input[type="email"]:focus {
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 1.8rem;
-  color: var(--primary-color);
-  text-shadow: 2px 2px 0px #000;
+  color: #ffffff;
+  text-shadow: none;
   text-align: center;
   align-self: center;
-  background-color: var(--bg-secondary);
+  background-color: #000000;
   border-radius: 0%;
   width: 44px;
   height: 44px;
@@ -643,11 +643,11 @@ input[type="email"]:focus {
 }
 
 .nav-item:hover {
-  color: var(--primary-color);
+  color: var(--accent-color);
 }
 
 .nav-item.active {
-  color: var(--primary-color);
+  color: var(--accent-color);
   background-color: var(--primary-light);
 }
 
@@ -805,9 +805,9 @@ input[type="email"]:focus {
 .rank-elo {
   font-family: var(--font-display);
   font-size: 1.4rem;
-  color: var(--primary-color);
+  color: #000000;
   flex-shrink: 0;
-  text-shadow: 1px 1px 0px #000;
+  text-shadow: none;
 }
 
 /* Sticky rank bar */
@@ -833,7 +833,8 @@ input[type="email"]:focus {
 }
 
 .sticky-rank-row .rank-elo {
-  color: var(--primary-color);
+  color: #000000;
+  text-shadow: none;
 }
 
 @keyframes slideUp {
