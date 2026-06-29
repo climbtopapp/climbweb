@@ -742,6 +742,12 @@ function checkRegistrationSubmittable() {
 async function loadNextMatchup() {
   if (!currentUser) return;
 
+  // Ensure arena is visible and no matchups message is hidden
+  const arenaEl = document.querySelector('.mash-arena');
+  if (arenaEl) arenaEl.classList.remove('hidden');
+  const noMatchupsView = document.getElementById('view-no-matchups');
+  if (noMatchupsView) noMatchupsView.classList.add('hidden');
+
   // Show loaders
   document.querySelectorAll('.card-loader').forEach(loader => loader.classList.remove('hidden'));
 
@@ -811,13 +817,9 @@ async function loadNextMatchup() {
 function displayNoMatchups() {
   document.querySelectorAll('.card-loader').forEach(loader => loader.classList.add('hidden'));
   const arena = document.querySelector('.mash-arena');
-  arena.innerHTML = `
-    <div class="card text-center" style="margin: 40px auto; width: 100%;">
-      <span style="font-size: 3rem; display: block; margin-bottom: 12px;">🧗</span>
-      <h3 style="font-family: var(--font-display); font-weight: 700; margin-bottom: 8px;">No Climb matchups available yet</h3>
-      <p style="color: var(--text-muted); font-size: 0.9rem;">To start voting, invite more friends to join Climb and upload their photos!</p>
-    </div>
-  `;
+  if (arena) arena.classList.add('hidden');
+  const noMatchupsView = document.getElementById('view-no-matchups');
+  if (noMatchupsView) noMatchupsView.classList.remove('hidden');
 }
 
 async function recordVote(side) {
