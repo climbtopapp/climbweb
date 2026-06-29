@@ -5,12 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Climb: The World's Leaderboard</title>
-  <!-- Outfit & Inter Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap"
-    rel="stylesheet">
+  <!-- SVG Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22&gt;&lt;rect width=%2216%22 height=%2216%22 fill=%22%23b5ff00%22/&gt;&lt;path d=%22M7 4h2v2H7zm-1 2h4v2H6zm-1 2h6v2H5zm-1 2h8v2H4zm-1 2h10v2H3z%22 fill=%22%23000%22/&gt;&lt;/svg&gt;">
 
   <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -34,32 +30,47 @@
         <h1 class="brand-title">Climb</h1>
         <p class="brand-subtitle">Step up and make your way to the top.</p>
 
+        <!-- Step 0: Welcome Screen -->
+        <div id="auth-step-welcome">
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <button type="button" class="btn btn-primary btn-block" id="btn-welcome-create">
+              Create Account
+            </button>
+            <button type="button" class="btn btn-secondary btn-block" id="btn-welcome-signin">
+              Sign In
+            </button>
+          </div>
+        </div>
+
         <!-- Step 1: Email Entry -->
-        <div id="auth-step-email">
+        <div id="auth-step-email" class="hidden">
           <form id="form-email">
             <div class="input-group">
-              <label for="input-email">Email Address</label>
-              <input type="email" id="input-email" placeholder="you@example.com" required autocomplete="email"
-                style="width: 100%; padding: 14px 18px; font-family: var(--font-body); font-size: 1rem; background-color: var(--bg-primary); border: 2px solid transparent; border-radius: var(--radius-md); color: var(--text-main); outline: none; transition: var(--transition);">
-              <p class="input-hint">Enter your email to receive a secure sign-in link.</p>
+              <label for="input-email" id="label-email-title">Email Address</label>
+              <input type="email" id="input-email" placeholder="you@example.com" required autocomplete="email">
+              <p class="input-hint">Enter your email to receive a secure link.</p>
             </div>
             <button type="submit" class="btn btn-primary btn-block" id="btn-send-otp">
-              Send Login Link
+              Send Link
+            </button>
+            <button type="button" class="btn btn-text btn-block" id="btn-back-welcome" style="margin-top: 10px;">
+              Go Back
             </button>
           </form>
         </div>
 
         <!-- Step 2: Magic Link Success Message (Hidden by default) -->
         <div id="auth-step-success" class="hidden text-center" style="padding: 10px 0;">
-          <div style="font-size: 3.5rem; margin-bottom: 16px; text-align: center;">✉️</div>
+          <div style="display: flex; justify-content: center; margin-bottom: 16px; color: var(--primary-color);">
+            <svg class="retro-icon" viewBox="0 0 16 16" width="56" height="56" fill="currentColor">
+              <path d="M1 2h14v12H1zm2 2v2l5 4 5-4V4zm0 4v4h10V8L8 10z"/>
+            </svg>
+          </div>
           <h3 class="section-title" style="text-align: center;">Check Your Email</h3>
-          <p class="section-desc" style="text-align: center; margin-bottom: 12px;">We sent a secure login link to your
-            email. Open the link to sign in to Climb.</p>
-          <p class="input-hint"
-            style="text-align: center; margin-bottom: 24px; color: var(--primary-color); font-weight: 500;">Make sure to
-            check your spam folder!</p>
+          <p class="section-desc" style="text-align: center; margin-bottom: 12px;">We sent a secure login link to your email. Open the link to sign in.</p>
+          <p class="input-hint" style="text-align: center; margin-bottom: 24px; color: var(--primary-color); font-weight: 500;">Check spam folder if needed!</p>
           <button type="button" class="btn btn-secondary btn-block" id="btn-back-email">
-            Back to Sign In
+            Go Back
           </button>
         </div>
       </div>
@@ -114,8 +125,10 @@
                 style="margin: 0 auto 15px; width: 150px; height: 150px; border-radius: var(--radius-md); overflow: hidden; border: 2px dashed var(--border-color); display: flex; justify-content: center; align-items: center; position: relative; background-color: var(--bg-secondary);">
                 <img id="avatar-preview-img" src="" alt="Avatar Preview" class="hidden"
                   style="width: 100%; height: 100%; object-fit: cover;">
-                <div id="avatar-preview-placeholder">
-                  <span class="upload-icon" style="font-size: 2rem;">📸</span>
+                <div id="avatar-preview-placeholder" style="color: var(--primary-color);">
+                  <svg class="retro-icon" viewBox="0 0 16 16" width="36" height="36" fill="currentColor">
+                    <path d="M4 3h2v1h4V3h2v2h3v10H1V5h3zm1 4v6h6V7H5zm2 1.5A1.5 1.5 0 1 1 8.5 10 1.5 1.5 0 0 1 7 8.5z"/>
+                  </svg>
                 </div>
               </div>
               <input type="file" id="input-avatar" accept="image/*" class="hidden">
@@ -263,29 +276,6 @@
         </div>
       </div>
 
-      <!-- Bottom Nav (Appended to app screens) -->
-      <nav class="bottom-nav">
-        <button class="nav-item active" data-screen="mash">
-          <span class="nav-icon">⛰️</span>
-          <span class="nav-label">Climb</span>
-        </button>
-        <button class="nav-item" data-screen="leaderboard">
-          <span class="nav-icon">🏆</span>
-          <span class="nav-label">Summit</span>
-        </button>
-        <button class="nav-item" data-screen="challenges">
-          <span class="nav-icon">🎯</span>
-          <span class="nav-label">Challenges</span>
-        </button>
-        <button class="nav-item" data-screen="clubs">
-          <span class="nav-icon">🏠</span>
-          <span class="nav-label">Clubs</span>
-        </button>
-        <button class="nav-item" data-screen="profile">
-          <span class="nav-icon">🧗</span>
-          <span class="nav-label">Me</span>
-        </button>
-      </nav>
     </section>
 
     <!-- Screen: Leaderboard -->
@@ -320,29 +310,6 @@
         <div class="rank-elo" id="sticky-user-elo">Grade --</div>
       </div>
 
-      <!-- Bottom Nav -->
-      <nav class="bottom-nav">
-        <button class="nav-item" data-screen="mash">
-          <span class="nav-icon">⛰️</span>
-          <span class="nav-label">Climb</span>
-        </button>
-        <button class="nav-item active" data-screen="leaderboard">
-          <span class="nav-icon">🏆</span>
-          <span class="nav-label">Summit</span>
-        </button>
-        <button class="nav-item" data-screen="challenges">
-          <span class="nav-icon">🎯</span>
-          <span class="nav-label">Challenges</span>
-        </button>
-        <button class="nav-item" data-screen="clubs">
-          <span class="nav-icon">🏠</span>
-          <span class="nav-label">Clubs</span>
-        </button>
-        <button class="nav-item" data-screen="profile">
-          <span class="nav-icon">🧗</span>
-          <span class="nav-label">Me</span>
-        </button>
-      </nav>
     </section>
 
     <!-- Screen: Profile / Me -->
@@ -355,8 +322,7 @@
           <h3 id="profile-email-display">--</h3>
           <p id="profile-location-display" class="input-hint">Region: --</p>
           <button id="btn-settings" class="btn btn-secondary btn-sm"
-            style="margin-top: 10px; width: auto; padding: 6px 16px; display: inline-flex; align-items: center; gap: 6px;">⚙️
-            Settings</button>
+            style="margin-top: 10px; width: auto; padding: 6px 16px; display: inline-flex; align-items: center; gap: 6px;"><svg class="retro-icon" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M7 1h2v2H7zm4 1.5l1.5 1.5-1.5 1.5-1.5-1.5zm2.5 4.5v2h-2V7zM11 11.5l1.5 1.5-1.5 1.5-1.5-1.5zM7 13h2v2H7zM3.5 11l-1.5 1.5 1.5 1.5 1.5-1.5zm-2.5-4h2v2H1zm2.5-3.5L2 5l1.5 1.5 1.5-1.5zm2.5 2.5h4v4H6z"/></svg>Settings</button>
         </div>
 
         <div class="stats-grid">
@@ -373,41 +339,20 @@
         <div class="ranks-section">
           <h3>Your Rankings</h3>
           <div class="rank-item">
-            <span class="rank-item-label">🌐 Global Rank</span>
+            <span class="rank-item-label" style="display: inline-flex; align-items: center; gap: 6px;"><svg class="retro-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M6 1h4v1H6zm-2 1h8v1H4zm-2 2h12v1H2zm-1 2h14v4H1zm1 4h12v1H2zm2 1h8v1H4zm2 1h4v1H6z"/></svg> Global Rank</span>
             <span class="rank-item-val" id="rank-val-global">--</span>
           </div>
           <div class="rank-item">
-            <span class="rank-item-label">🗺️ Region Rank</span>
+            <span class="rank-item-label" style="display: inline-flex; align-items: center; gap: 6px;"><svg class="retro-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M6 1h4v2H6zm-2 2h8v2H4zm-1 2h10v2H3zm0 2h10v2H3zm1 2h8v2H4zm2 2h4v2H6zm1 2h2v1H7z"/></svg> Region Rank</span>
             <span class="rank-item-val" id="rank-val-state">--</span>
           </div>
           <div class="rank-item">
-            <span class="rank-item-label">🏠 Club Rank</span>
+            <span class="rank-item-label" style="display: inline-flex; align-items: center; gap: 6px;"><svg class="retro-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M7 1h2v2H7zM6 3h4v2H6zM5 5h6v2H5zM4 7h8v2H4zM3 9h10v7H9v-4H7v4H3z"/></svg> Club Rank</span>
             <span class="rank-item-val" id="rank-val-club">--</span>
           </div>
         </div>
       </div>
-
-      <!-- Bottom Nav -->
-      <nav class="bottom-nav">
-        <button class="nav-item" data-screen="mash">
-          <span class="nav-icon">⛰️</span>
-          <span class="nav-label">Climb</span>
-        </button>
-        <button class="nav-item" data-screen="leaderboard">
-          <span class="nav-icon">🏆</span>
-          <span class="nav-label">Summit</span>
-        </button>
-        <button class="nav-item" data-screen="challenges">
-          <span class="nav-icon">🎯</span>
-          <span class="nav-label">Challenges</span>
-        </button>
-        <button class="nav-item" data-screen="clubs">
-          <span class="nav-icon">🏠</span>
-          <span class="nav-label">Clubs</span>
-        </button>
-        <button class="nav-item active" data-screen="profile">
-          <span class="nav-icon">🧗</span>
-          <span class="nav-label">Me</span>
+    </section>nav-label">Me</span>
         </button>
       </nav>
     </section>
@@ -420,49 +365,41 @@
       </header>
 
       <div class="challenges-coming-soon">
-        <div class="challenges-icon">🎬</div>
+        <div class="challenges-icon" style="color: var(--primary-color);">
+          <svg class="retro-icon" viewBox="0 0 16 16" width="48" height="48" fill="currentColor">
+            <path d="M1 2h14v12H1zm2 2v2h2V4zm4 0v2h2V4zm4 0v2h2V4zM3 8v4h10V8H3z"/>
+          </svg>
+        </div>
         <h2 class="challenges-title">Coming Soon</h2>
-        <p class="challenges-desc">The top 99 climbers in each region will be eligible for exclusive casting calls and
-          modeling opportunities in their area.</p>
+        <p class="challenges-desc">The top 99 climbers in each region will be eligible for exclusive casting calls and modeling opportunities in their area.</p>
         <div class="challenges-features">
           <div class="challenge-feature">
-            <span class="feature-icon">📸</span>
+            <span class="feature-icon" style="color: var(--primary-color);">
+              <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+                <path d="M4 3h2v1h4V3h2v2h3v10H1V5h3zm1 4v6h6V7H5zm2 1.5A1.5 1.5 0 1 1 8.5 10 1.5 1.5 0 0 1 7 8.5z"/>
+              </svg>
+            </span>
             <span class="feature-text">Modeling Opportunities</span>
           </div>
           <div class="challenge-feature">
-            <span class="feature-icon">🎥</span>
+            <span class="feature-icon" style="color: var(--primary-color);">
+              <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+                <path d="M1 3h9v10H1zm11 2l3-3v12l-3-3V5z"/>
+              </svg>
+            </span>
             <span class="feature-text">Casting Calls</span>
           </div>
           <div class="challenge-feature">
-            <span class="feature-icon">🗺️</span>
+            <span class="feature-icon" style="color: var(--primary-color);">
+              <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+                <path d="M6 1h4v2H6zm-2 2h8v2H4zm-1 2h10v2H3zm0 2h10v2H3zm1 2h8v2H4zm2 2h4v2H6zm1 2h2v1H7z"/>
+              </svg>
+            </span>
             <span class="feature-text">Region-Based Matching</span>
           </div>
         </div>
         <p class="challenges-footer">Keep climbing to secure your spot in the top 99!</p>
       </div>
-
-      <nav class="bottom-nav">
-        <button class="nav-item" data-screen="mash">
-          <span class="nav-icon">⛰️</span>
-          <span class="nav-label">Climb</span>
-        </button>
-        <button class="nav-item" data-screen="leaderboard">
-          <span class="nav-icon">🏆</span>
-          <span class="nav-label">Summit</span>
-        </button>
-        <button class="nav-item active" data-screen="challenges">
-          <span class="nav-icon">🎯</span>
-          <span class="nav-label">Challenges</span>
-        </button>
-        <button class="nav-item" data-screen="clubs">
-          <span class="nav-icon">🏠</span>
-          <span class="nav-label">Clubs</span>
-        </button>
-        <button class="nav-item" data-screen="profile">
-          <span class="nav-icon">🧗</span>
-          <span class="nav-label">Me</span>
-        </button>
-      </nav>
     </section>
 
     <!-- Screen: Clubs -->
@@ -540,30 +477,51 @@
         </div>
 
       </div>
-
-      <nav class="bottom-nav">
-        <button class="nav-item" data-screen="mash">
-          <span class="nav-icon">⛰️</span>
-          <span class="nav-label">Climb</span>
-        </button>
-        <button class="nav-item" data-screen="leaderboard">
-          <span class="nav-icon">🏆</span>
-          <span class="nav-label">Summit</span>
-        </button>
-        <button class="nav-item" data-screen="challenges">
-          <span class="nav-icon">🎯</span>
-          <span class="nav-label">Challenges</span>
-        </button>
-        <button class="nav-item active" data-screen="clubs">
-          <span class="nav-icon">🏠</span>
-          <span class="nav-label">Clubs</span>
-        </button>
-        <button class="nav-item" data-screen="profile">
-          <span class="nav-icon">🧗</span>
-          <span class="nav-label">Me</span>
-        </button>
-      </nav>
     </section>
+
+    <!-- Bottom Nav (Shared across screens) -->
+    <nav class="bottom-nav hidden">
+      <button class="nav-item" data-screen="mash">
+        <span class="nav-icon">
+          <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+            <path d="M7 2h2v2H7zm-1 2h4v2H6zm-1 2h6v2H5zm-1 2h8v2H4zm-1 2h10v2H3zm-1 2h12v2H2zm-1 2h14v2H1z"/>
+          </svg>
+        </span>
+        <span class="nav-label">Climb</span>
+      </button>
+      <button class="nav-item" data-screen="leaderboard">
+        <span class="nav-icon">
+          <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+            <path d="M3 2h10v2H3zm-1 2h12v4h-2V6H4v2H2zm2 4h8v2H4zm2 2h4v2H6zm1 2h2v2H7zm-3 2h8v1H4z"/>
+          </svg>
+        </span>
+        <span class="nav-label">Summit</span>
+      </button>
+      <button class="nav-item" data-screen="challenges">
+        <span class="nav-icon">
+          <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+            <path d="M7 1h2v2H7zm3 2h2v2h-2zm2 3h2v2h-2zm0 4h-2v2h2zm-3 3H7v2h2zm-5-3H2v-2h2zm0-5H2v-2h2zm3 0h2v4H7z"/>
+          </svg>
+        </span>
+        <span class="nav-label">Challenges</span>
+      </button>
+      <button class="nav-item" data-screen="clubs">
+        <span class="nav-icon">
+          <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+            <path d="M7 1h2v2H7zM6 3h4v2H6zM5 5h6v2H5zM4 7h8v2H4zM3 9h10v7H9v-4H7v4H3z"/>
+          </svg>
+        </span>
+        <span class="nav-label">Clubs</span>
+      </button>
+      <button class="nav-item" data-screen="profile">
+        <span class="nav-icon">
+          <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+            <path d="M6 1h4v4H6zm-2 5h8v2H4zm-1 2h10v8H3z"/>
+          </svg>
+        </span>
+        <span class="nav-label">Me</span>
+      </button>
+    </nav>
 
   </div>
 
