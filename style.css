@@ -1,21 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
 
 :root {
-  /* Color Palette - Bright Neo-Brutalist Light Mode */
-  --bg-primary: #f2f4f7;
+  /* Color Palette - Bright Neo-Brutalist White & Pastel Blue Mode */
+  --bg-primary: #ebf1fa;
   --bg-secondary: #ffffff;
-  --primary-color: #ffd60a; /* Vibrant Arcade Yellow */
-  --primary-hover: #ffc300;
-  --primary-light: #fffbea;
+  --primary-color: #bbdefb; /* Soft Pastel Blue */
+  --primary-hover: #90caf9;
+  --primary-light: #e3f2fd;
   --text-main: #000000;
   --text-muted: #555566;
   --border-color: #000000;
-  --accent-color: #ff3366; /* Hot Pink */
+  --accent-color: #42a5f5; /* Vibrant Blue */
   --success-color: #00c853;
   --error-color: #ff3b30;
-  --shadow-sm: 3px 3px 0px #000000;
-  --shadow-md: 5px 5px 0px #000000;
-  --shadow-lg: 8px 8px 0px #000000;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
   --radius-sm: 0px;
   --radius-md: 0px;
   --radius-lg: 0px;
@@ -218,7 +218,6 @@ input[type="email"] {
   color: var(--text-main);
   outline: none;
   transition: var(--transition);
-  box-shadow: inset 2px 2px 0px rgba(0,0,0,0.5);
 }
 
 input[type="tel"]:focus,
@@ -254,7 +253,6 @@ input[type="email"]:focus {
   background-position: right 12px center;
   background-size: 16px;
   padding-right: 32px;
-  box-shadow: inset 2px 2px 0px rgba(0,0,0,0.15);
 }
 
 #select-country-code:focus {
@@ -287,7 +285,6 @@ input[type="email"]:focus {
   background-position: right 14px center;
   background-size: 16px;
   padding-right: 38px;
-  box-shadow: inset 2px 2px 0px rgba(0,0,0,0.15);
 }
 
 .form-select:focus {
@@ -328,13 +325,13 @@ input[type="email"]:focus {
 
 .btn-primary:hover:not(:disabled) {
   background-color: var(--primary-hover);
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0px #000000;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-primary:active:not(:disabled) {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #000000;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-primary:disabled {
@@ -351,14 +348,14 @@ input[type="email"]:focus {
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #f2f4f7;
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0px #000000;
+  background-color: #e3f2fd;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-secondary:active:not(:disabled) {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #000000;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-text {
@@ -408,8 +405,8 @@ input[type="email"]:focus {
 
 .avatar-picker-label:hover {
   border-color: var(--primary-hover);
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0px #000000;
+  transform: none;
+  box-shadow: none;
 }
 
 #avatar-preview-placeholder {
@@ -507,13 +504,13 @@ input[type="email"]:focus {
 }
 
 .mash-card:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 7px 7px 0px #000000;
+  transform: none;
+  box-shadow: none;
 }
 
 .mash-card:active {
-  transform: translate(3px, 3px);
-  box-shadow: 2px 2px 0px #000000;
+  transform: none;
+  box-shadow: none;
 }
 
 /* When hovering one card, gray out the other */
