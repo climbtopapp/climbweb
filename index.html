@@ -232,8 +232,11 @@
 
     <!-- Screen: Mash (The voting arena) -->
     <section id="screen-mash" class="screen">
-      <header class="app-header">
-        <h1 class="brand-title-sm">Climb</h1>
+      <header class="app-header" style="display: flex; justify-content: center; align-items: center; padding-bottom: 0;">
+        <div class="tabs" style="margin-bottom: 0;">
+          <button class="tab-btn active" id="btn-climb-global" style="padding: 8px 16px;">Global</button>
+          <button class="tab-btn" id="btn-climb-club" style="padding: 8px 16px;">Club</button>
+        </div>
       </header>
 
       <div class="mash-arena">
@@ -274,6 +277,10 @@
           <span class="nav-icon">🎯</span>
           <span class="nav-label">Challenges</span>
         </button>
+        <button class="nav-item" data-screen="clubs">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Clubs</span>
+        </button>
         <button class="nav-item" data-screen="profile">
           <span class="nav-icon">🧗</span>
           <span class="nav-label">Me</span>
@@ -292,6 +299,7 @@
       <div class="tabs">
         <button class="tab-btn active" data-tab="global">Global</button>
         <button class="tab-btn" data-tab="state">Region</button>
+        <button class="tab-btn" data-tab="club">Club</button>
       </div>
 
       <!-- Leaderboard List -->
@@ -325,6 +333,10 @@
         <button class="nav-item" data-screen="challenges">
           <span class="nav-icon">🎯</span>
           <span class="nav-label">Challenges</span>
+        </button>
+        <button class="nav-item" data-screen="clubs">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Clubs</span>
         </button>
         <button class="nav-item" data-screen="profile">
           <span class="nav-icon">🧗</span>
@@ -368,6 +380,10 @@
             <span class="rank-item-label">🗺️ Region Rank</span>
             <span class="rank-item-val" id="rank-val-state">--</span>
           </div>
+          <div class="rank-item">
+            <span class="rank-item-label">🏠 Club Rank</span>
+            <span class="rank-item-val" id="rank-val-club">--</span>
+          </div>
         </div>
 
         <button class="btn btn-secondary btn-block" id="btn-surrounding-ranks" style="margin-top: 15px;" disabled>See
@@ -387,6 +403,10 @@
         <button class="nav-item" data-screen="challenges">
           <span class="nav-icon">🎯</span>
           <span class="nav-label">Challenges</span>
+        </button>
+        <button class="nav-item" data-screen="clubs">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Clubs</span>
         </button>
         <button class="nav-item active" data-screen="profile">
           <span class="nav-icon">🧗</span>
@@ -436,6 +456,110 @@
         <button class="nav-item active" data-screen="challenges">
           <span class="nav-icon">🎯</span>
           <span class="nav-label">Challenges</span>
+        </button>
+        <button class="nav-item" data-screen="clubs">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Clubs</span>
+        </button>
+        <button class="nav-item" data-screen="profile">
+          <span class="nav-icon">🧗</span>
+          <span class="nav-label">Me</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- Screen: Clubs -->
+    <section id="screen-clubs" class="screen">
+      <header class="app-header">
+        <h1 class="brand-title-sm">Clubs</h1>
+        <p class="header-desc">Climb with your friends, school, or work.</p>
+      </header>
+
+      <!-- No Club View -->
+      <div id="view-no-club" style="display: none; flex-direction: column; gap: 20px; padding: 20px;">
+        
+        <div class="card" style="padding: 24px; text-align: center;">
+          <h3 style="margin-bottom: 15px; font-family: var(--font-display);">Join a Club</h3>
+          <div class="input-group" style="margin-bottom: 15px;">
+            <input type="text" id="input-join-club-code" placeholder="Enter 6-character code" maxlength="6" style="text-align: center; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase;">
+          </div>
+          <button class="btn btn-primary btn-block" id="btn-join-club">Join Club</button>
+        </div>
+
+        <div style="text-align: center; color: var(--text-muted); font-weight: 600; font-size: 0.9rem;">— OR —</div>
+
+        <div class="card" style="padding: 24px; text-align: center;">
+          <h3 style="margin-bottom: 15px; font-family: var(--font-display);">Create a Club</h3>
+          <p class="input-hint" style="margin-bottom: 15px;">You can only create one club.</p>
+          <div class="input-group" style="margin-bottom: 15px;">
+            <input type="text" id="input-create-club-name" placeholder="Club Name (e.g., UMich 2026)" maxlength="30">
+          </div>
+          <button class="btn btn-secondary btn-block" id="btn-create-club">Create Club</button>
+        </div>
+
+      </div>
+
+      <!-- Has Club View -->
+      <div id="view-has-club" style="display: none; flex-direction: column; height: 100%;">
+        
+        <!-- Club Header Info -->
+        <div class="card" style="margin: 20px; text-align: center; padding: 20px;">
+          <div id="club-name-display" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <h2 id="text-club-name" style="font-family: var(--font-display); font-weight: 700; margin: 0;">Club Name</h2>
+            <button id="btn-edit-club-name" class="btn btn-sm hidden" style="padding: 4px; background: transparent; border: none; font-size: 1.2rem; color: var(--text-muted);">✏️</button>
+          </div>
+          
+          <div id="club-name-edit" class="hidden" style="margin-bottom: 15px;">
+            <div class="input-group" style="display: flex; gap: 10px; margin-bottom: 0;">
+              <input type="text" id="input-edit-club-name" maxlength="30" style="flex: 1;">
+              <button class="btn btn-primary btn-sm" id="btn-save-club-name">Save</button>
+            </div>
+          </div>
+
+          <div style="background-color: var(--bg-secondary); padding: 12px; border-radius: var(--radius-sm); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Invite Code</div>
+              <div id="text-club-code" style="font-size: 1.4rem; font-weight: 800; letter-spacing: 3px; font-family: monospace; color: var(--primary-color);">------</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-share-club">Share</button>
+          </div>
+
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            <span id="text-club-member-count">0</span> members
+          </div>
+        </div>
+
+        <!-- Members List -->
+        <h3 style="padding: 0 20px; margin-bottom: 10px; font-size: 1rem; color: var(--text-muted);">Members</h3>
+        <div class="leaderboard-container" style="flex-grow: 1;">
+          <div id="club-members-list" class="leaderboard-list">
+            <!-- Dynamically populated rows -->
+          </div>
+        </div>
+
+        <div style="padding: 20px;">
+          <button class="btn btn-secondary btn-block" id="btn-leave-club" style="border-color: #ff4d4d; color: #ff4d4d; background-color: transparent;">Leave Club</button>
+          <p id="text-leave-club-warning" class="input-hint text-center hidden" style="color: #ff4d4d; margin-top: 8px;">Since you are the creator, leaving will delete the club.</p>
+        </div>
+
+      </div>
+
+      <nav class="bottom-nav">
+        <button class="nav-item" data-screen="mash">
+          <span class="nav-icon">⛰️</span>
+          <span class="nav-label">Climb</span>
+        </button>
+        <button class="nav-item" data-screen="leaderboard">
+          <span class="nav-icon">🏆</span>
+          <span class="nav-label">Summit</span>
+        </button>
+        <button class="nav-item" data-screen="challenges">
+          <span class="nav-icon">🎯</span>
+          <span class="nav-label">Challenges</span>
+        </button>
+        <button class="nav-item active" data-screen="clubs">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Clubs</span>
         </button>
         <button class="nav-item" data-screen="profile">
           <span class="nav-icon">🧗</span>
@@ -493,62 +617,86 @@
           </select>
         </div>
 
-        <!-- State -->
+        <!-- Region -->
         <div class="input-group">
-          <label for="select-settings-state">State</label>
+          <label for="select-settings-state">Region</label>
           <select id="select-settings-state" class="form-select" required
             style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; outline: none; transition: var(--transition);">
-            <option value="Alabama">Alabama</option>
-            <option value="Alaska">Alaska</option>
-            <option value="Arizona">Arizona</option>
-            <option value="Arkansas">Arkansas</option>
-            <option value="California">California</option>
-            <option value="Colorado">Colorado</option>
-            <option value="Connecticut">Connecticut</option>
-            <option value="Delaware">Delaware</option>
-            <option value="Florida">Florida</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Hawaii">Hawaii</option>
-            <option value="Idaho">Idaho</option>
-            <option value="Illinois">Illinois</option>
-            <option value="Indiana">Indiana</option>
-            <option value="Iowa">Iowa</option>
-            <option value="Kansas">Kansas</option>
-            <option value="Kentucky">Kentucky</option>
-            <option value="Louisiana">Louisiana</option>
-            <option value="Maine">Maine</option>
-            <option value="Maryland">Maryland</option>
-            <option value="Massachusetts">Massachusetts</option>
-            <option value="Michigan">Michigan</option>
-            <option value="Minnesota">Minnesota</option>
-            <option value="Mississippi">Mississippi</option>
-            <option value="Missouri">Missouri</option>
-            <option value="Montana">Montana</option>
-            <option value="Nebraska">Nebraska</option>
-            <option value="Nevada">Nevada</option>
-            <option value="New Hampshire">New Hampshire</option>
-            <option value="New Jersey">New Jersey</option>
-            <option value="New Mexico">New Mexico</option>
-            <option value="New York">New York</option>
-            <option value="North Carolina">North Carolina</option>
-            <option value="North Dakota">North Dakota</option>
-            <option value="Ohio">Ohio</option>
-            <option value="Oklahoma">Oklahoma</option>
-            <option value="Oregon">Oregon</option>
-            <option value="Pennsylvania">Pennsylvania</option>
-            <option value="Rhode Island">Rhode Island</option>
-            <option value="South Carolina">South Carolina</option>
-            <option value="South Dakota">South Dakota</option>
-            <option value="Tennessee">Tennessee</option>
-            <option value="Texas">Texas</option>
-            <option value="Utah">Utah</option>
-            <option value="Vermont">Vermont</option>
-            <option value="Virginia">Virginia</option>
-            <option value="Washington">Washington</option>
-            <option value="West Virginia">West Virginia</option>
-            <option value="Wisconsin">Wisconsin</option>
-            <option value="Wyoming">Wyoming</option>
-            <option value="District of Columbia">District of Columbia</option>
+            <optgroup label="United States">
+              <option value="Alabama">Alabama</option>
+              <option value="Alaska">Alaska</option>
+              <option value="Arizona">Arizona</option>
+              <option value="Arkansas">Arkansas</option>
+              <option value="California">California</option>
+              <option value="Colorado">Colorado</option>
+              <option value="Connecticut">Connecticut</option>
+              <option value="Delaware">Delaware</option>
+              <option value="Florida">Florida</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Hawaii">Hawaii</option>
+              <option value="Idaho">Idaho</option>
+              <option value="Illinois">Illinois</option>
+              <option value="Indiana">Indiana</option>
+              <option value="Iowa">Iowa</option>
+              <option value="Kansas">Kansas</option>
+              <option value="Kentucky">Kentucky</option>
+              <option value="Louisiana">Louisiana</option>
+              <option value="Maine">Maine</option>
+              <option value="Maryland">Maryland</option>
+              <option value="Massachusetts">Massachusetts</option>
+              <option value="Michigan">Michigan</option>
+              <option value="Minnesota">Minnesota</option>
+              <option value="Mississippi">Mississippi</option>
+              <option value="Missouri">Missouri</option>
+              <option value="Montana">Montana</option>
+              <option value="Nebraska">Nebraska</option>
+              <option value="Nevada">Nevada</option>
+              <option value="New Hampshire">New Hampshire</option>
+              <option value="New Jersey">New Jersey</option>
+              <option value="New Mexico">New Mexico</option>
+              <option value="New York">New York</option>
+              <option value="North Carolina">North Carolina</option>
+              <option value="North Dakota">North Dakota</option>
+              <option value="Ohio">Ohio</option>
+              <option value="Oklahoma">Oklahoma</option>
+              <option value="Oregon">Oregon</option>
+              <option value="Pennsylvania">Pennsylvania</option>
+              <option value="Rhode Island">Rhode Island</option>
+              <option value="South Carolina">South Carolina</option>
+              <option value="South Dakota">South Dakota</option>
+              <option value="Tennessee">Tennessee</option>
+              <option value="Texas">Texas</option>
+              <option value="Utah">Utah</option>
+              <option value="Vermont">Vermont</option>
+              <option value="Virginia">Virginia</option>
+              <option value="Washington">Washington</option>
+              <option value="West Virginia">West Virginia</option>
+              <option value="Wisconsin">Wisconsin</option>
+              <option value="Wyoming">Wyoming</option>
+            </optgroup>
+            <optgroup label="US Territories">
+              <option value="District of Columbia">District of Columbia</option>
+              <option value="Puerto Rico">Puerto Rico</option>
+              <option value="Guam">Guam</option>
+              <option value="US Virgin Islands">US Virgin Islands</option>
+              <option value="American Samoa">American Samoa</option>
+              <option value="Northern Mariana Islands">Northern Mariana Islands</option>
+            </optgroup>
+            <optgroup label="Canada">
+              <option value="Alberta">Alberta</option>
+              <option value="British Columbia">British Columbia</option>
+              <option value="Manitoba">Manitoba</option>
+              <option value="New Brunswick">New Brunswick</option>
+              <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+              <option value="Northwest Territories">Northwest Territories</option>
+              <option value="Nova Scotia">Nova Scotia</option>
+              <option value="Nunavut">Nunavut</option>
+              <option value="Ontario">Ontario</option>
+              <option value="Prince Edward Island">Prince Edward Island</option>
+              <option value="Quebec">Quebec</option>
+              <option value="Saskatchewan">Saskatchewan</option>
+              <option value="Yukon">Yukon</option>
+            </optgroup>
           </select>
         </div>
 
