@@ -38,6 +38,7 @@ const screens = {
   register: document.getElementById('screen-register'),
   mash: document.getElementById('screen-mash'),
   leaderboard: document.getElementById('screen-leaderboard'),
+  challenges: document.getElementById('screen-challenges'),
   profile: document.getElementById('screen-profile')
 };
 
@@ -316,7 +317,7 @@ function setupEventListeners() {
       if (targetScreen) {
         if (targetScreen === 'leaderboard' && (!currentProfile || currentProfile.votes_cast < 100)) {
           const votes = currentProfile ? currentProfile.votes_cast : 0;
-          showToast(`You need more votes. Cast ${100 - votes} more votes to unlock the Leaderboards.`, 'error');
+          showToast(`Cast ${100 - votes} more votes to unlock the Summit.`, 'error');
           return;
         }
         showScreen(targetScreen);
@@ -617,38 +618,7 @@ function compressImage(file, targetSize, quality) {
   });
 }
 
-// --- Geolocation & Reverse Geocoding ---
-function requestNeighborhoodLocation() {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      showToast('Geolocation not supported by browser.', 'error');
-      resolve(false);
-      return;
-    }
-    
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        userCoordinates.lat = position.coords.latitude;
-        userCoordinates.lng = position.coords.longitude;
-        
-        // Update user profile in Supabase to save location
-        if (currentUser) {
-          await supabaseClient.from('profiles').update({
-            latitude: userCoordinates.lat,
-            longitude: userCoordinates.lng
-          }).eq('id', currentUser.id);
-        }
-        resolve(true);
-      },
-      (err) => {
-        console.warn('Geolocation error:', err);
-        showToast('Please enable location access for Neighborhood rankings.', 'error');
-        resolve(false);
-      },
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  });
-}
+// --- Geolocation (removed — no longer used) ---
 
 function checkRegistrationSubmittable() {
   const submitBtn = document.getElementById('btn-submit-registration');
@@ -801,11 +771,6 @@ async function loadLeaderboard() {
   if (!currentUser) return;
 
   const listContainer = document.getElementById('leaderboard-list');
-  
-  if (currentLeaderboardTab === 'neighborhood') {
-    listContainer.innerHTML = '<div class="text-center py-4"><div class="spinner" style="margin: 20px auto;"></div><p style="color: var(--text-muted);">Detecting location...</p></div>';
-    await requestNeighborhoodLocation();
-  }
 
   listContainer.innerHTML = '<div class="text-center py-4"><div class="spinner" style="margin: 20px auto;"></div><p style="color: var(--text-muted);">Rebuilding rankings...</p></div>';
 
@@ -840,7 +805,6 @@ async function loadLeaderboard() {
         if (isSelf) {
           let rankThreshold = 1000;
           if (currentLeaderboardTab === 'global') rankThreshold = 500;
-          if (currentLeaderboardTab === 'state') rankThreshold = 750;
 
           if (votes < rankThreshold) {
             displayRank = '--';
@@ -888,9 +852,6 @@ async function loadLeaderboard() {
       } else if (currentLeaderboardTab === 'state' && stats.state_rank > 0) {
         displayRank = stats.state_rank;
         displayTotal = stats.total_state;
-      } else if (currentLeaderboardTab === 'neighborhood' && stats.neighborhood_rank > 0) {
-        displayRank = stats.neighborhood_rank;
-        displayTotal = stats.total_neighborhood;
       }
 
       if (displayRank !== '--' && currentProfile) {
@@ -943,7 +904,7 @@ async function loadProfileData() {
     // Update profile HTML info
     document.getElementById('profile-avatar').src = profile.avatar_url || DEFAULT_AVATAR;
     document.getElementById('profile-email-display').innerText = displayName;
-    document.getElementById('profile-location-display').innerText = `State: ${profile.state || 'Unknown'}`;
+    document.getElementById('profile-location-display').innerText = `Region: ${profile.state || 'Unknown'}`;
 
     const votes = profile.votes_cast || 0;
     document.getElementById('stat-votes').innerText = votes;
@@ -954,16 +915,10 @@ async function loadProfileData() {
       document.getElementById('rank-val-global').innerText = '--';
     }
 
-    if (votes < 750) {
-      document.getElementById('rank-val-state').innerText = `${750 - votes} more votes needed`;
+    if (votes < 1000) {
+      document.getElementById('rank-val-state').innerText = `${1000 - votes} more votes needed`;
     } else {
       document.getElementById('rank-val-state').innerText = '--';
-    }
-
-    if (votes < 1000) {
-      document.getElementById('rank-val-neighborhood').innerText = `${1000 - votes} more votes needed`;
-    } else {
-      document.getElementById('rank-val-neighborhood').innerText = '--';
     }
 
     if (votes < 250) {
@@ -992,8 +947,7 @@ async function loadProfileData() {
 
     if (!statsError && rankStats && rankStats.length > 0) {
       document.getElementById('rank-val-global').innerText = votes >= 500 ? (rankStats[0].total_global > 0 ? `${rankStats[0].global_rank} / ${rankStats[0].total_global}` : '--') : 'Locked';
-      document.getElementById('rank-val-state').innerText = votes >= 750 ? (rankStats[0].total_state > 0 ? `${rankStats[0].state_rank} / ${rankStats[0].total_state}` : '--') : 'Locked';
-      document.getElementById('rank-val-neighborhood').innerText = votes >= 1000 ? (rankStats[0].total_neighborhood > 0 ? `${rankStats[0].neighborhood_rank} / ${rankStats[0].total_neighborhood}` : '--') : 'Locked';
+      document.getElementById('rank-val-state').innerText = votes >= 1000 ? (rankStats[0].total_state > 0 ? `${rankStats[0].state_rank} / ${rankStats[0].total_state}` : '--') : 'Locked';
     }
 
   } catch (err) {
@@ -1071,7 +1025,7 @@ function updateNavigationLocks() {
       btn.querySelector('.nav-label').innerText = `${100 - votes} More Votes`;
     } else {
       btn.classList.remove('locked-nav');
-      btn.querySelector('.nav-label').innerText = 'Leaderboard';
+      btn.querySelector('.nav-label').innerText = 'Summit';
     }
   });
 }
@@ -1175,11 +1129,6 @@ async function loadSurroundingLeaderboard() {
   if (!currentUser) return;
 
   const listContainer = document.getElementById('surrounding-leaderboard-list');
-
-  if (currentSurroundingTab === 'neighborhood') {
-    listContainer.innerHTML = '<div class="text-center py-4"><div class="spinner" style="margin: 20px auto;"></div><p style="color: var(--text-muted);">Detecting location...</p></div>';
-    await requestNeighborhoodLocation();
-  }
 
   listContainer.innerHTML = '<div class="text-center py-4"><div class="spinner" style="margin: 20px auto;"></div><p style="color: var(--text-muted);">Fetching surrounding ranks...</p></div>';
 
