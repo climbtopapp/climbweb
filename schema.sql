@@ -289,21 +289,6 @@ BEGIN
     WHERE ls.state = viewer_state
     ORDER BY ls.global_rank ASC
     LIMIT 99;
-    
-  ELSIF lb_type = 'neighborhood' THEN
-    RETURN QUERY
-    SELECT 
-      ls.user_id,
-      ls.avatar_url,
-      ls.state,
-      ls.elo,
-      ls.global_rank,
-      row_number() OVER (ORDER BY ls.global_rank ASC)::integer as relative_rank,
-      ls.first_name
-    FROM public.leaderboard_snapshot ls
-    WHERE public.calculate_distance(viewer_lat, viewer_lon, ls.latitude, ls.longitude) <= 5.0
-    ORDER BY ls.global_rank ASC
-    LIMIT 99;
   END IF;
 END;
 $$;
@@ -348,28 +333,14 @@ BEGIN
       WHERE ls2.state = viewer_state
     ) s
     WHERE s.user_id = user_id_param
-  ),
-  neighborhood_stats AS (
-    SELECT 
-      n.sub_rank::integer as n_rank,
-      n.sub_total::integer as n_total
-    FROM (
-      SELECT 
-        ls3.user_id,
-        row_number() OVER (ORDER BY ls3.global_rank ASC) as sub_rank,
-        count(*) OVER () as sub_total
-      FROM public.leaderboard_snapshot ls3
-      WHERE public.calculate_distance(viewer_lat, viewer_lon, ls3.latitude, ls3.longitude) <= 5.0
-    ) n
-    WHERE n.user_id = user_id_param
   )
   SELECT 
     coalesce((SELECT g_rank FROM global_stats), 0),
     coalesce((SELECT s_rank FROM state_stats), 0),
-    coalesce((SELECT n_rank FROM neighborhood_stats), 0),
+    0,
     coalesce((SELECT g_total FROM global_stats), 0),
     coalesce((SELECT s_total FROM state_stats), 0),
-    coalesce((SELECT n_total FROM neighborhood_stats), 0);
+    0;
 END;
 $$;
 
@@ -446,6 +417,300 @@ $$;
 
 
 -- =============================================
+-- Clubs Feature
+-- =============================================
+
+-- Clubs Table
+CREATE TABLE public.clubs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  code text NOT NULL UNIQUE DEFAULT upper(substr(md5(random()::text), 1, 6)),
+  created_by uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.clubs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view clubs" ON public.clubs
+  FOR SELECT USING (true);
+
+CREATE POLICY "Authenticated users can create clubs" ON public.clubs
+  FOR INSERT WITH CHECK (auth.uid() = created_by);
+
+CREATE POLICY "Creators can update their club" ON public.clubs
+  FOR UPDATE USING (auth.uid() = created_by);
+
+CREATE POLICY "Creators can delete their club" ON public.clubs
+  FOR DELETE USING (auth.uid() = created_by);
+
+-- Club Members Table
+CREATE TABLE public.club_members (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  club_id uuid NOT NULL REFERENCES public.clubs(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  joined_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  UNIQUE(club_id, user_id)
+);
+
+ALTER TABLE public.club_members ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view club members" ON public.club_members
+  FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert themselves" ON public.club_members
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete themselves or creator can delete" ON public.club_members
+  FOR DELETE USING (
+    auth.uid() = user_id
+    OR auth.uid() IN (SELECT c.created_by FROM public.clubs c WHERE c.id = club_id)
+  );
+
+-- Create a club (max 1 per user)
+CREATE OR REPLACE FUNCTION public.create_club(club_name text)
+RETURNS json LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  new_club public.clubs;
+  caller_id uuid := auth.uid();
+BEGIN
+  -- Check if user already created a club
+  IF EXISTS (SELECT 1 FROM public.clubs WHERE created_by = caller_id) THEN
+    RAISE EXCEPTION 'You have already created a club';
+  END IF;
+
+  -- Check if user is already in a club
+  IF EXISTS (SELECT 1 FROM public.club_members WHERE user_id = caller_id) THEN
+    RAISE EXCEPTION 'You must leave your current club before creating a new one';
+  END IF;
+
+  -- Create the club
+  INSERT INTO public.clubs (name, created_by)
+  VALUES (club_name, caller_id)
+  RETURNING * INTO new_club;
+
+  -- Add creator as a member
+  INSERT INTO public.club_members (club_id, user_id)
+  VALUES (new_club.id, caller_id);
+
+  RETURN json_build_object(
+    'id', new_club.id,
+    'name', new_club.name,
+    'code', new_club.code,
+    'created_by', new_club.created_by
+  );
+END;
+$$;
+
+-- Join a club by invite code
+CREATE OR REPLACE FUNCTION public.join_club(invite_code text)
+RETURNS json LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  target_club public.clubs;
+  caller_id uuid := auth.uid();
+BEGIN
+  -- Check if user is already in a club
+  IF EXISTS (SELECT 1 FROM public.club_members WHERE user_id = caller_id) THEN
+    RAISE EXCEPTION 'You must leave your current club before joining another';
+  END IF;
+
+  -- Find the club
+  SELECT * INTO target_club FROM public.clubs WHERE upper(code) = upper(invite_code);
+  IF target_club.id IS NULL THEN
+    RAISE EXCEPTION 'No club found with that code';
+  END IF;
+
+  -- Join the club
+  INSERT INTO public.club_members (club_id, user_id)
+  VALUES (target_club.id, caller_id);
+
+  RETURN json_build_object(
+    'id', target_club.id,
+    'name', target_club.name,
+    'code', target_club.code
+  );
+END;
+$$;
+
+-- Leave a club (if creator, deletes the club entirely)
+CREATE OR REPLACE FUNCTION public.leave_club()
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  caller_id uuid := auth.uid();
+  member_club_id uuid;
+  is_creator boolean;
+BEGIN
+  -- Find user's club
+  SELECT cm.club_id INTO member_club_id
+  FROM public.club_members cm WHERE cm.user_id = caller_id;
+
+  IF member_club_id IS NULL THEN
+    RAISE EXCEPTION 'You are not in a club';
+  END IF;
+
+  -- Check if user is the creator
+  SELECT EXISTS (
+    SELECT 1 FROM public.clubs WHERE id = member_club_id AND created_by = caller_id
+  ) INTO is_creator;
+
+  IF is_creator THEN
+    -- Delete the club (cascade deletes all members)
+    DELETE FROM public.clubs WHERE id = member_club_id;
+  ELSE
+    -- Just remove the member
+    DELETE FROM public.club_members WHERE club_id = member_club_id AND user_id = caller_id;
+  END IF;
+END;
+$$;
+
+-- Remove a member from a club (creator only)
+CREATE OR REPLACE FUNCTION public.remove_club_member(target_user_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  caller_id uuid := auth.uid();
+  caller_club_id uuid;
+BEGIN
+  -- Verify caller is a club creator
+  SELECT id INTO caller_club_id FROM public.clubs WHERE created_by = caller_id;
+  IF caller_club_id IS NULL THEN
+    RAISE EXCEPTION 'You are not the creator of any club';
+  END IF;
+
+  -- Cannot remove yourself (use leave_club instead)
+  IF target_user_id = caller_id THEN
+    RAISE EXCEPTION 'Use leave_club to leave your own club';
+  END IF;
+
+  -- Remove the member
+  DELETE FROM public.club_members
+  WHERE club_id = caller_club_id AND user_id = target_user_id;
+END;
+$$;
+
+-- Update club name (creator only)
+CREATE OR REPLACE FUNCTION public.update_club_name(new_name text)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  caller_id uuid := auth.uid();
+BEGIN
+  UPDATE public.clubs SET name = new_name WHERE created_by = caller_id;
+END;
+$$;
+
+-- Get user's club info + members
+CREATE OR REPLACE FUNCTION public.get_my_club()
+RETURNS json LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  caller_id uuid := auth.uid();
+  member_club_id uuid;
+  club_data json;
+  members_data json;
+BEGIN
+  -- Find user's club
+  SELECT cm.club_id INTO member_club_id
+  FROM public.club_members cm WHERE cm.user_id = caller_id;
+
+  IF member_club_id IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  -- Get club info
+  SELECT json_build_object(
+    'id', c.id,
+    'name', c.name,
+    'code', c.code,
+    'created_by', c.created_by,
+    'created_at', c.created_at
+  ) INTO club_data FROM public.clubs c WHERE c.id = member_club_id;
+
+  -- Get members with profile info
+  SELECT json_agg(
+    json_build_object(
+      'user_id', p.id,
+      'first_name', p.first_name,
+      'avatar_url', p.avatar_url,
+      'elo', p.elo,
+      'state', p.state,
+      'joined_at', cm.joined_at
+    ) ORDER BY p.elo DESC
+  ) INTO members_data
+  FROM public.club_members cm
+  JOIN public.profiles p ON p.id = cm.user_id
+  WHERE cm.club_id = member_club_id;
+
+  RETURN json_build_object(
+    'club', club_data,
+    'members', COALESCE(members_data, '[]'::json)
+  );
+END;
+$$;
+
+-- Club leaderboard (returns members ranked by ELO, for Summit tab)
+CREATE OR REPLACE FUNCTION public.get_club_leaderboard(target_club_id uuid)
+RETURNS TABLE (
+  user_id uuid,
+  first_name text,
+  avatar_url text,
+  state text,
+  elo double precision,
+  relative_rank bigint
+) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    p.id AS user_id,
+    p.first_name,
+    p.avatar_url,
+    p.state,
+    p.elo,
+    ROW_NUMBER() OVER (ORDER BY p.elo DESC) AS relative_rank
+  FROM public.club_members cm
+  JOIN public.profiles p ON p.id = cm.user_id
+  WHERE cm.club_id = target_club_id
+  ORDER BY p.elo DESC;
+END;
+$$;
+
+-- Get matchup filtered to club members only
+CREATE OR REPLACE FUNCTION public.get_matchup_club(voter_id uuid, pref text DEFAULT 'everyone', filter_club_id uuid DEFAULT NULL)
+RETURNS TABLE (
+  id uuid,
+  avatar_url text,
+  elo double precision,
+  first_name text
+) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF pref = 'everyone' THEN
+    RETURN QUERY
+    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    FROM public.profiles p
+    JOIN public.club_members cm ON cm.user_id = p.id AND cm.club_id = filter_club_id
+    WHERE p.id != voter_id AND p.avatar_url IS NOT NULL
+      AND p.id NOT IN (
+        SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup_club.voter_id AND v.created_at > now() - interval '15 minutes'
+        UNION
+        SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup_club.voter_id AND v.created_at > now() - interval '15 minutes'
+      )
+    ORDER BY random()
+    LIMIT 2;
+  ELSE
+    RETURN QUERY
+    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    FROM public.profiles p
+    JOIN public.club_members cm ON cm.user_id = p.id AND cm.club_id = filter_club_id
+    WHERE p.id != voter_id AND p.avatar_url IS NOT NULL AND p.gender = pref
+      AND p.id NOT IN (
+        SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup_club.voter_id AND v.created_at > now() - interval '15 minutes'
+        UNION
+        SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup_club.voter_id AND v.created_at > now() - interval '15 minutes'
+      )
+    ORDER BY random()
+    LIMIT 2;
+  END IF;
+END;
+$$;
+
+
+-- =============================================
 -- Revoke execution from PUBLIC and grant to authenticated
 -- =============================================
 
@@ -458,6 +723,15 @@ REVOKE EXECUTE ON FUNCTION public.cast_vote(uuid, uuid) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.get_leaderboard_data(uuid, double precision, double precision, text, text) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.get_user_ranks(uuid, double precision, double precision, text) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.get_surrounding_leaderboard(uuid, double precision, double precision, text, text) FROM PUBLIC;
+
+REVOKE EXECUTE ON FUNCTION public.create_club(text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.join_club(text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.leave_club() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.remove_club_member(uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.update_club_name(text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_my_club() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_club_leaderboard(uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_matchup_club(uuid, text, uuid) FROM PUBLIC;
 
 -- Grant execution to authenticated & service_role
 GRANT EXECUTE ON FUNCTION public.get_matchup(uuid, text) TO authenticated;
@@ -474,4 +748,28 @@ GRANT EXECUTE ON FUNCTION public.get_user_ranks(uuid, double precision, double p
 
 GRANT EXECUTE ON FUNCTION public.get_surrounding_leaderboard(uuid, double precision, double precision, text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_surrounding_leaderboard(uuid, double precision, double precision, text, text) TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.create_club(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.create_club(text) TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.join_club(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.join_club(text) TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.leave_club() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.leave_club() TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.remove_club_member(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.remove_club_member(uuid) TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.update_club_name(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_club_name(text) TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.get_my_club() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_my_club() TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.get_club_leaderboard(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_club_leaderboard(uuid) TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.get_matchup_club(uuid, text, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_matchup_club(uuid, text, uuid) TO service_role;
 
