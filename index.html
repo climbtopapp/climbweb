@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Climb</title>
+  <title>Climb: The World's Leaderboard</title>
   <!-- Outfit & Inter Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap"
+    rel="stylesheet">
+
   <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div id="app" class="app-container">
-    
+
     <!-- Screen: Loader (Shown during initialization checks) -->
     <section id="screen-loader" class="screen active">
       <div class="loader-content">
@@ -29,13 +33,14 @@
       <div class="card auth-card">
         <h1 class="brand-title">Climb</h1>
         <p class="brand-subtitle">Step up and make your way to the top.</p>
-        
+
         <!-- Step 1: Email Entry -->
         <div id="auth-step-email">
           <form id="form-email">
             <div class="input-group">
               <label for="input-email">Email Address</label>
-              <input type="email" id="input-email" placeholder="you@example.com" required autocomplete="email" style="width: 100%; padding: 14px 18px; font-family: var(--font-body); font-size: 1rem; background-color: var(--bg-primary); border: 2px solid transparent; border-radius: var(--radius-md); color: var(--text-main); outline: none; transition: var(--transition);">
+              <input type="email" id="input-email" placeholder="you@example.com" required autocomplete="email"
+                style="width: 100%; padding: 14px 18px; font-family: var(--font-body); font-size: 1rem; background-color: var(--bg-primary); border: 2px solid transparent; border-radius: var(--radius-md); color: var(--text-main); outline: none; transition: var(--transition);">
               <p class="input-hint">Enter your email to receive a secure sign-in link.</p>
             </div>
             <button type="submit" class="btn btn-primary btn-block" id="btn-send-otp">
@@ -48,8 +53,11 @@
         <div id="auth-step-success" class="hidden text-center" style="padding: 10px 0;">
           <div style="font-size: 3.5rem; margin-bottom: 16px; text-align: center;">✉️</div>
           <h3 class="section-title" style="text-align: center;">Check Your Email</h3>
-          <p class="section-desc" style="text-align: center; margin-bottom: 12px;">We sent a secure login link to your email. Open the link to sign in to Climb.</p>
-          <p class="input-hint" style="text-align: center; margin-bottom: 24px; color: var(--primary-color); font-weight: 500;">Make sure to check your spam folder!</p>
+          <p class="section-desc" style="text-align: center; margin-bottom: 12px;">We sent a secure login link to your
+            email. Open the link to sign in to Climb.</p>
+          <p class="input-hint"
+            style="text-align: center; margin-bottom: 24px; color: var(--primary-color); font-weight: 500;">Make sure to
+            check your spam folder!</p>
           <button type="button" class="btn btn-secondary btn-block" id="btn-back-email">
             Back to Sign In
           </button>
@@ -62,7 +70,7 @@
       <div class="card register-card">
         <h2 class="section-title">Complete Profile</h2>
         <p class="section-desc">Fill out your details and upload a photo to start climbing.</p>
-        
+
         <form id="form-register">
           <!-- Step 1: Basic Info -->
           <div id="reg-step-1" class="wizard-step wizard-active">
@@ -70,7 +78,8 @@
             <div class="input-group">
               <label for="input-first-name">First Name</label>
               <input type="text" id="input-first-name" placeholder="Your first name" required>
-              <p class="input-hint" style="color: var(--text-main); font-weight: 500; margin-top: 6px;">Your first name will be public.</p>
+              <p class="input-hint" style="color: var(--text-main); font-weight: 500; margin-top: 6px;">Your first name
+                will be public.</p>
             </div>
 
             <!-- Gender -->
@@ -101,16 +110,20 @@
           <!-- Step 2: Photo Upload -->
           <div id="reg-step-2" class="wizard-step hidden">
             <div class="image-upload-container" style="text-align: center;">
-              <div class="avatar-preview-wrapper" style="margin: 0 auto 15px; width: 150px; height: 150px; border-radius: var(--radius-md); overflow: hidden; border: 2px dashed var(--border-color); display: flex; justify-content: center; align-items: center; position: relative; background-color: var(--bg-secondary);">
-                <img id="avatar-preview-img" src="" alt="Avatar Preview" class="hidden" style="width: 100%; height: 100%; object-fit: cover;">
+              <div class="avatar-preview-wrapper"
+                style="margin: 0 auto 15px; width: 150px; height: 150px; border-radius: var(--radius-md); overflow: hidden; border: 2px dashed var(--border-color); display: flex; justify-content: center; align-items: center; position: relative; background-color: var(--bg-secondary);">
+                <img id="avatar-preview-img" src="" alt="Avatar Preview" class="hidden"
+                  style="width: 100%; height: 100%; object-fit: cover;">
                 <div id="avatar-preview-placeholder">
                   <span class="upload-icon" style="font-size: 2rem;">📸</span>
                 </div>
               </div>
               <input type="file" id="input-avatar" accept="image/*" class="hidden">
-              <label for="input-avatar" class="btn btn-secondary btn-sm" style="display: inline-block; margin-bottom: 10px;">Choose Photo</label>
+              <label for="input-avatar" class="btn btn-secondary btn-sm"
+                style="display: inline-block; margin-bottom: 10px;">Choose Photo</label>
               <p class="input-hint">Your photo will be cropped and compressed.</p>
-              <p class="input-hint" style="color: var(--text-main); font-weight: 500; margin-top: 6px;">This photo will be public.</p>
+              <p class="input-hint" style="color: var(--text-main); font-weight: 500; margin-top: 6px;">This photo will
+                be public.</p>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
               <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-prev-step-2">Back</button>
@@ -118,73 +131,98 @@
             </div>
           </div>
 
-          <!-- Step 3: Location -->
+          <!-- Step 3: Region -->
           <div id="reg-step-3" class="wizard-step hidden">
             <h3 class="section-title">One Last Thing...</h3>
-            <p class="section-desc">Select your state to compete on the State Leaderboard.</p>
-            
-            <!-- State Picker -->
+            <p class="section-desc">Select your region to compete on the Region leaderboard.</p>
+
+            <!-- Region Picker -->
             <div class="input-group">
-              <label for="select-state">State</label>
+              <label for="select-state">Region</label>
               <select id="select-state" class="form-select" required>
-                <option value="" disabled selected>Select your state</option>
-                <option value="Alabama">Alabama</option>
-                <option value="Alaska">Alaska</option>
-                <option value="Arizona">Arizona</option>
-                <option value="Arkansas">Arkansas</option>
-                <option value="California">California</option>
-                <option value="Colorado">Colorado</option>
-                <option value="Connecticut">Connecticut</option>
-                <option value="Delaware">Delaware</option>
-                <option value="Florida">Florida</option>
-                <option value="Georgia">Georgia</option>
-                <option value="Hawaii">Hawaii</option>
-                <option value="Idaho">Idaho</option>
-                <option value="Illinois">Illinois</option>
-                <option value="Indiana">Indiana</option>
-                <option value="Iowa">Iowa</option>
-                <option value="Kansas">Kansas</option>
-                <option value="Kentucky">Kentucky</option>
-                <option value="Louisiana">Louisiana</option>
-                <option value="Maine">Maine</option>
-                <option value="Maryland">Maryland</option>
-                <option value="Massachusetts">Massachusetts</option>
-                <option value="Michigan">Michigan</option>
-                <option value="Minnesota">Minnesota</option>
-                <option value="Mississippi">Mississippi</option>
-                <option value="Missouri">Missouri</option>
-                <option value="Montana">Montana</option>
-                <option value="Nebraska">Nebraska</option>
-                <option value="Nevada">Nevada</option>
-                <option value="New Hampshire">New Hampshire</option>
-                <option value="New Jersey">New Jersey</option>
-                <option value="New Mexico">New Mexico</option>
-                <option value="New York">New York</option>
-                <option value="North Carolina">North Carolina</option>
-                <option value="North Dakota">North Dakota</option>
-                <option value="Ohio">Ohio</option>
-                <option value="Oklahoma">Oklahoma</option>
-                <option value="Oregon">Oregon</option>
-                <option value="Pennsylvania">Pennsylvania</option>
-                <option value="Rhode Island">Rhode Island</option>
-                <option value="South Carolina">South Carolina</option>
-                <option value="South Dakota">South Dakota</option>
-                <option value="Tennessee">Tennessee</option>
-                <option value="Texas">Texas</option>
-                <option value="Utah">Utah</option>
-                <option value="Vermont">Vermont</option>
-                <option value="Virginia">Virginia</option>
-                <option value="Washington">Washington</option>
-                <option value="West Virginia">West Virginia</option>
-                <option value="Wisconsin">Wisconsin</option>
-                <option value="Wyoming">Wyoming</option>
-                <option value="District of Columbia">District of Columbia</option>
+                <option value="" disabled selected>Select your region</option>
+                <optgroup label="United States">
+                  <option value="Alabama">Alabama</option>
+                  <option value="Alaska">Alaska</option>
+                  <option value="Arizona">Arizona</option>
+                  <option value="Arkansas">Arkansas</option>
+                  <option value="California">California</option>
+                  <option value="Colorado">Colorado</option>
+                  <option value="Connecticut">Connecticut</option>
+                  <option value="Delaware">Delaware</option>
+                  <option value="Florida">Florida</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Hawaii">Hawaii</option>
+                  <option value="Idaho">Idaho</option>
+                  <option value="Illinois">Illinois</option>
+                  <option value="Indiana">Indiana</option>
+                  <option value="Iowa">Iowa</option>
+                  <option value="Kansas">Kansas</option>
+                  <option value="Kentucky">Kentucky</option>
+                  <option value="Louisiana">Louisiana</option>
+                  <option value="Maine">Maine</option>
+                  <option value="Maryland">Maryland</option>
+                  <option value="Massachusetts">Massachusetts</option>
+                  <option value="Michigan">Michigan</option>
+                  <option value="Minnesota">Minnesota</option>
+                  <option value="Mississippi">Mississippi</option>
+                  <option value="Missouri">Missouri</option>
+                  <option value="Montana">Montana</option>
+                  <option value="Nebraska">Nebraska</option>
+                  <option value="Nevada">Nevada</option>
+                  <option value="New Hampshire">New Hampshire</option>
+                  <option value="New Jersey">New Jersey</option>
+                  <option value="New Mexico">New Mexico</option>
+                  <option value="New York">New York</option>
+                  <option value="North Carolina">North Carolina</option>
+                  <option value="North Dakota">North Dakota</option>
+                  <option value="Ohio">Ohio</option>
+                  <option value="Oklahoma">Oklahoma</option>
+                  <option value="Oregon">Oregon</option>
+                  <option value="Pennsylvania">Pennsylvania</option>
+                  <option value="Rhode Island">Rhode Island</option>
+                  <option value="South Carolina">South Carolina</option>
+                  <option value="South Dakota">South Dakota</option>
+                  <option value="Tennessee">Tennessee</option>
+                  <option value="Texas">Texas</option>
+                  <option value="Utah">Utah</option>
+                  <option value="Vermont">Vermont</option>
+                  <option value="Virginia">Virginia</option>
+                  <option value="Washington">Washington</option>
+                  <option value="West Virginia">West Virginia</option>
+                  <option value="Wisconsin">Wisconsin</option>
+                  <option value="Wyoming">Wyoming</option>
+                </optgroup>
+                <optgroup label="US Territories">
+                  <option value="District of Columbia">District of Columbia</option>
+                  <option value="Puerto Rico">Puerto Rico</option>
+                  <option value="Guam">Guam</option>
+                  <option value="US Virgin Islands">US Virgin Islands</option>
+                  <option value="American Samoa">American Samoa</option>
+                  <option value="Northern Mariana Islands">Northern Mariana Islands</option>
+                </optgroup>
+                <optgroup label="Canada">
+                  <option value="Alberta">Alberta</option>
+                  <option value="British Columbia">British Columbia</option>
+                  <option value="Manitoba">Manitoba</option>
+                  <option value="New Brunswick">New Brunswick</option>
+                  <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                  <option value="Northwest Territories">Northwest Territories</option>
+                  <option value="Nova Scotia">Nova Scotia</option>
+                  <option value="Nunavut">Nunavut</option>
+                  <option value="Ontario">Ontario</option>
+                  <option value="Prince Edward Island">Prince Edward Island</option>
+                  <option value="Quebec">Quebec</option>
+                  <option value="Saskatchewan">Saskatchewan</option>
+                  <option value="Yukon">Yukon</option>
+                </optgroup>
               </select>
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
               <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-prev-step-3">Back</button>
-              <button type="submit" class="btn btn-primary" style="flex: 2;" id="btn-submit-registration" disabled>Start Climbing</button>
+              <button type="submit" class="btn btn-primary" style="flex: 2;" id="btn-submit-registration" disabled>Start
+                Climbing</button>
             </div>
           </div>
         </form>
@@ -203,17 +241,21 @@
         <div class="mash-card" id="card-left">
           <div class="image-wrapper">
             <img id="img-left" src="" alt="Option Left">
-            <div class="card-loader"><div class="spinner"></div></div>
+            <div class="card-loader">
+              <div class="spinner"></div>
+            </div>
           </div>
         </div>
 
-        <div class="mash-vs">vs</div>
+        <div class="mash-vs">or</div>
 
         <!-- Card 2 -->
         <div class="mash-card" id="card-right">
           <div class="image-wrapper">
             <img id="img-right" src="" alt="Option Right">
-            <div class="card-loader"><div class="spinner"></div></div>
+            <div class="card-loader">
+              <div class="spinner"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -227,6 +269,10 @@
         <button class="nav-item" data-screen="leaderboard">
           <span class="nav-icon">🏆</span>
           <span class="nav-label">Summit</span>
+        </button>
+        <button class="nav-item" data-screen="challenges">
+          <span class="nav-icon">🎯</span>
+          <span class="nav-label">Challenges</span>
         </button>
         <button class="nav-item" data-screen="profile">
           <span class="nav-icon">🧗</span>
@@ -245,8 +291,7 @@
       <!-- Tabs -->
       <div class="tabs">
         <button class="tab-btn active" data-tab="global">Global</button>
-        <button class="tab-btn" data-tab="state">State</button>
-        <button class="tab-btn" data-tab="neighborhood">Neighborhood</button>
+        <button class="tab-btn" data-tab="state">Region</button>
       </div>
 
       <!-- Leaderboard List -->
@@ -277,6 +322,10 @@
           <span class="nav-icon">🏆</span>
           <span class="nav-label">Summit</span>
         </button>
+        <button class="nav-item" data-screen="challenges">
+          <span class="nav-icon">🎯</span>
+          <span class="nav-label">Challenges</span>
+        </button>
         <button class="nav-item" data-screen="profile">
           <span class="nav-icon">🧗</span>
           <span class="nav-label">Me</span>
@@ -292,8 +341,10 @@
             <img id="profile-avatar" src="" alt="My Photo" class="profile-large-avatar">
           </div>
           <h3 id="profile-email-display">--</h3>
-          <p id="profile-location-display" class="input-hint">State: Detecting...</p>
-          <button id="btn-settings" class="btn btn-secondary btn-sm" style="margin-top: 10px; width: auto; padding: 6px 16px; display: inline-flex; align-items: center; gap: 6px;">⚙️ Settings</button>
+          <p id="profile-location-display" class="input-hint">Region: --</p>
+          <button id="btn-settings" class="btn btn-secondary btn-sm"
+            style="margin-top: 10px; width: auto; padding: 6px 16px; display: inline-flex; align-items: center; gap: 6px;">⚙️
+            Settings</button>
         </div>
 
         <div class="stats-grid">
@@ -314,16 +365,13 @@
             <span class="rank-item-val" id="rank-val-global">--</span>
           </div>
           <div class="rank-item">
-            <span class="rank-item-label">🇺🇸 State Rank</span>
+            <span class="rank-item-label">🗺️ Region Rank</span>
             <span class="rank-item-val" id="rank-val-state">--</span>
-          </div>
-          <div class="rank-item">
-            <span class="rank-item-label">📍 Neighborhood</span>
-            <span class="rank-item-val" id="rank-val-neighborhood">--</span>
           </div>
         </div>
 
-        <button class="btn btn-secondary btn-block" id="btn-surrounding-ranks" style="margin-top: 15px;" disabled>See Surrounding Ranks (Requires 2,500 Votes)</button>
+        <button class="btn btn-secondary btn-block" id="btn-surrounding-ranks" style="margin-top: 15px;" disabled>See
+          Surrounding Ranks (Requires 2,500 Votes)</button>
       </div>
 
       <!-- Bottom Nav -->
@@ -336,7 +384,60 @@
           <span class="nav-icon">🏆</span>
           <span class="nav-label">Summit</span>
         </button>
+        <button class="nav-item" data-screen="challenges">
+          <span class="nav-icon">🎯</span>
+          <span class="nav-label">Challenges</span>
+        </button>
         <button class="nav-item active" data-screen="profile">
+          <span class="nav-icon">🧗</span>
+          <span class="nav-label">Me</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- Screen: Challenges -->
+    <section id="screen-challenges" class="screen">
+      <header class="app-header">
+        <h1 class="brand-title-sm">Challenges</h1>
+        <p class="header-desc">Exclusive opportunities for top climbers</p>
+      </header>
+
+      <div class="challenges-coming-soon">
+        <div class="challenges-icon">🎬</div>
+        <h2 class="challenges-title">Coming Soon</h2>
+        <p class="challenges-desc">The top 99 climbers in each region will be eligible for exclusive casting calls and
+          modeling opportunities in their area.</p>
+        <div class="challenges-features">
+          <div class="challenge-feature">
+            <span class="feature-icon">📸</span>
+            <span class="feature-text">Modeling Opportunities</span>
+          </div>
+          <div class="challenge-feature">
+            <span class="feature-icon">🎥</span>
+            <span class="feature-text">Casting Calls</span>
+          </div>
+          <div class="challenge-feature">
+            <span class="feature-icon">🗺️</span>
+            <span class="feature-text">Region-Based Matching</span>
+          </div>
+        </div>
+        <p class="challenges-footer">Keep climbing to secure your spot in the top 99!</p>
+      </div>
+
+      <nav class="bottom-nav">
+        <button class="nav-item" data-screen="mash">
+          <span class="nav-icon">⛰️</span>
+          <span class="nav-label">Climb</span>
+        </button>
+        <button class="nav-item" data-screen="leaderboard">
+          <span class="nav-icon">🏆</span>
+          <span class="nav-label">Summit</span>
+        </button>
+        <button class="nav-item active" data-screen="challenges">
+          <span class="nav-icon">🎯</span>
+          <span class="nav-label">Challenges</span>
+        </button>
+        <button class="nav-item" data-screen="profile">
           <span class="nav-icon">🧗</span>
           <span class="nav-label">Me</span>
         </button>
@@ -348,37 +449,44 @@
   <!-- Settings Modal -->
   <div id="settings-modal" class="modal-overlay hidden">
     <div class="modal-content card">
-      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div class="modal-header"
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h3 style="margin: 0; font-family: var(--font-display); font-weight: 700;">Edit Profile</h3>
-        <button id="btn-close-settings" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <button id="btn-close-settings" class="btn-close"
+          style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
       </div>
-      
+
       <div style="text-align: center; margin-bottom: 20px;">
-        <div style="width: 100px; height: 100px; border-radius: var(--radius-md); overflow: hidden; margin: 0 auto 10px; border: 2px dashed var(--border-color);">
+        <div
+          style="width: 100px; height: 100px; border-radius: var(--radius-md); overflow: hidden; margin: 0 auto 10px; border: 2px dashed var(--border-color);">
           <img id="settings-avatar-preview" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
         <input type="file" id="input-update-avatar" accept="image/*" class="hidden">
-        <label for="input-update-avatar" class="btn btn-secondary btn-sm edit-photo-btn" style="cursor: pointer;">Change Photo</label>
+        <label for="input-update-avatar" class="btn btn-secondary btn-sm edit-photo-btn" style="cursor: pointer;">Change
+          Photo</label>
       </div>
-      
+
       <form id="form-settings">
         <!-- First Name -->
         <div class="input-group">
           <label for="input-settings-name">First Name</label>
-          <input type="text" id="input-settings-name" placeholder="Your first name" required style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; outline: none; transition: var(--transition);">
+          <input type="text" id="input-settings-name" placeholder="Your first name" required
+            style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; outline: none; transition: var(--transition);">
         </div>
-        
+
         <!-- Gender (Disabled / Read Only) -->
         <div class="input-group">
           <label for="input-settings-gender">Gender</label>
-          <input type="text" id="input-settings-gender" disabled style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-secondary); color: var(--text-muted); font-family: var(--font-body); font-size: 0.95rem; cursor: not-allowed;">
+          <input type="text" id="input-settings-gender" disabled
+            style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-secondary); color: var(--text-muted); font-family: var(--font-body); font-size: 0.95rem; cursor: not-allowed;">
           <p class="input-hint" style="margin-top: 4px;">Gender cannot be changed.</p>
         </div>
 
         <!-- Vote Preference -->
         <div class="input-group">
           <label for="select-settings-vote-pref">I want to vote on</label>
-          <select id="select-settings-vote-pref" class="form-select" required style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; outline: none; transition: var(--transition);">
+          <select id="select-settings-vote-pref" class="form-select" required
+            style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; outline: none; transition: var(--transition);">
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="everyone">Everyone</option>
@@ -388,7 +496,8 @@
         <!-- State -->
         <div class="input-group">
           <label for="select-settings-state">State</label>
-          <select id="select-settings-state" class="form-select" required style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; outline: none; transition: var(--transition);">
+          <select id="select-settings-state" class="form-select" required
+            style="width: 100%; padding: 12px; border-radius: var(--radius-md); border: 2px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-family: var(--font-body); font-size: 0.95rem; outline: none; transition: var(--transition);">
             <option value="Alabama">Alabama</option>
             <option value="Alaska">Alaska</option>
             <option value="Arizona">Arizona</option>
@@ -444,7 +553,8 @@
         </div>
 
         <button type="submit" class="btn btn-primary btn-block" id="btn-save-settings">Save Changes</button>
-        <button type="button" class="btn btn-secondary btn-block" id="btn-logout" style="margin-top: 10px; border-color: #ff4d4d; color: #ff4d4d;">Sign Out</button>
+        <button type="button" class="btn btn-secondary btn-block" id="btn-logout"
+          style="margin-top: 10px; border-color: #ff4d4d; color: #ff4d4d;">Sign Out</button>
       </form>
     </div>
   </div>
@@ -454,19 +564,22 @@
     <div class="modal-content card" style="max-width: 320px; text-align: center;">
       <h3 style="font-family: var(--font-display); font-weight: 700; margin-bottom: 5px;">Crop Photo</h3>
       <p class="input-hint" style="margin-bottom: 15px;">Drag and zoom to focus on your face.</p>
-      
+
       <div class="crop-viewport-wrapper" style="margin: 0 auto 15px; position: relative; width: 250px; height: 250px;">
-        <div id="modal-crop-viewport" class="crop-viewport" style="width: 250px; height: 250px; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--border-color); position: relative; background-color: var(--bg-secondary); cursor: move;">
-          <img id="modal-crop-image" src="" alt="To Crop" style="position: absolute; pointer-events: none; user-select: none; max-width: none;">
+        <div id="modal-crop-viewport" class="crop-viewport"
+          style="width: 250px; height: 250px; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--border-color); position: relative; background-color: var(--bg-secondary); cursor: move;">
+          <img id="modal-crop-image" src="" alt="To Crop"
+            style="position: absolute; pointer-events: none; user-select: none; max-width: none;">
         </div>
       </div>
 
       <div class="zoom-slider-container" style="display: flex; align-items: center; gap: 10px; margin: 15px 0;">
         <span style="font-size: 0.9rem;">➖</span>
-        <input type="range" id="modal-crop-zoom" min="1" max="3" step="0.01" value="1" style="flex: 1; cursor: pointer;">
+        <input type="range" id="modal-crop-zoom" min="1" max="3" step="0.01" value="1"
+          style="flex: 1; cursor: pointer;">
         <span style="font-size: 0.9rem;">➕</span>
       </div>
-      
+
       <div style="display: flex; gap: 10px; margin-top: 20px;">
         <button type="button" class="btn btn-secondary" id="btn-cancel-crop" style="flex: 1;">Cancel</button>
         <button type="button" class="btn btn-primary" id="btn-apply-crop" style="flex: 1;">Apply</button>
@@ -477,16 +590,17 @@
   <!-- Surrounding Ranks Modal -->
   <div id="surrounding-modal" class="modal-overlay hidden">
     <div class="modal-content card" style="display: flex; flex-direction: column; max-height: 90vh;">
-      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
+      <div class="modal-header"
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
         <h3 style="margin: 0; font-family: var(--font-display); font-weight: 700;">Surrounding Ranks</h3>
-        <button id="btn-close-surrounding" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <button id="btn-close-surrounding" class="btn-close"
+          style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
       </div>
-      
+
       <!-- Tabs for Surrounding Modal -->
       <div class="tabs" style="flex-shrink: 0;">
         <button class="tab-btn-surrounding active" data-tab="global">Global</button>
-        <button class="tab-btn-surrounding" data-tab="state">State</button>
-        <button class="tab-btn-surrounding" data-tab="neighborhood">Neighborhood</button>
+        <button class="tab-btn-surrounding" data-tab="state">Region</button>
       </div>
 
       <!-- Surrounding Leaderboard List -->
@@ -503,8 +617,9 @@
 
   <!-- Supabase JS Client Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
+
   <!-- Client Application Code -->
   <script src="app.js"></script>
 </body>
+
 </html>
