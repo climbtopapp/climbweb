@@ -913,7 +913,7 @@ async function loadLeaderboard() {
         const votes = (currentProfile && currentProfile.votes_cast) || 0;
         
         let displayRank = currentLeaderboardTab === 'club' ? (index + 1) : row.relative_rank;
-        let displayElo = `Grade ${eloToGrade(row.elo)}`;
+        let displayElo = currentLeaderboardTab === 'club' ? '' : `Grade ${eloToGrade(row.elo)}`;
         
         if (isSelf) {
           let rankThreshold = 1000;
@@ -993,7 +993,7 @@ async function loadLeaderboard() {
 
   } catch (err) {
     console.error('Failed to load leaderboard:', err);
-    showToast('Failed to load rankings snapshot.', 'error');
+    showToast(`Failed to load rankings snapshot: ${err.message || err}`, 'error');
   }
 }
 
@@ -1078,8 +1078,8 @@ async function loadProfileData() {
     }
 
   } catch (err) {
-    console.error('Failed to load profile screen:', err);
-    showToast('Failed to load profile information.', 'error');
+    console.error('Failed to load profile information:', err);
+    showToast(`Failed to load profile information: ${err.message || err}`, 'error');
   }
 }
 
