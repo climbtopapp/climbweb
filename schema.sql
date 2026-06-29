@@ -312,76 +312,6 @@ BEGIN
 END;
 $$;
 
--- 8. Retrieve surrounding leaderboards (9 above, 9 below)
-CREATE OR REPLACE FUNCTION public.get_surrounding_leaderboard(
-  user_id_param uuid,
-  viewer_lat double precision,
-  viewer_lon double precision,
-  viewer_state text,
-  lb_type text
-)
-RETURNS TABLE (
-  user_id uuid,
-  avatar_url text,
-  state text,
-  elo double precision,
-  global_rank integer,
-  relative_rank integer,
-  first_name text
-) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE
-  target_rank integer;
-BEGIN
-  PERFORM public.refresh_leaderboard_if_needed();
-
-  IF lb_type = 'global' THEN
-    SELECT ls.global_rank INTO target_rank FROM public.leaderboard_snapshot ls WHERE ls.user_id = user_id_param;
-    
-    RETURN QUERY
-    SELECT 
-      ls.user_id, ls.avatar_url, ls.state, ls.elo, ls.global_rank, ls.global_rank as relative_rank, ls.first_name
-    FROM public.leaderboard_snapshot ls
-    WHERE ls.global_rank >= target_rank - 9 AND ls.global_rank <= target_rank + 9
-    ORDER BY ls.global_rank ASC;
-
-  ELSIF lb_type = 'state' THEN
-    SELECT sub_rank INTO target_rank
-    FROM (
-      SELECT ls2.user_id, row_number() OVER (ORDER BY ls2.global_rank ASC) as sub_rank
-      FROM public.leaderboard_snapshot ls2 WHERE ls2.state = viewer_state
-    ) s WHERE s.user_id = user_id_param;
-
-    RETURN QUERY
-    SELECT * FROM (
-      SELECT 
-        ls.user_id, ls.avatar_url, ls.state, ls.elo, ls.global_rank, 
-        row_number() OVER (ORDER BY ls.global_rank ASC)::integer as relative_rank, ls.first_name
-      FROM public.leaderboard_snapshot ls WHERE ls.state = viewer_state
-    ) t
-    WHERE t.relative_rank >= target_rank - 9 AND t.relative_rank <= target_rank + 9
-    ORDER BY t.relative_rank ASC;
-
-  ELSIF lb_type = 'neighborhood' THEN
-    SELECT sub_rank INTO target_rank
-    FROM (
-      SELECT ls3.user_id, row_number() OVER (ORDER BY ls3.global_rank ASC) as sub_rank
-      FROM public.leaderboard_snapshot ls3 
-      WHERE public.calculate_distance(viewer_lat, viewer_lon, ls3.latitude, ls3.longitude) <= 5.0
-    ) s WHERE s.user_id = user_id_param;
-
-    RETURN QUERY
-    SELECT * FROM (
-      SELECT 
-        ls.user_id, ls.avatar_url, ls.state, ls.elo, ls.global_rank, 
-        row_number() OVER (ORDER BY ls.global_rank ASC)::integer as relative_rank, ls.first_name
-      FROM public.leaderboard_snapshot ls 
-      WHERE public.calculate_distance(viewer_lat, viewer_lon, ls.latitude, ls.longitude) <= 5.0
-    ) t
-    WHERE t.relative_rank >= target_rank - 9 AND t.relative_rank <= target_rank + 9
-    ORDER BY t.relative_rank ASC;
-  END IF;
-END;
-$$;
 
 
 -- =============================================
@@ -434,13 +364,18 @@ CREATE POLICY "Users can delete themselves or creator can delete" ON public.club
     OR auth.uid() IN (SELECT c.created_by FROM public.clubs c WHERE c.id = club_id)
   );
 
--- Create a club (max 1 per user)
+-- Create a club (max 1 per user, requires 100 votes)
 CREATE OR REPLACE FUNCTION public.create_club(club_name text)
 RETURNS json LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   new_club public.clubs;
   caller_id uuid := auth.uid();
 BEGIN
+  -- Check if user has at least 100 votes
+  IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = caller_id AND votes_cast >= 100) THEN
+    RAISE EXCEPTION 'You must have cast at least 100 votes to access Clubs.';
+  END IF;
+
   -- Check if user already created a club
   IF EXISTS (SELECT 1 FROM public.clubs WHERE created_by = caller_id) THEN
     RAISE EXCEPTION 'You have already created a club';
@@ -469,13 +404,18 @@ BEGIN
 END;
 $$;
 
--- Join a club by invite code
+-- Join a club by invite code (requires 100 votes)
 CREATE OR REPLACE FUNCTION public.join_club(invite_code text)
 RETURNS json LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   target_club public.clubs;
   caller_id uuid := auth.uid();
 BEGIN
+  -- Check if user has at least 100 votes
+  IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = caller_id AND votes_cast >= 100) THEN
+    RAISE EXCEPTION 'You must have cast at least 100 votes to access Clubs.';
+  END IF;
+
   -- Check if user is already in a club
   IF EXISTS (SELECT 1 FROM public.club_members WHERE user_id = caller_id) THEN
     RAISE EXCEPTION 'You must leave your current club before joining another';
@@ -690,7 +630,6 @@ REVOKE EXECUTE ON FUNCTION public.get_matchup(uuid, text) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.cast_vote(uuid, uuid) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.get_leaderboard_data(uuid, double precision, double precision, text, text) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.get_user_ranks(uuid, double precision, double precision, text) FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.get_surrounding_leaderboard(uuid, double precision, double precision, text, text) FROM PUBLIC;
 
 REVOKE EXECUTE ON FUNCTION public.create_club(text) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.join_club(text) FROM PUBLIC;
@@ -713,9 +652,6 @@ GRANT EXECUTE ON FUNCTION public.get_leaderboard_data(uuid, double precision, do
 
 GRANT EXECUTE ON FUNCTION public.get_user_ranks(uuid, double precision, double precision, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_user_ranks(uuid, double precision, double precision, text) TO service_role;
-
-GRANT EXECUTE ON FUNCTION public.get_surrounding_leaderboard(uuid, double precision, double precision, text, text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.get_surrounding_leaderboard(uuid, double precision, double precision, text, text) TO service_role;
 
 GRANT EXECUTE ON FUNCTION public.create_club(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.create_club(text) TO service_role;
