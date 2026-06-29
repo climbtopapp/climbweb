@@ -345,6 +345,8 @@ function setupEventListeners() {
           loadLeaderboard();
         } else if (targetScreen === 'profile') {
           loadProfileData();
+        } else if (targetScreen === 'clubs') {
+          loadClubScreen();
         }
       }
     });
