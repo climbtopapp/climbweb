@@ -226,12 +226,12 @@ BEGIN
       WHERE p.avatar_url IS NOT NULL
     )
     SELECT 
-      id as user_id, avatar_url, state, elo,
-      g_rank as global_rank,
-      g_rank as relative_rank,
-      first_name
-    FROM RankedProfiles
-    ORDER BY g_rank ASC
+      rp.id as user_id, rp.avatar_url, rp.state, rp.elo,
+      rp.g_rank as global_rank,
+      rp.g_rank as relative_rank,
+      rp.first_name
+    FROM RankedProfiles rp
+    ORDER BY rp.g_rank ASC
     LIMIT 99;
     
   ELSIF lb_type = 'state' THEN
@@ -244,13 +244,13 @@ BEGIN
       WHERE p.avatar_url IS NOT NULL
     )
     SELECT 
-      id as user_id, avatar_url, state, elo,
-      g_rank as global_rank,
-      row_number() OVER (ORDER BY g_rank ASC)::integer as relative_rank,
-      first_name
-    FROM RankedProfiles
-    WHERE state = viewer_state
-    ORDER BY g_rank ASC
+      rp.id as user_id, rp.avatar_url, rp.state, rp.elo,
+      rp.g_rank as global_rank,
+      row_number() OVER (ORDER BY rp.g_rank ASC)::integer as relative_rank,
+      rp.first_name
+    FROM RankedProfiles rp
+    WHERE rp.state = viewer_state
+    ORDER BY rp.g_rank ASC
     LIMIT 99;
   END IF;
 END;
