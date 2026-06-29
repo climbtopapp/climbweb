@@ -1341,7 +1341,13 @@ function loadClubScreen() {
     const membersListContainer = document.getElementById('club-members-list');
     membersListContainer.innerHTML = '';
     
-    currentClubMembers.forEach((member, index) => {
+    const sortedMembers = [...currentClubMembers].sort((a, b) => {
+      if (a.user_id === currentClubInfo.created_by) return -1;
+      if (b.user_id === currentClubInfo.created_by) return 1;
+      return (a.first_name || '').localeCompare(b.first_name || '');
+    });
+
+    sortedMembers.forEach((member) => {
       const isSelf = member.user_id === currentUser.id;
       const isCreator = currentClubInfo.created_by === currentUser.id;
       
@@ -1354,13 +1360,11 @@ function loadClubScreen() {
       }
 
       rowEl.innerHTML = `
-        <div class="rank-badge">${index + 1}</div>
         <img class="rank-avatar" src="${member.avatar_url || DEFAULT_AVATAR}" alt="Avatar">
         <div class="rank-info" style="flex-grow: 1;">
           <div class="rank-name">${isSelf ? 'You' : member.first_name} ${member.user_id === currentClubInfo.created_by ? '(Creator)' : ''}</div>
           <div class="rank-meta">${member.state || 'Unknown'}</div>
         </div>
-        <div class="rank-elo">Grade ${eloToGrade(member.elo)}</div>
         ${removeBtnHtml}
       `;
       membersListContainer.appendChild(rowEl);
