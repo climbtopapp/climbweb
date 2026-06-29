@@ -436,12 +436,13 @@ function setupEventListeners() {
       const shareText = `Check out ${firstName}'s profile on Climb! Current Grade: ${eloGrade} (Global Rank: #${globalRank}). Join Climb to step up and make your way to the top!`;
       const shareUrl = window.location.origin + window.location.pathname;
 
+      const fullMessage = `${shareText}\n${shareUrl}`;
+
       if (navigator.share) {
         try {
           await navigator.share({
             title: shareTitle,
-            text: shareText,
-            url: shareUrl
+            text: fullMessage
           });
           showToast('Profile shared successfully!', 'success');
         } catch (err) {
