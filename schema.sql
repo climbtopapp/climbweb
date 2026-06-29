@@ -134,9 +134,9 @@ BEGIN
     FROM public.profiles p
     WHERE p.id != voter_id AND p.avatar_url IS NOT NULL
       AND p.id NOT IN (
-        SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '1 day'
+        SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '15 minutes'
         UNION
-        SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '1 day'
+        SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '15 minutes'
       )
     ORDER BY random()
     LIMIT 2;
@@ -146,9 +146,9 @@ BEGIN
     FROM public.profiles p
     WHERE p.id != voter_id AND p.avatar_url IS NOT NULL AND p.gender = pref
       AND p.id NOT IN (
-        SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '1 day'
+        SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '15 minutes'
         UNION
-        SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '1 day'
+        SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '15 minutes'
       )
     ORDER BY random()
     LIMIT 2;
