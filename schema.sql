@@ -198,49 +198,7 @@ END;
 $$;
 
 
--- 5. Lazy Leaderboard snapshot refresh (Hourly check)
-CREATE OR REPLACE FUNCTION public.refresh_leaderboard_if_needed()
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE
-  last_upd timestamp with time zone;
-  should_refresh boolean := false;
-BEGIN
-  SELECT last_updated INTO last_upd FROM public.leaderboard_status WHERE id = 1;
-  
-  IF last_upd IS NULL OR last_upd < now() - interval '1 hour' THEN
-    should_refresh := true;
-  END IF;
-  
-  IF should_refresh THEN
-    -- Clear old snapshot
-    DELETE FROM public.leaderboard_snapshot;
-    
-    -- Insert fresh rankings
-    INSERT INTO public.leaderboard_snapshot (user_id, email, avatar_url, state, latitude, longitude, elo, global_rank, first_name, gender)
-    SELECT 
-      p.id, 
-      p.email, 
-      p.avatar_url, 
-      p.state, 
-      p.latitude, 
-      p.longitude, 
-      p.elo,
-      row_number() OVER (ORDER BY p.elo DESC)::integer as global_rank,
-      p.first_name,
-      p.gender
-    FROM public.profiles p
-    WHERE p.avatar_url IS NOT NULL;
-    
-    -- Update status
-    INSERT INTO public.leaderboard_status (id, last_updated)
-    VALUES (1, now())
-    ON CONFLICT (id) DO UPDATE SET last_updated = EXCLUDED.last_updated;
-  END IF;
-END;
-$$;
-
-
--- 6. Retrieve paginated leaderboards
+-- 5. Retrieve paginated leaderboards (Live query)
 CREATE OR REPLACE FUNCTION public.get_leaderboard_data(
   viewer_id uuid,
   viewer_lat double precision,
@@ -258,43 +216,48 @@ RETURNS TABLE (
   first_name text
 ) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  -- Perform hourly refresh check
-  PERFORM public.refresh_leaderboard_if_needed();
-  
   IF lb_type = 'global' THEN
     RETURN QUERY
+    WITH RankedProfiles AS (
+      SELECT 
+        p.id, p.avatar_url, p.state, p.elo, p.first_name,
+        row_number() OVER (ORDER BY p.elo DESC)::integer as g_rank
+      FROM public.profiles p
+      WHERE p.avatar_url IS NOT NULL
+    )
     SELECT 
-      ls.user_id,
-      ls.avatar_url,
-      ls.state,
-      ls.elo,
-      ls.global_rank,
-      ls.global_rank as relative_rank,
-      ls.first_name
-    FROM public.leaderboard_snapshot ls
-    ORDER BY ls.global_rank ASC
+      id as user_id, avatar_url, state, elo,
+      g_rank as global_rank,
+      g_rank as relative_rank,
+      first_name
+    FROM RankedProfiles
+    ORDER BY g_rank ASC
     LIMIT 99;
     
   ELSIF lb_type = 'state' THEN
     RETURN QUERY
+    WITH RankedProfiles AS (
+      SELECT 
+        p.id, p.avatar_url, p.state, p.elo, p.first_name,
+        row_number() OVER (ORDER BY p.elo DESC)::integer as g_rank
+      FROM public.profiles p
+      WHERE p.avatar_url IS NOT NULL
+    )
     SELECT 
-      ls.user_id,
-      ls.avatar_url,
-      ls.state,
-      ls.elo,
-      ls.global_rank,
-      row_number() OVER (ORDER BY ls.global_rank ASC)::integer as relative_rank,
-      ls.first_name
-    FROM public.leaderboard_snapshot ls
-    WHERE ls.state = viewer_state
-    ORDER BY ls.global_rank ASC
+      id as user_id, avatar_url, state, elo,
+      g_rank as global_rank,
+      row_number() OVER (ORDER BY g_rank ASC)::integer as relative_rank,
+      first_name
+    FROM RankedProfiles
+    WHERE state = viewer_state
+    ORDER BY g_rank ASC
     LIMIT 99;
   END IF;
 END;
 $$;
 
 
--- 7. Get user specific rankings across all three categories
+-- 6. Get user specific rankings across categories (Live query)
 CREATE OR REPLACE FUNCTION public.get_user_ranks(
   user_id_param uuid,
   viewer_lat double precision,
@@ -310,15 +273,20 @@ RETURNS TABLE (
   total_neighborhood integer
 ) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  PERFORM public.refresh_leaderboard_if_needed();
-  
   RETURN QUERY
-  WITH global_stats AS (
+  WITH RankedProfiles AS (
     SELECT 
-      ls.global_rank as g_rank,
-      (SELECT count(*)::integer FROM public.leaderboard_snapshot) as g_total
-    FROM public.leaderboard_snapshot ls
-    WHERE ls.user_id = user_id_param
+      p.id, p.state,
+      row_number() OVER (ORDER BY p.elo DESC)::integer as g_rank
+    FROM public.profiles p
+    WHERE p.avatar_url IS NOT NULL
+  ),
+  global_stats AS (
+    SELECT 
+      rp.g_rank,
+      (SELECT count(*)::integer FROM RankedProfiles) as g_total
+    FROM RankedProfiles rp
+    WHERE rp.id = user_id_param
   ),
   state_stats AS (
     SELECT 
@@ -326,13 +294,13 @@ BEGIN
       s.sub_total::integer as s_total
     FROM (
       SELECT 
-        ls2.user_id,
-        row_number() OVER (ORDER BY ls2.global_rank ASC) as sub_rank,
+        rp2.id,
+        row_number() OVER (ORDER BY rp2.g_rank ASC) as sub_rank,
         count(*) OVER () as sub_total
-      FROM public.leaderboard_snapshot ls2
-      WHERE ls2.state = viewer_state
+      FROM RankedProfiles rp2
+      WHERE rp2.state = viewer_state
     ) s
-    WHERE s.user_id = user_id_param
+    WHERE s.id = user_id_param
   )
   SELECT 
     coalesce((SELECT g_rank FROM global_stats), 0),
