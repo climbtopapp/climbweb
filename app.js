@@ -333,9 +333,10 @@ function setupEventListeners() {
     button.addEventListener('click', (e) => {
       const targetScreen = e.currentTarget.getAttribute('data-screen');
       if (targetScreen) {
-        if (targetScreen === 'leaderboard' && (!currentProfile || currentProfile.votes_cast < 100)) {
+        if ((targetScreen === 'leaderboard' || targetScreen === 'clubs') && (!currentProfile || currentProfile.votes_cast < 100)) {
           const votes = currentProfile ? currentProfile.votes_cast : 0;
-          showToast(`Cast ${100 - votes} more votes to unlock the Summit.`, 'error');
+          const screenName = targetScreen === 'clubs' ? 'Clubs' : 'the Summit';
+          showToast(`Cast ${100 - votes} more votes to unlock ${screenName}.`, 'error');
           return;
         }
         showScreen(targetScreen);
@@ -595,6 +596,12 @@ function setupEventListeners() {
     });
     
     btnClimbClub.addEventListener('click', () => {
+      const votes = currentProfile ? currentProfile.votes_cast : 0;
+      if (votes < 100) {
+        showToast(`Cast ${100 - votes} more votes to unlock Clubs.`, 'error');
+        return;
+      }
+      
       if (!currentClubInfo) {
         showToast('You must join a club first to climb against members.', 'error');
         showScreen('clubs');
