@@ -1833,6 +1833,7 @@ function setupCityCombobox(containerId, inputId, hiddenId, optionsId) {
           checkRegistrationSubmittable();
         }
       }
+    }
   });
 }
 
