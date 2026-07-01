@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
   initAuthListener();
   initCityComboboxes();
+  applyOnboardingRotations();
 });
 
 // --- Auth State Listener ---
@@ -357,6 +358,7 @@ function setupEventListeners() {
     document.getElementById('reg-step-1').classList.add('hidden');
     document.getElementById('reg-step-2').classList.remove('hidden');
     document.getElementById('reg-step-2').classList.add('wizard-active');
+    applyOnboardingRotations();
   });
 
   document.getElementById('btn-prev-step-2').addEventListener('click', () => {
@@ -364,6 +366,7 @@ function setupEventListeners() {
     document.getElementById('reg-step-2').classList.add('hidden');
     document.getElementById('reg-step-1').classList.remove('hidden');
     document.getElementById('reg-step-1').classList.add('wizard-active');
+    applyOnboardingRotations();
   });
 
   document.getElementById('btn-next-step-2').addEventListener('click', () => {
@@ -376,6 +379,7 @@ function setupEventListeners() {
     document.getElementById('reg-step-2').classList.add('hidden');
     document.getElementById('reg-step-3').classList.remove('hidden');
     document.getElementById('reg-step-3').classList.add('wizard-active');
+    applyOnboardingRotations();
   });
 
   document.getElementById('btn-prev-step-3').addEventListener('click', () => {
@@ -383,6 +387,7 @@ function setupEventListeners() {
     document.getElementById('reg-step-3').classList.add('hidden');
     document.getElementById('reg-step-2').classList.remove('hidden');
     document.getElementById('reg-step-2').classList.add('wizard-active');
+    applyOnboardingRotations();
   });
 
   document.getElementById('btn-next-step-3').addEventListener('click', () => {
@@ -395,6 +400,7 @@ function setupEventListeners() {
     document.getElementById('reg-step-3').classList.add('hidden');
     document.getElementById('reg-step-4').classList.remove('hidden');
     document.getElementById('reg-step-4').classList.add('wizard-active');
+    applyOnboardingRotations();
   });
 
   document.getElementById('btn-prev-step-4').addEventListener('click', () => {
@@ -402,6 +408,7 @@ function setupEventListeners() {
     document.getElementById('reg-step-4').classList.add('hidden');
     document.getElementById('reg-step-3').classList.remove('hidden');
     document.getElementById('reg-step-3').classList.add('wizard-active');
+    applyOnboardingRotations();
   });
 
   document.getElementById('btn-next-step-4').addEventListener('click', () => {
@@ -414,6 +421,7 @@ function setupEventListeners() {
     document.getElementById('reg-step-4').classList.add('hidden');
     document.getElementById('reg-step-5').classList.remove('hidden');
     document.getElementById('reg-step-5').classList.add('wizard-active');
+    applyOnboardingRotations();
   });
 
   document.getElementById('btn-prev-step-5').addEventListener('click', () => {
@@ -421,6 +429,7 @@ function setupEventListeners() {
     document.getElementById('reg-step-5').classList.add('hidden');
     document.getElementById('reg-step-4').classList.remove('hidden');
     document.getElementById('reg-step-4').classList.add('wizard-active');
+    applyOnboardingRotations();
   });
 
   // Profile: Edit Photo Update
@@ -1824,6 +1833,13 @@ function setupCityCombobox(containerId, inputId, hiddenId, optionsId) {
           checkRegistrationSubmittable();
         }
       }
-    }
+  });
+}
+
+// --- Onboarding Card Random Rotations ---
+function applyOnboardingRotations() {
+  document.querySelectorAll('#screen-auth .mash-card, #screen-register .mash-card').forEach(card => {
+    const rot = (Math.random() * 4 - 2).toFixed(1); // Random angle between -2 and 2 degrees
+    card.style.transform = `rotate(${rot}deg)`;
   });
 }
