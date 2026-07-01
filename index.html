@@ -33,22 +33,27 @@
 
         <!-- Step 0: Welcome Screen -->
         <div id="auth-step-welcome">
-          <div class="auth-welcome-grid">
-            <button type="button" class="auth-welcome-box" id="btn-welcome-create">
-              <div class="auth-welcome-icon">
-                <svg class="retro-icon" viewBox="0 0 16 16" width="36" height="36" fill="currentColor">
+          <div class="mash-arena">
+            <button type="button" class="mash-card" id="btn-welcome-create" style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
+              <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center; color: var(--accent-color);">
+                <svg class="retro-icon" viewBox="0 0 16 16" width="48" height="48" fill="currentColor">
                   <path d="M7 1h2v2H7zm-1 2h4v2H6zm-1 2h6v2H5zm-1 2h8v2H4zm-1 2h10v2H3zm-1 2h12v2H2zm-1 2h14v2H1z" />
                 </svg>
               </div>
-              <span class="auth-welcome-label">Sign Up</span>
+              <div class="mash-card-info">
+                <span class="profile-elo-tag" style="font-size: 1.2rem; padding: 4px 16px;">Sign Up</span>
+              </div>
             </button>
-            <button type="button" class="auth-welcome-box" id="btn-welcome-signin">
-              <div class="auth-welcome-icon">
-                <svg class="retro-icon" viewBox="0 0 16 16" width="36" height="36" fill="currentColor">
+            <div class="mash-vs">or</div>
+            <button type="button" class="mash-card" id="btn-welcome-signin" style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
+              <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center; color: var(--accent-color);">
+                <svg class="retro-icon" viewBox="0 0 16 16" width="48" height="48" fill="currentColor">
                   <path d="M6 1h4v4H6zm-2 5h8v2H4zm-1 2h10v8H3z" />
                 </svg>
               </div>
-              <span class="auth-welcome-label">Log In</span>
+              <div class="mash-card-info">
+                <span class="profile-elo-tag" style="font-size: 1.2rem; padding: 4px 16px;">Log In</span>
+              </div>
             </button>
           </div>
         </div>
@@ -203,9 +208,9 @@
             <h2 class="section-title" style="text-align: center;">Are you a:</h2>
             <p class="input-hint" style="text-align: center; color: #ffaa00; font-weight: 500; margin-bottom: 20px;">This cannot be changed later.</p>
             <input type="hidden" id="select-gender" value="">
-            <div class="gender-vote-grid">
-              <button type="button" class="gender-vote-box" data-value="male" id="gender-box-male">
-                <div class="gender-vote-icon">
+            <div class="mash-arena">
+              <button type="button" class="mash-card gender-vote-box" data-value="male" id="gender-box-male" style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
+                <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center; color: var(--accent-color);">
                   <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
                     <circle cx="10" cy="14" r="7"/>
                     <line x1="15" y1="9" x2="22" y2="2"/>
@@ -213,17 +218,22 @@
                     <line x1="22" y1="2" x2="22" y2="7"/>
                   </svg>
                 </div>
-                <span class="gender-vote-label">Boy</span>
+                <div class="mash-card-info">
+                  <span class="profile-elo-tag" style="font-size: 1.2rem; padding: 4px 16px;">Boy</span>
+                </div>
               </button>
-              <button type="button" class="gender-vote-box" data-value="female" id="gender-box-female">
-                <div class="gender-vote-icon">
+              <div class="mash-vs">or</div>
+              <button type="button" class="mash-card gender-vote-box" data-value="female" id="gender-box-female" style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
+                <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center; color: var(--accent-color);">
                   <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
                     <circle cx="12" cy="9" r="7"/>
                     <line x1="12" y1="16" x2="12" y2="23"/>
                     <line x1="9" y1="20" x2="15" y2="20"/>
                   </svg>
                 </div>
-                <span class="gender-vote-label">Girl</span>
+                <div class="mash-card-info">
+                  <span class="profile-elo-tag" style="font-size: 1.2rem; padding: 4px 16px;">Girl</span>
+                </div>
               </button>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 24px;">
@@ -237,9 +247,9 @@
             <h2 class="section-title" style="text-align: center;">Do you want to vote on:</h2>
             <p class="section-desc" style="text-align: center;">You can change this later in Settings.</p>
             <input type="hidden" id="select-vote-pref" value="">
-            <div class="gender-vote-grid">
-              <button type="button" class="vote-pref-box" data-value="male" id="vote-box-male">
-                <div class="gender-vote-icon">
+            <div class="mash-arena">
+              <button type="button" class="mash-card vote-pref-box" data-value="male" id="vote-box-male" style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
+                <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center; color: var(--accent-color);">
                   <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
                     <circle cx="10" cy="14" r="7"/>
                     <line x1="15" y1="9" x2="22" y2="2"/>
@@ -247,17 +257,22 @@
                     <line x1="22" y1="2" x2="22" y2="7"/>
                   </svg>
                 </div>
-                <span class="gender-vote-label">Boys</span>
+                <div class="mash-card-info">
+                  <span class="profile-elo-tag" style="font-size: 1.2rem; padding: 4px 16px;">Boys</span>
+                </div>
               </button>
-              <button type="button" class="vote-pref-box" data-value="female" id="vote-box-female">
-                <div class="gender-vote-icon">
+              <div class="mash-vs">or</div>
+              <button type="button" class="mash-card vote-pref-box" data-value="female" id="vote-box-female" style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
+                <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center; color: var(--accent-color);">
                   <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
                     <circle cx="12" cy="9" r="7"/>
                     <line x1="12" y1="16" x2="12" y2="23"/>
                     <line x1="9" y1="20" x2="15" y2="20"/>
                   </svg>
                 </div>
-                <span class="gender-vote-label">Girls</span>
+                <div class="mash-card-info">
+                  <span class="profile-elo-tag" style="font-size: 1.2rem; padding: 4px 16px;">Girls</span>
+                </div>
               </button>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 24px;">
@@ -778,6 +793,11 @@
         <button type="button" class="btn btn-secondary btn-block" id="btn-logout"
           style="margin-top: 10px; border-color: #ff4d4d; color: #ff4d4d;">Sign Out</button>
       </form>
+      <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed var(--border-color);">
+        <button type="button" class="btn btn-text btn-block" id="btn-delete-account"
+          style="color: #ff4d4d; font-size: 0.85rem;">Delete Account</button>
+        <p class="input-hint" style="text-align: center; margin-top: 6px;">This will permanently delete your account and all data.</p>
+      </div>
     </div>
   </div>
 
