@@ -677,3 +677,27 @@ GRANT EXECUTE ON FUNCTION public.get_club_leaderboard(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.get_matchup_club(uuid, text, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_matchup_club(uuid, text, uuid) TO service_role;
 
+
+-- delete_own_account function to allow users to delete their own account
+CREATE OR REPLACE FUNCTION public.delete_own_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  caller_id uuid;
+BEGIN
+  caller_id := auth.uid();
+  IF caller_id IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  DELETE FROM auth.users WHERE id = caller_id;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.delete_own_account() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.delete_own_account() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_own_account() TO service_role;
+
