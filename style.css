@@ -504,21 +504,19 @@ input[type="email"]:focus {
 }
 
 .mash-card:hover {
-  transform: none;
   box-shadow: none;
 }
 
 .mash-card:active {
-  transform: none;
   box-shadow: none;
 }
 
 /* When hovering one card, gray out the other */
-.mash-arena:has(#card-left:hover) #card-right {
+.mash-arena:has(.mash-card:first-of-type:hover) .mash-card:last-of-type {
   filter: grayscale(100%) brightness(0.4);
 }
 
-.mash-arena:has(#card-right:hover) #card-left {
+.mash-arena:has(.mash-card:last-of-type:hover) .mash-card:first-of-type {
   filter: grayscale(100%) brightness(0.4);
 }
 
@@ -1204,111 +1202,24 @@ input[type="range"]::-webkit-slider-thumb:hover {
   font-style: italic;
 }
 
-/* Auth Welcome Grid — Side-by-side Sign Up / Log In boxes */
-.auth-welcome-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+/* Selected state for selection screens using mash-cards */
+.mash-card.selected {
+  border-color: var(--accent-color) !important;
+  background-color: var(--primary-light) !important;
 }
 
-.auth-welcome-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 28px 16px;
-  background-color: var(--bg-secondary);
-  border: 3px solid var(--border-color);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: var(--transition);
-  font-family: var(--font-body);
+.mash-card.selected .image-wrapper {
+  background-color: var(--primary-color) !important;
+  color: #000000 !important;
 }
 
-.auth-welcome-box:hover {
-  background-color: var(--primary-light);
-  border-color: var(--primary-color);
+.mash-card.selected .mash-card-info {
+  background-color: var(--primary-light) !important;
 }
 
-.auth-welcome-box:active {
-  background-color: var(--primary-color);
-}
-
-.auth-welcome-icon {
-  color: var(--primary-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.auth-welcome-box:hover .auth-welcome-icon {
-  color: var(--accent-color);
-}
-
-.auth-welcome-label {
-  font-family: var(--font-display);
-  font-size: 1.8rem;
-  font-weight: 400;
-  color: var(--text-main);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Gender / Vote Preference Selection Boxes */
-.gender-vote-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.gender-vote-box,
-.vote-pref-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 32px 16px;
-  background-color: var(--bg-secondary);
-  border: 3px solid var(--border-color);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: var(--transition);
-  font-family: var(--font-body);
-}
-
-.gender-vote-box:hover,
-.vote-pref-box:hover {
-  background-color: var(--primary-light);
-  border-color: var(--primary-color);
-}
-
-.gender-vote-box.selected,
-.vote-pref-box.selected {
-  background-color: var(--primary-color);
-  border-color: var(--border-color);
-}
-
-.gender-vote-box.selected .gender-vote-icon,
-.vote-pref-box.selected .gender-vote-icon {
-  color: #000000;
-}
-
-.gender-vote-icon {
-  color: var(--accent-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.gender-vote-label {
-  font-family: var(--font-display);
-  font-size: 1.8rem;
-  font-weight: 400;
-  color: var(--text-main);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.mash-card.selected .profile-elo-tag {
+  background-color: #000000 !important;
+  color: var(--primary-color) !important;
 }
 
 /* Card Error Overlay (for failed mash images) */
