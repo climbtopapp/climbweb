@@ -1051,19 +1051,14 @@ async function recordVote(side) {
     console.error('Failed to submit vote:', err);
     showToast('Could not register vote.', 'error');
   } finally {
-    // Reset border color and click state
-    setTimeout(() => {
-      document.getElementById('card-left').style.borderColor = 'var(--border-color)';
-      document.getElementById('card-right').style.borderColor = 'var(--border-color)';
-      
-      document.getElementById('card-left').classList.add('fade-out');
-      document.getElementById('card-right').classList.add('fade-out');
+    // Reset border color and click state immediately
+    document.getElementById('card-left').style.borderColor = 'var(--border-color)';
+    document.getElementById('card-right').style.borderColor = 'var(--border-color)';
+    
+    document.getElementById('card-left').classList.add('fade-out');
+    document.getElementById('card-right').classList.add('fade-out');
 
-      setTimeout(() => {
-        // Load next comparison
-        loadNextMatchup();
-      }, 300);
-    }, 300);
+    loadNextMatchup();
   }
 }
 
