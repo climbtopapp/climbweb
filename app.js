@@ -239,9 +239,29 @@ function setupEventListeners() {
 
   // Registration Form: New field change listeners
   document.getElementById('input-first-name').addEventListener('input', () => checkRegistrationSubmittable());
-  document.getElementById('select-gender').addEventListener('change', () => checkRegistrationSubmittable());
-  document.getElementById('select-vote-pref').addEventListener('change', () => checkRegistrationSubmittable());
   document.getElementById('select-state').addEventListener('change', () => checkRegistrationSubmittable());
+
+  // Gender Selection Boxes
+  document.querySelectorAll('.gender-vote-box').forEach(box => {
+    box.addEventListener('click', () => {
+      document.querySelectorAll('.gender-vote-box').forEach(b => b.classList.remove('selected'));
+      box.classList.add('selected');
+      document.getElementById('select-gender').value = box.dataset.value;
+      document.getElementById('btn-next-step-3').removeAttribute('disabled');
+      checkRegistrationSubmittable();
+    });
+  });
+
+  // Vote Preference Selection Boxes
+  document.querySelectorAll('.vote-pref-box').forEach(box => {
+    box.addEventListener('click', () => {
+      document.querySelectorAll('.vote-pref-box').forEach(b => b.classList.remove('selected'));
+      box.classList.add('selected');
+      document.getElementById('select-vote-pref').value = box.dataset.value;
+      document.getElementById('btn-next-step-4').removeAttribute('disabled');
+      checkRegistrationSubmittable();
+    });
+  });
 
 
 
@@ -325,13 +345,11 @@ function setupEventListeners() {
     }
   });
 
-  // Registration Wizard Logic
+  // Registration Wizard Logic — 5 steps: Name, Region, Gender, Vote Pref, Photo
   document.getElementById('btn-next-step-1').addEventListener('click', () => {
     const fName = document.getElementById('input-first-name').value.trim();
-    const gender = document.getElementById('select-gender').value;
-    const pref = document.getElementById('select-vote-pref').value;
-    if (!fName || !gender || !pref) {
-      showToast('Please fill out all fields.', 'error');
+    if (!fName) {
+      showToast('Please enter your name.', 'error');
       return;
     }
     document.getElementById('reg-step-1').classList.remove('wizard-active');
@@ -348,8 +366,9 @@ function setupEventListeners() {
   });
 
   document.getElementById('btn-next-step-2').addEventListener('click', () => {
-    if (!selectedRegistrationFileBlob) {
-      showToast('Please upload a photo.', 'error');
+    const selectedState = document.getElementById('select-state').value;
+    if (!selectedState) {
+      showToast('Please select your region.', 'error');
       return;
     }
     document.getElementById('reg-step-2').classList.remove('wizard-active');
@@ -363,6 +382,44 @@ function setupEventListeners() {
     document.getElementById('reg-step-3').classList.add('hidden');
     document.getElementById('reg-step-2').classList.remove('hidden');
     document.getElementById('reg-step-2').classList.add('wizard-active');
+  });
+
+  document.getElementById('btn-next-step-3').addEventListener('click', () => {
+    const gender = document.getElementById('select-gender').value;
+    if (!gender) {
+      showToast('Please select your gender.', 'error');
+      return;
+    }
+    document.getElementById('reg-step-3').classList.remove('wizard-active');
+    document.getElementById('reg-step-3').classList.add('hidden');
+    document.getElementById('reg-step-4').classList.remove('hidden');
+    document.getElementById('reg-step-4').classList.add('wizard-active');
+  });
+
+  document.getElementById('btn-prev-step-4').addEventListener('click', () => {
+    document.getElementById('reg-step-4').classList.remove('wizard-active');
+    document.getElementById('reg-step-4').classList.add('hidden');
+    document.getElementById('reg-step-3').classList.remove('hidden');
+    document.getElementById('reg-step-3').classList.add('wizard-active');
+  });
+
+  document.getElementById('btn-next-step-4').addEventListener('click', () => {
+    const votePref = document.getElementById('select-vote-pref').value;
+    if (!votePref) {
+      showToast('Please select who you want to vote on.', 'error');
+      return;
+    }
+    document.getElementById('reg-step-4').classList.remove('wizard-active');
+    document.getElementById('reg-step-4').classList.add('hidden');
+    document.getElementById('reg-step-5').classList.remove('hidden');
+    document.getElementById('reg-step-5').classList.add('wizard-active');
+  });
+
+  document.getElementById('btn-prev-step-5').addEventListener('click', () => {
+    document.getElementById('reg-step-5').classList.remove('wizard-active');
+    document.getElementById('reg-step-5').classList.add('hidden');
+    document.getElementById('reg-step-4').classList.remove('hidden');
+    document.getElementById('reg-step-4').classList.add('wizard-active');
   });
 
   // Profile: Edit Photo Update
@@ -825,6 +882,9 @@ async function loadNextMatchup() {
     const imgRight = document.getElementById('img-right');
     imgRight.src = data[1].avatar_url || DEFAULT_AVATAR;
 
+    // Reset error states
+    document.querySelectorAll('.card-error').forEach(err => err.classList.add('hidden'));
+
     // Wait for image loading before hiding spinners
     let loadedCount = 0;
     const hideLoaderIfReady = () => {
@@ -842,6 +902,18 @@ async function loadNextMatchup() {
 
     imgLeft.onload = hideLoaderIfReady;
     imgRight.onload = hideLoaderIfReady;
+
+    // Image error handlers
+    imgLeft.onerror = () => {
+      document.querySelector('#card-left .card-loader').classList.add('hidden');
+      document.querySelector('#card-left .card-error').classList.remove('hidden');
+      hideLoaderIfReady();
+    };
+    imgRight.onerror = () => {
+      document.querySelector('#card-right .card-loader').classList.add('hidden');
+      document.querySelector('#card-right .card-error').classList.remove('hidden');
+      hideLoaderIfReady();
+    };
 
     // In case images are already cached
     if (imgLeft.complete) hideLoaderIfReady();
