@@ -885,7 +885,7 @@ async function loadNextMatchup() {
   if (!currentUser) return;
 
   // Ensure arena is visible and no matchups message is hidden
-  const arenaEl = document.querySelector('.mash-arena');
+  const arenaEl = document.querySelector('#screen-mash .mash-arena');
   if (arenaEl) arenaEl.classList.remove('hidden');
   const noMatchupsView = document.getElementById('view-no-matchups');
   if (noMatchupsView) noMatchupsView.classList.add('hidden');
@@ -979,7 +979,7 @@ async function loadNextMatchup() {
 
 function displayNoMatchups() {
   document.querySelectorAll('.card-loader').forEach(loader => loader.classList.add('hidden'));
-  const arena = document.querySelector('.mash-arena');
+  const arena = document.querySelector('#screen-mash .mash-arena');
   if (arena) arena.classList.add('hidden');
   const noMatchupsView = document.getElementById('view-no-matchups');
   if (noMatchupsView) {
@@ -1681,6 +1681,23 @@ const CITIES = [
   { name: "Las Vegas, NV", lat: 36.1716, lng: -115.1398 },
   { name: "Miami, FL", lat: 25.7617, lng: -80.1918 },
   { name: "Atlanta, GA", lat: 33.7490, lng: -84.3880 },
+  { name: "Charlotte, NC", lat: 35.2271, lng: -80.8431 },
+  { name: "Columbus, OH", lat: 39.9612, lng: -82.9988 },
+  { name: "El Paso, TX", lat: 31.7619, lng: -106.4850 },
+  { name: "Memphis, TN", lat: 35.1495, lng: -90.0490 },
+  { name: "Baltimore, MD", lat: 39.2904, lng: -76.6122 },
+  { name: "Milwaukee, WI", lat: 43.0389, lng: -87.9065 },
+  { name: "Albuquerque, NM", lat: 35.0844, lng: -106.6504 },
+  { name: "Kansas City, MO", lat: 39.0997, lng: -94.5786 },
+  { name: "Minneapolis, MN", lat: 44.9778, lng: -93.2650 },
+  { name: "Cleveland, OH", lat: 41.4993, lng: -81.6944 },
+  { name: "Pittsburgh, PA", lat: 40.4406, lng: -79.9959 },
+  { name: "Orlando, FL", lat: 28.5383, lng: -81.3792 },
+  { name: "Tampa, FL", lat: 27.9506, lng: -82.4572 },
+  { name: "St. Louis, MO", lat: 38.6270, lng: -90.1994 },
+  { name: "Salt Lake City, UT", lat: 40.7608, lng: -111.8910 },
+  { name: "Honolulu, HI", lat: 21.3069, lng: -157.8583 },
+  { name: "New Orleans, LA", lat: 29.9511, lng: -90.0715 },
   { name: "Toronto, ON", lat: 43.6532, lng: -79.3832 },
   { name: "Montreal, QC", lat: 45.5017, lng: -73.5673 },
   { name: "Vancouver, BC", lat: 49.2827, lng: -123.1207 },
