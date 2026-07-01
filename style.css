@@ -1203,3 +1203,144 @@ input[type="range"]::-webkit-slider-thumb:hover {
   color: var(--text-muted);
   font-style: italic;
 }
+
+/* Auth Welcome Grid — Side-by-side Sign Up / Log In boxes */
+.auth-welcome-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.auth-welcome-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 28px 16px;
+  background-color: var(--bg-secondary);
+  border: 3px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-body);
+}
+
+.auth-welcome-box:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary-color);
+}
+
+.auth-welcome-box:active {
+  background-color: var(--primary-color);
+}
+
+.auth-welcome-icon {
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-welcome-box:hover .auth-welcome-icon {
+  color: var(--accent-color);
+}
+
+.auth-welcome-label {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Gender / Vote Preference Selection Boxes */
+.gender-vote-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.gender-vote-box,
+.vote-pref-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 16px;
+  background-color: var(--bg-secondary);
+  border: 3px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-body);
+}
+
+.gender-vote-box:hover,
+.vote-pref-box:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary-color);
+}
+
+.gender-vote-box.selected,
+.vote-pref-box.selected {
+  background-color: var(--primary-color);
+  border-color: var(--border-color);
+}
+
+.gender-vote-box.selected .gender-vote-icon,
+.vote-pref-box.selected .gender-vote-icon {
+  color: #000000;
+}
+
+.gender-vote-icon {
+  color: var(--accent-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gender-vote-label {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Card Error Overlay (for failed mash images) */
+.card-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  z-index: 6;
+  color: var(--text-muted);
+  border-bottom: 3px solid var(--border-color);
+}
+
+.card-error span {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.card-error.hidden {
+  display: none;
+}
+
+/* Fix no-matchups view visibility when shown */
+#view-no-matchups:not(.hidden) {
+  display: flex !important;
+}
