@@ -581,6 +581,9 @@ function setupEventListeners() {
         await loadProfileData();
         settingsModal.classList.add('hidden');
         showToast('Settings saved successfully!', 'success');
+        
+        // Reload matchup matching new preferences/coordinates immediately
+        loadNextMatchup();
       } catch (err) {
         console.error(err);
         showToast('Failed to save settings.', 'error');
@@ -892,6 +895,11 @@ function checkRegistrationSubmittable() {
 // --- Mash Arena Game Functions ---
 async function loadNextMatchup() {
   if (!currentUser) return;
+
+  const cardLeft = document.getElementById('card-left');
+  const cardRight = document.getElementById('card-right');
+  if (cardLeft) cardLeft.classList.add('fade-out');
+  if (cardRight) cardRight.classList.add('fade-out');
 
   // Ensure arena is visible and no matchups message is hidden
   const arenaEl = document.querySelector('#screen-mash .mash-arena');
