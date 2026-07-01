@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=VT323&display=swap');
 
 :root {
   /* Color Palette - Bright Neo-Brutalist White & Pastel Blue Mode */
@@ -21,8 +21,9 @@
   --radius-lg: 0px;
   --radius-xl: 0px;
   --transition: all 0.12s ease;
-  --font-display: 'VT323', monospace;
-  --font-body: 'Share Tech Mono', monospace;
+  --font-logo: 'VT323', monospace;
+  --font-display: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
 }
 
 /* Base Reset & Layout */
@@ -117,7 +118,7 @@ body {
 
 /* Logo & Headers */
 .brand-title {
-  font-family: var(--font-display);
+  font-family: var(--font-logo);
   font-size: 4.5rem;
   font-weight: 400;
   color: var(--primary-color);
@@ -137,7 +138,7 @@ body {
 }
 
 .brand-title-sm {
-  font-family: var(--font-display);
+  font-family: var(--font-logo);
   font-size: 2.8rem;
   color: var(--primary-color);
   text-shadow: 2px 2px 0px #000;
