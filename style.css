@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sen:wght@400;700;800&family=VT323&display=swap');
 
 :root {
   /* Color Palette - Bright Neo-Brutalist White & Pastel Blue Mode */
@@ -22,8 +22,8 @@
   --radius-xl: 0px;
   --transition: all 0.12s ease;
   --font-logo: 'VT323', monospace;
-  --font-display: 'Outfit', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-display: 'Sen', sans-serif;
+  --font-body: 'Sen', sans-serif;
 }
 
 /* Base Reset & Layout */
