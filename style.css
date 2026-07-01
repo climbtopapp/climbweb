@@ -498,7 +498,7 @@ input[type="email"]:focus {
   overflow: hidden;
   box-shadow: var(--shadow-md);
   cursor: pointer;
-  transition: transform 0.15s ease, scale 0.15s ease, filter 0.2s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, scale 0.15s ease, filter 0.2s ease, box-shadow 0.15s ease, opacity 0.2s ease;
   position: relative;
   display: flex;
   flex-direction: column;
