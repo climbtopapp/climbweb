@@ -1121,7 +1121,7 @@ async function loadLeaderboard() {
         const votes = (currentProfile && currentProfile.votes_cast) || 0;
         
         let displayRank = currentLeaderboardTab === 'club' ? (index + 1) : row.relative_rank;
-        let displayElo = currentLeaderboardTab === 'club' ? '' : `Grade ${eloToGrade(row.elo)}`;
+        let displayElo = '';
         
         if (isSelf) {
           let rankThreshold = 1000;
@@ -1130,9 +1130,6 @@ async function loadLeaderboard() {
 
           if (votes < rankThreshold) {
             displayRank = '--';
-          }
-          if (votes < 250) {
-            displayElo = `${250 - votes} more votes needed`;
           }
         }
 
@@ -1188,11 +1185,8 @@ async function loadLeaderboard() {
           stickyRow.querySelector('.user-rank').innerText = displayRank;
         }
 
-        if (votes < 250) {
-          document.getElementById('sticky-user-elo').innerText = `${250 - votes} more votes needed`;
-        } else {
-          document.getElementById('sticky-user-elo').innerText = `Grade ${eloToGrade(currentProfile.elo)}`;
-        }
+        const stickyEloEl = document.getElementById('sticky-user-elo');
+        if (stickyEloEl) stickyEloEl.classList.add('hidden');
         stickyRow.classList.remove('hidden');
       } else {
         stickyRow.classList.add('hidden');
