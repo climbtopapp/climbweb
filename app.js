@@ -51,6 +51,7 @@ const screens = {
 document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
   initAuthListener();
+  initCityComboboxes();
 });
 
 // --- Auth State Listener ---
@@ -474,6 +475,7 @@ function setupEventListeners() {
       document.getElementById('input-settings-gender').value = currentProfile.gender ? (currentProfile.gender.charAt(0).toUpperCase() + currentProfile.gender.slice(1)) : '';
       document.getElementById('select-settings-vote-pref').value = currentProfile.vote_preference || 'everyone';
       document.getElementById('select-settings-state').value = currentProfile.state || '';
+      document.getElementById('input-settings-state-search').value = currentProfile.state || '';
       document.getElementById('settings-avatar-preview').src = currentProfile.avatar_url || DEFAULT_AVATAR;
       
       settingsModal.classList.remove('hidden');
@@ -532,6 +534,15 @@ function setupEventListeners() {
       const votePref = document.getElementById('select-settings-vote-pref').value;
       const selectedState = document.getElementById('select-settings-state').value;
       
+      // Update coordinates based on selected state (city)
+      const cityObj = CITIES.find(c => c.name === selectedState);
+      let newLat = currentProfile.latitude;
+      let newLng = currentProfile.longitude;
+      if (cityObj) {
+        newLat = cityObj.lat;
+        newLng = cityObj.lng;
+      }
+      
       setButtonLoading('btn-save-settings', true, 'Saving...');
       try {
         const { error } = await supabaseClient
@@ -539,7 +550,9 @@ function setupEventListeners() {
           .update({
             first_name: name,
             vote_preference: votePref,
-            state: selectedState
+            state: selectedState,
+            latitude: newLat,
+            longitude: newLng
           })
           .eq('id', currentUser.id);
         
@@ -549,8 +562,12 @@ function setupEventListeners() {
         currentProfile.first_name = name;
         currentProfile.vote_preference = votePref;
         currentProfile.state = selectedState;
+        currentProfile.latitude = newLat;
+        currentProfile.longitude = newLng;
         userState = selectedState;
         userVotePreference = votePref;
+        userCoordinates.lat = newLat;
+        userCoordinates.lng = newLng;
         
         await loadProfileData();
         settingsModal.classList.add('hidden');
@@ -766,6 +783,35 @@ function setupEventListeners() {
     showToast('Signing out...', 'info');
     await supabaseClient.auth.signOut();
   });
+
+  // Profile: Delete Account Button
+  const btnDeleteAccount = document.getElementById('btn-delete-account');
+  if (btnDeleteAccount) {
+    btnDeleteAccount.addEventListener('click', async () => {
+      const confirmDelete = window.confirm(
+        'Are you sure you want to permanently delete your account? This cannot be undone. All your data, votes, photos, and club memberships will be erased.'
+      );
+      if (!confirmDelete) return;
+
+      const doubleConfirm = window.confirm(
+        'This is your last chance. Type-confirm not supported in this browser — click OK to permanently delete your account.'
+      );
+      if (!doubleConfirm) return;
+
+      setButtonLoading('btn-delete-account', true, 'Deleting...');
+      try {
+        const { error } = await supabaseClient.rpc('delete_own_account');
+        if (error) throw error;
+
+        showToast('Account deleted. Goodbye.', 'success');
+        await supabaseClient.auth.signOut();
+      } catch (err) {
+        console.error('Failed to delete account:', err);
+        showToast(err.message || 'Failed to delete account.', 'error');
+        setButtonLoading('btn-delete-account', false, 'Delete Account');
+      }
+    });
+  }
 }
 
 // --- Image Compression Engine with Square Center-Cropping ---
@@ -914,6 +960,12 @@ async function loadNextMatchup() {
       document.querySelector('#card-right .card-error').classList.remove('hidden');
       hideLoaderIfReady();
     };
+
+    // Apply slight random rotation to cards for a playful feel
+    const rotLeft = (Math.random() * 4 - 2).toFixed(1); // -2 to 2 degrees
+    const rotRight = (Math.random() * 4 - 2).toFixed(1);
+    document.getElementById('card-left').style.transform = `rotate(${rotLeft}deg)`;
+    document.getElementById('card-right').style.transform = `rotate(${rotRight}deg)`;
 
     // In case images are already cached
     if (imgLeft.complete) hideLoaderIfReady();
@@ -1601,4 +1653,160 @@ function shareClubCode() {
       showToast('Invite code copied to clipboard!', 'success');
     });
   }
+}
+
+// --- Major Cities Dataset ---
+const CITIES = [
+  { name: "Washington, D.C.", lat: 38.9072, lng: -77.0369 },
+  { name: "New York City, NY", lat: 40.7128, lng: -74.0060 },
+  { name: "Los Angeles, CA", lat: 34.0522, lng: -118.2437 },
+  { name: "Chicago, IL", lat: 41.8781, lng: -87.6298 },
+  { name: "Houston, TX", lat: 29.7604, lng: -95.3698 },
+  { name: "Phoenix, AZ", lat: 33.4484, lng: -112.0740 },
+  { name: "Philadelphia, PA", lat: 39.9526, lng: -75.1652 },
+  { name: "San Antonio, TX", lat: 29.4241, lng: -98.4936 },
+  { name: "San Diego, CA", lat: 32.7157, lng: -117.1611 },
+  { name: "Dallas, TX", lat: 32.7767, lng: -96.7970 },
+  { name: "San Jose, CA", lat: 37.3382, lng: -121.8863 },
+  { name: "Austin, TX", lat: 30.2672, lng: -97.7431 },
+  { name: "Jacksonville, FL", lat: 30.3322, lng: -81.6557 },
+  { name: "San Francisco, CA", lat: 37.7749, lng: -122.4194 },
+  { name: "Indianapolis, IN", lat: 39.7684, lng: -86.1581 },
+  { name: "Seattle, WA", lat: 47.6062, lng: -122.3321 },
+  { name: "Denver, CO", lat: 39.7392, lng: -104.9903 },
+  { name: "Boston, MA", lat: 42.3601, lng: -71.0589 },
+  { name: "Nashville, TN", lat: 36.1627, lng: -86.7816 },
+  { name: "Detroit, MI", lat: 42.3314, lng: -83.0458 },
+  { name: "Portland, OR", lat: 45.5152, lng: -122.6784 },
+  { name: "Las Vegas, NV", lat: 36.1716, lng: -115.1398 },
+  { name: "Miami, FL", lat: 25.7617, lng: -80.1918 },
+  { name: "Atlanta, GA", lat: 33.7490, lng: -84.3880 },
+  { name: "Toronto, ON", lat: 43.6532, lng: -79.3832 },
+  { name: "Montreal, QC", lat: 45.5017, lng: -73.5673 },
+  { name: "Vancouver, BC", lat: 49.2827, lng: -123.1207 },
+  { name: "Calgary, AB", lat: 51.0447, lng: -114.0719 },
+  { name: "Edmonton, AB", lat: 53.5461, lng: -113.4938 },
+  { name: "Ottawa, ON", lat: 45.4215, lng: -75.6972 },
+  { name: "Winnipeg, MB", lat: 49.8951, lng: -97.1384 },
+  { name: "Quebec City, QC", lat: 46.8139, lng: -71.2082 }
+];
+
+// --- Searchable Combobox logic ---
+function initCityComboboxes() {
+  setupCityCombobox("combobox-reg-region", "input-state-search", "select-state", "options-reg-region");
+  setupCityCombobox("combobox-settings-region", "input-settings-state-search", "select-settings-state", "options-settings-region");
+}
+
+function setupCityCombobox(containerId, inputId, hiddenId, optionsId) {
+  const container = document.getElementById(containerId);
+  const inputEl = document.getElementById(inputId);
+  const hiddenEl = document.getElementById(hiddenId);
+  const optionsEl = document.getElementById(optionsId);
+  
+  if (!container || !inputEl || !hiddenEl || !optionsEl) return;
+
+  const dropdown = container.querySelector(".combobox-dropdown");
+
+  function renderOptions(filterText = "") {
+    optionsEl.innerHTML = "";
+    const filtered = CITIES.filter(c => 
+      c.name.toLowerCase().includes(filterText.toLowerCase())
+    );
+    
+    if (filtered.length === 0) {
+      const emptyDiv = document.createElement("div");
+      emptyDiv.className = "combobox-option";
+      emptyDiv.style.color = "var(--text-muted)";
+      emptyDiv.style.cursor = "default";
+      emptyDiv.innerText = "No cities found";
+      optionsEl.appendChild(emptyDiv);
+      return;
+    }
+    
+    filtered.forEach(city => {
+      const option = document.createElement("div");
+      option.className = "combobox-option";
+      if (hiddenEl.value === city.name) {
+        option.classList.add("selected");
+      }
+      option.innerText = city.name;
+      
+      option.addEventListener("click", () => {
+        hiddenEl.value = city.name;
+        inputEl.value = city.name;
+        
+        // Update user state and coordinates if this is registration
+        if (hiddenEl.id === "select-state") {
+          userState = city.name;
+          userCoordinates.lat = city.lat;
+          userCoordinates.lng = city.lng;
+          checkRegistrationSubmittable();
+        }
+        
+        dropdown.classList.add("hidden");
+      });
+      optionsEl.appendChild(option);
+    });
+  }
+
+  // Open dropdown on focus/click
+  inputEl.addEventListener("focus", () => {
+    renderOptions(inputEl.value);
+    dropdown.classList.remove("hidden");
+  });
+  
+  inputEl.addEventListener("click", () => {
+    renderOptions(inputEl.value);
+    dropdown.classList.remove("hidden");
+  });
+
+  // Filter on type
+  inputEl.addEventListener("input", () => {
+    renderOptions(inputEl.value);
+    dropdown.classList.remove("hidden");
+    
+    const matchesExact = CITIES.some(c => c.name.toLowerCase() === inputEl.value.trim().toLowerCase());
+    if (!matchesExact) {
+      hiddenEl.value = "";
+      if (hiddenEl.id === "select-state") {
+        checkRegistrationSubmittable();
+      }
+    } else {
+      const matchedCity = CITIES.find(c => c.name.toLowerCase() === inputEl.value.trim().toLowerCase());
+      hiddenEl.value = matchedCity.name;
+      if (hiddenEl.id === "select-state") {
+        userState = matchedCity.name;
+        userCoordinates.lat = matchedCity.lat;
+        userCoordinates.lng = matchedCity.lng;
+        checkRegistrationSubmittable();
+      }
+    }
+  });
+
+  // Close dropdown on click outside
+  document.addEventListener("click", (e) => {
+    if (!container.contains(e.target)) {
+      dropdown.classList.add("hidden");
+      
+      const exactMatch = CITIES.find(c => c.name.toLowerCase() === inputEl.value.trim().toLowerCase());
+      if (exactMatch) {
+        inputEl.value = exactMatch.name;
+        hiddenEl.value = exactMatch.name;
+        if (hiddenEl.id === "select-state") {
+          userState = exactMatch.name;
+          userCoordinates.lat = exactMatch.lat;
+          userCoordinates.lng = exactMatch.lng;
+          checkRegistrationSubmittable();
+        }
+      } else if (hiddenEl.value) {
+        inputEl.value = hiddenEl.value;
+      } else {
+        inputEl.value = "";
+        hiddenEl.value = "";
+        if (hiddenEl.id === "select-state") {
+          checkRegistrationSubmittable();
+        }
+      }
+    }
+  });
 }
