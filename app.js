@@ -448,10 +448,10 @@ function setupEventListeners() {
     button.addEventListener('click', (e) => {
       const targetScreen = e.currentTarget.getAttribute('data-screen');
       if (targetScreen) {
-        if ((targetScreen === 'leaderboard' || targetScreen === 'clubs') && (!currentProfile || currentProfile.votes_cast < 100)) {
+        if ((targetScreen === 'leaderboard' || targetScreen === 'clubs') && (!currentProfile || currentProfile.votes_cast < 25)) {
           const votes = currentProfile ? currentProfile.votes_cast : 0;
           const screenName = targetScreen === 'clubs' ? 'Clubs' : 'the Summit';
-          showToast(`Cast ${100 - votes} more votes to unlock ${screenName}.`, 'error');
+          showToast(`Cast ${25 - votes} more votes to unlock ${screenName}.`, 'error');
           return;
         }
         showScreen(targetScreen);
@@ -739,8 +739,8 @@ function setupEventListeners() {
     
     btnClimbClub.addEventListener('click', () => {
       const votes = currentProfile ? currentProfile.votes_cast : 0;
-      if (votes < 100) {
-        showToast(`Cast ${100 - votes} more votes to unlock Clubs.`, 'error');
+      if (votes < 25) {
+        showToast(`Cast ${25 - votes} more votes to unlock Clubs.`, 'error');
         return;
       }
       
@@ -1270,8 +1270,12 @@ async function loadProfileData() {
     });
 
     if (!statsError && rankStats && rankStats.length > 0) {
-      document.getElementById('rank-val-global').innerText = votes >= 500 ? (rankStats[0].total_global > 0 ? `${rankStats[0].global_rank} / ${rankStats[0].total_global}` : '--') : 'Locked';
-      document.getElementById('rank-val-state').innerText = votes >= 1000 ? (rankStats[0].total_state > 0 ? `${rankStats[0].state_rank} / ${rankStats[0].total_state}` : '--') : 'Locked';
+      if (votes >= 500) {
+        document.getElementById('rank-val-global').innerText = rankStats[0].total_global > 0 ? `${rankStats[0].global_rank} / ${rankStats[0].total_global}` : '--';
+      }
+      if (votes >= 1000) {
+        document.getElementById('rank-val-state').innerText = rankStats[0].total_state > 0 ? `${rankStats[0].state_rank} / ${rankStats[0].total_state}` : '--';
+      }
     }
 
   } catch (err) {
@@ -1341,12 +1345,12 @@ function eloToGrade(elo) {
 
 function updateNavigationLocks() {
   const votes = (currentProfile && currentProfile.votes_cast) || 0;
-  const isLocked = votes < 100;
+  const isLocked = votes < 25;
   
   document.querySelectorAll('.bottom-nav .nav-item[data-screen="leaderboard"]').forEach(btn => {
     if (isLocked) {
       btn.classList.add('locked-nav');
-      btn.querySelector('.nav-label').innerText = `${100 - votes} Votes`;
+      btn.querySelector('.nav-label').innerText = `${25 - votes} Votes`;
     } else {
       btn.classList.remove('locked-nav');
       btn.querySelector('.nav-label').innerText = 'Summit';
@@ -1356,7 +1360,7 @@ function updateNavigationLocks() {
   document.querySelectorAll('.bottom-nav .nav-item[data-screen="clubs"]').forEach(btn => {
     if (isLocked) {
       btn.classList.add('locked-nav');
-      btn.querySelector('.nav-label').innerText = `${100 - votes} Votes`;
+      btn.querySelector('.nav-label').innerText = `${25 - votes} Votes`;
     } else {
       btn.classList.remove('locked-nav');
       btn.querySelector('.nav-label').innerText = 'Clubs';
