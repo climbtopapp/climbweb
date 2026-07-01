@@ -497,17 +497,20 @@ input[type="email"]:focus {
   overflow: hidden;
   box-shadow: var(--shadow-md);
   cursor: pointer;
-  transition: var(--transition), filter 0.2s ease;
+  transition: transform 0.15s ease, scale 0.15s ease, filter 0.2s ease, box-shadow 0.15s ease;
   position: relative;
   display: flex;
   flex-direction: column;
+  scale: 1;
 }
 
 .mash-card:hover {
-  box-shadow: none;
+  scale: 1.05;
+  box-shadow: var(--shadow-md);
 }
 
 .mash-card:active {
+  scale: 0.98;
   box-shadow: none;
 }
 
@@ -1255,3 +1258,78 @@ input[type="range"]::-webkit-slider-thumb:hover {
 #view-no-matchups:not(.hidden) {
   display: flex !important;
 }
+
+/* Searchable Combobox styles */
+.combobox-container {
+  position: relative;
+  width: 100%;
+}
+
+.combobox-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  background-color: var(--bg-primary);
+  border: 3px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  outline: none;
+  transition: var(--transition);
+}
+
+.combobox-input:focus {
+  border-color: var(--primary-color);
+  background-color: var(--bg-secondary);
+}
+
+.combobox-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: var(--bg-secondary);
+  border: 3px solid var(--border-color);
+  border-top: none;
+  margin-top: -3px; /* visual overlap for neat brutalist borders */
+}
+
+/* Custom Scrollbar for Dropdown */
+.combobox-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+.combobox-dropdown::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+.combobox-dropdown::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border: 2px solid var(--bg-primary);
+}
+
+.combobox-option {
+  padding: 10px 16px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-main);
+  cursor: pointer;
+  border-bottom: 2px dashed var(--bg-primary);
+  text-align: left;
+  transition: var(--transition);
+}
+
+.combobox-option:last-child {
+  border-bottom: none;
+}
+
+.combobox-option:hover {
+  background-color: var(--primary-light);
+}
+
+.combobox-option.selected {
+  background-color: var(--primary-color);
+  font-weight: bold;
+}
+
