@@ -25,6 +25,54 @@
       </div>
     </section>
 
+    <!-- Screen: Landing Page (The initial page users see) -->
+    <section id="screen-landing" class="screen">
+      <!-- Safety Info Button in top left -->
+      <button id="btn-safety-info" class="safety-btn">?</button>
+
+      <div class="card auth-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 80vh;">
+        <div>
+          <h1 class="brand-title">Climb</h1>
+          <p class="brand-subtitle">Step up and make your way to the top.</p>
+
+          <!-- Middle graphics/vibe -->
+          <div style="display: flex; justify-content: center; align-items: center; padding: 40px 0;">
+            <svg class="retro-icon" viewBox="0 0 16 16" width="112" height="112" fill="currentColor" style="color: var(--primary-color);">
+              <path d="M0 16h16V0h-2v2h-2v2h-2v2h-2v2H6v2H4v2H2v2H0v2z"/>
+            </svg>
+          </div>
+        </div>
+
+        <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px; width: 100%;">
+          <!-- Download on iOS button -->
+          <button class="btn btn-secondary btn-block" style="display: flex; align-items: center; justify-content: center; gap: 10px; cursor: default;">
+            <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+              <rect x="9" y="1" width="2" height="1" />
+              <rect x="8" y="2" width="2" height="1" />
+              <rect x="5" y="4" width="6" height="1" />
+              <rect x="4" y="5" width="8" height="1" />
+              <rect x="3" y="6" width="10" height="1" />
+              <rect x="3" y="7" width="10" height="1" />
+              <rect x="3" y="8" width="9" height="1" />
+              <rect x="3" y="9" width="8" height="1" />
+              <rect x="3" y="10" width="9" height="1" />
+              <rect x="3" y="11" width="10" height="1" />
+              <rect x="3" y="12" width="10" height="1" />
+              <rect x="4" y="13" width="8" height="1" />
+              <rect x="5" y="14" width="2" height="1" />
+              <rect x="9" y="14" width="2" height="1" />
+            </svg>
+            <span>Download on iOS</span>
+          </button>
+
+          <!-- Log In / Sign Up button -->
+          <button id="btn-landing-auth" class="btn btn-primary btn-block">
+            Log In / Sign Up
+          </button>
+        </div>
+      </div>
+    </section>
+
     <!-- Screen: Authentication -->
     <section id="screen-auth" class="screen">
       <div class="card auth-card">
@@ -56,6 +104,9 @@
               </div>
             </button>
           </div>
+          <button type="button" class="btn btn-text btn-block" id="btn-welcome-back-landing" style="margin-top: 15px;">
+            Go Back
+          </button>
         </div>
 
         <!-- Step 1: Email Entry -->
@@ -683,6 +734,23 @@
       <div style="display: flex; gap: 10px; margin-top: 20px;">
         <button type="button" class="btn btn-secondary" id="btn-cancel-crop" style="flex: 1;">Cancel</button>
         <button type="button" class="btn btn-primary" id="btn-apply-crop" style="flex: 1;">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Safety Modal -->
+  <div id="safety-modal" class="modal-overlay hidden">
+    <div class="modal-content card" style="max-width: 400px; padding: 20px; position: relative;">
+      <div class="modal-header"
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-family: var(--font-display); font-weight: 700;">Safety Information</h3>
+        <button id="btn-close-safety" class="btn-close"
+          style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+      <div class="modal-body" style="padding-top: 10px;">
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; min-height: 80px;">
+          <!-- Blank for now, user will write later -->
+        </p>
       </div>
     </div>
   </div>
