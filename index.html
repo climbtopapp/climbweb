@@ -35,20 +35,34 @@
           <h1 class="brand-title" style="margin-top: 10px;">Climb</h1>
           <p class="brand-subtitle">Step up and make your way to the top.</p>
 
-          <!-- Middle graphics/vibe: Retro Pixel-Art Mountain Scene -->
-          <div style="display: flex; justify-content: center; align-items: center; padding: 30px 0;">
-            <svg class="retro-icon" viewBox="0 0 24 24" width="160" height="160" fill="none" style="image-rendering: pixelated;">
-              <!-- Sun in the sky -->
-              <path d="M3 4h4v4H3z M2 5h6v2H2z" fill="var(--primary-color)" style="opacity: 0.85;" />
+          <!-- Middle graphics/vibe: Improved Detailed Retro Pixel-Art Mountain Scene -->
+          <div style="display: flex; justify-content: center; align-items: center; padding: 20px 0;">
+            <svg class="retro-icon" viewBox="0 0 64 64" width="240" height="240" fill="none" style="image-rendering: pixelated; display: block; margin: 0 auto;">
+              <!-- Sky background stars -->
+              <path d="M12 8h1v1h-1z M15 6h1v1h-1z M8 15h1v1h-1z M22 4h1v1h-1z M25 12h1v1h-1z M58 10h1v1h-1z M54 6h1v1h-1z M60 18h1v1h-1z" fill="var(--primary-color)" style="opacity: 0.4;" />
+              <path d="M6 10h2v1H6zm-1 1h4v1H5zm1 1h2v1H6z M48 8h2v1h-2zm-1 1h4v1h-4zm1 1h2v1h-2z" fill="var(--primary-color)" style="opacity: 0.6;" />
               
-              <!-- Clouds -->
-              <path d="M14 6h4v1h-4z M13 7h6v1h-6z" fill="var(--text-muted)" style="opacity: 0.25;" />
+              <!-- Sun in the sky -->
+              <path d="M43 12h7v1h-7zm-2 1h11v1h-11zm-1 1h13v1h-13zm-1 1h15v5h-15zm1 5h13v1h-13zm1 1h11v1h-11zm2 1h7v1h-7z" fill="var(--primary-color)" style="opacity: 0.95;" />
+              
+              <!-- Clouds (Horizontal layered bands) -->
+              <path d="M4 16h14v1H4zm-2 1h18v1H2zm1 1h15v1H3z M38 22h16v1H38zm-3 1h21v1H35zm2 1h18v1H37z" fill="var(--text-muted)" style="opacity: 0.25;" />
+              <path d="M12 28h22v1H12zm-4 1h28v1H8zm2 1h24v1H10z" fill="var(--text-muted)" style="opacity: 0.15;" />
               
               <!-- Distant Mountain -->
-              <path d="M17 10h1v1h-1z M16 11h3v1h-3z M15 12h5v1h-5z M14 13h7v1h-7z M13 14h9v1h-9z M12 15h11v1h-11z M11 16h13v8H11z" fill="var(--primary-color)" style="opacity: 0.45;" />
+              <path d="M48 30h1v1h1v1h1v1h2v1h2v1h2v1h3v1h4v27h-28v-17h1v-1h1v-1h1v-1h2v-1h2v-1h2v-1h2v-1h1v-1h1v-1h1v-1z" fill="var(--primary-color)" style="opacity: 0.4;" />
               
-              <!-- Main Mountain -->
-              <path d="M9 6h2v1H9z M8 7h4v1H8z M7 8h6v1H7z M6 9h8v1H6z M5 10h10v1H5z M4 11h12v1H4z M3 12h14v1H3z M2 13h16v1H2z M1 14h18v1H1z M0 15h20v9H0z" fill="var(--primary-color)" />
+              <!-- Midground Mountain -->
+              <path d="M20 26h1v1h1v1h1v1h2v1h2v1h2v1h1v1h1v1h1v1h1v1h2v1h2v1h2v1h1v1h1v1h1v1h1v1h2v1h2v1h2v1h2v18h-40v-20h1v-1h1v-1h1v-1h2v-1h2v-1h2v-1h1v-1h1v-1h1v-1h1v-1h2v-1h2v-1h2v-1z" fill="var(--primary-color)" style="opacity: 0.65;" />
+              
+              <!-- Main Mountain Silhouette (Foreground) -->
+              <path d="M34 22h1v1h1v1h1v1h1v1h1v1h1v1h1v1h2v1h2v1h2v1h2v1h2v1h2v1h1v1h1v1h1v1h1v1h2v1h2v1h2v1h1v21h-64v-17h1v-1h2v-1h2v-1h2v-1h1v-1h1v-1h1v-1h1v-1h2v-1h2v-1h2v-1h1v-1h1v-1h1v-1h1v-1h2v-1h2v-1h2v-1h1v-1h1v-1h1v-1h1v-1h1v-1h1v-1z" fill="var(--primary-color)" />
+              
+              <!-- Snow Cap (Foreground Peak overlay, white) -->
+              <path d="M34 22h1v1h1v1h1v1h1v1h1v1h1v1h1v1h2v1h2v1h2v1h2v1h-13v-1h-2v-1h-2v-1h-2v-1h-1v-1h-1v-1h-1v-1h-1v-1h-1v-1h-1v-1h-1v-1h-1v-1z" fill="#ffffff" />
+              
+              <!-- Shadow Overlay (Main Mountain Left Slope) -->
+              <path d="M34 22v42H0v-12h1v-1h2v-1h2v-1h2v-1h1v-1h1v-1h1v-1h1v-1h2v-1h2v-1h2v-1h1v-1h1v-1h1v-1h1v-1h2v-1h2v-1h2v-1h1v-1h1v-1h1v-1h1v-1h1v-1h1v-1z" fill="#000000" style="opacity: 0.18;" />
             </svg>
           </div>
         </div>
