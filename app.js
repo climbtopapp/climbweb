@@ -38,6 +38,7 @@ let cropState = {
 // DOM Elements
 const screens = {
   loader: document.getElementById('screen-loader'),
+  landing: document.getElementById('screen-landing'),
   auth: document.getElementById('screen-auth'),
   register: document.getElementById('screen-register'),
   mash: document.getElementById('screen-mash'),
@@ -76,7 +77,7 @@ async function handleAuthStateChange(user) {
   currentUser = user;
   if (!user) {
     currentProfile = null;
-    showScreen('auth');
+    showScreen('landing');
     return;
   }
 
@@ -157,7 +158,7 @@ function showScreen(screenId) {
 
   const bottomNav = document.querySelector('.bottom-nav');
   if (bottomNav) {
-    const noNavScreens = ['loader', 'auth', 'register'];
+    const noNavScreens = ['loader', 'landing', 'auth', 'register'];
     if (noNavScreens.includes(screenId)) {
       bottomNav.classList.add('hidden');
     } else {
@@ -175,6 +176,36 @@ function showScreen(screenId) {
 
 // --- Event Listeners Setup ---
 function setupEventListeners() {
+  // Landing Screen: Log In / Sign Up Button
+  document.getElementById('btn-landing-auth').addEventListener('click', () => {
+    document.getElementById('auth-step-welcome').classList.remove('hidden');
+    document.getElementById('auth-step-email').classList.add('hidden');
+    document.getElementById('auth-step-success').classList.add('hidden');
+    showScreen('auth');
+  });
+
+  // Welcome Screen: Go Back to Landing Page
+  document.getElementById('btn-welcome-back-landing').addEventListener('click', () => {
+    showScreen('landing');
+  });
+
+  // Landing Screen: Safety Info popup trigger
+  document.getElementById('btn-safety-info').addEventListener('click', () => {
+    document.getElementById('safety-modal').classList.remove('hidden');
+  });
+
+  // Safety Modal: Close button
+  document.getElementById('btn-close-safety').addEventListener('click', () => {
+    document.getElementById('safety-modal').classList.add('hidden');
+  });
+
+  // Safety Modal: Click outside content
+  document.getElementById('safety-modal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('safety-modal')) {
+      document.getElementById('safety-modal').classList.add('hidden');
+    }
+  });
+
   // Welcome Screen: Create Account Button
   document.getElementById('btn-welcome-create').addEventListener('click', () => {
     isSignUp = true;
@@ -1715,7 +1746,14 @@ const CITIES = [
   { name: "Edmonton, AB", lat: 53.5461, lng: -113.4938 },
   { name: "Ottawa, ON", lat: 45.4215, lng: -75.6972 },
   { name: "Winnipeg, MB", lat: 49.8951, lng: -97.1384 },
-  { name: "Quebec City, QC", lat: 46.8139, lng: -71.2082 }
+  { name: "Quebec City, QC", lat: 46.8139, lng: -71.2082 },
+  { name: "Halifax, NS", lat: 44.6488, lng: -63.5752 },
+  { name: "Victoria, BC", lat: 48.4284, lng: -123.3656 },
+  { name: "Portland, ME", lat: 43.6591, lng: -70.2568 },
+  { name: "Anchorage, AK", lat: 61.2181, lng: -149.9003 },
+  { name: "Sacramento, CA", lat: 38.5816, lng: -121.4944 },
+  { name: "Cincinnati, OH", lat: 39.1031, lng: -84.5120 },
+  { name: "St. John's, NL", lat: 47.5615, lng: -52.7126 }
 ];
 
 // --- Searchable Combobox logic ---
