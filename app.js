@@ -17,6 +17,7 @@ let userCoordinates = { lat: null, lng: null };
 let userState = "";
 let userVotePreference = "everyone";
 let currentLeaderboardTab = "global";
+let currentLeaderboardGender = "everyone";
 let currentClubInfo = null;
 let currentClubMembers = [];
 let isMashClubMode = false;
@@ -822,6 +823,25 @@ function setupEventListeners() {
     });
   });
 
+  // Leaderboard Gender Filter Buttons
+  document.querySelectorAll('.gender-filter-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const container = e.target.closest('.gender-filter-container');
+      container.querySelectorAll('.gender-filter-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.backgroundColor = 'var(--bg-primary)';
+        b.style.color = 'var(--text-muted)';
+      });
+
+      e.target.classList.add('active');
+      e.target.style.backgroundColor = 'var(--bg-secondary)';
+      e.target.style.color = 'var(--text-main)';
+
+      currentLeaderboardGender = e.target.getAttribute('data-gender');
+      loadLeaderboard();
+    });
+  });
+
   // Climb Tab Toggle Buttons
   const btnClimbGlobal = document.getElementById('btn-climb-global');
   const btnClimbClub = document.getElementById('btn-climb-club');
@@ -1185,7 +1205,8 @@ async function loadLeaderboard() {
         return;
       }
       const { data, error } = await supabaseClient.rpc('get_club_leaderboard', {
-        target_club_id: currentClubInfo.id
+        target_club_id: currentClubInfo.id,
+        gender_filter: currentLeaderboardGender
       });
       if (error) throw error;
       leaderboardData = data;
@@ -1195,7 +1216,8 @@ async function loadLeaderboard() {
         viewer_lat: userCoordinates.lat || 0,
         viewer_lon: userCoordinates.lng || 0,
         viewer_state: userState || 'Unknown State',
-        lb_type: currentLeaderboardTab
+        lb_type: currentLeaderboardTab,
+        gender_filter: currentLeaderboardGender
       });
       if (error) throw error;
       leaderboardData = data;
@@ -1250,40 +1272,58 @@ async function loadLeaderboard() {
 
     const stickyRow = document.getElementById('user-sticky-rank');
 
-    if (statsError || !rankStats || rankStats.length === 0) {
-      stickyRow.classList.add('hidden');
-    } else {
-      const stats = rankStats[0];
-      let displayRank = '--';
-      let displayTotal = '--';
+    const stats = (!statsError && rankStats && rankStats.length > 0) ? rankStats[0] : null;
+    let displayRank = '--';
+    let displayTotal = '--';
+    let scopeLabel = '';
 
-      if (currentLeaderboardTab === 'global' && stats.global_rank > 0) {
+    // Check if self is in the loaded list
+    const myIndexInList = leaderboardData.findIndex(row => row.user_id === currentUser.id);
+
+    if (currentLeaderboardTab === 'global') {
+      scopeLabel = 'Global';
+      if (myIndexInList !== -1) {
+        displayRank = leaderboardData[myIndexInList].relative_rank || (myIndexInList + 1);
+        displayTotal = leaderboardData.length;
+      } else if (stats && stats.global_rank > 0) {
         displayRank = stats.global_rank;
         displayTotal = stats.total_global;
-      } else if (currentLeaderboardTab === 'state' && stats.state_rank > 0) {
+      }
+    } else if (currentLeaderboardTab === 'state') {
+      scopeLabel = userState || 'Regional';
+      if (myIndexInList !== -1) {
+        displayRank = leaderboardData[myIndexInList].relative_rank || (myIndexInList + 1);
+        displayTotal = leaderboardData.length;
+      } else if (stats && stats.state_rank > 0) {
         displayRank = stats.state_rank;
         displayTotal = stats.total_state;
       }
-
-      if (displayRank !== '--' && currentProfile) {
-        const votes = currentProfile.votes_cast || 0;
-        document.getElementById('sticky-user-avatar').src = currentProfile.avatar_url || DEFAULT_AVATAR;
-        
-        const threshold = 500;
-        if (votes < threshold) {
-          document.getElementById('sticky-user-location').innerText = `${userState} (${threshold - votes} more votes needed)`;
-          stickyRow.querySelector('.user-rank').innerText = '--';
-        } else {
-          document.getElementById('sticky-user-location').innerText = `${userState} (Rank #${displayRank} of ${displayTotal})`;
-          stickyRow.querySelector('.user-rank').innerText = displayRank;
-        }
-
-        const stickyEloEl = document.getElementById('sticky-user-elo');
-        if (stickyEloEl) stickyEloEl.classList.add('hidden');
-        stickyRow.classList.remove('hidden');
-      } else {
-        stickyRow.classList.add('hidden');
+    } else if (currentLeaderboardTab === 'club' && currentClubInfo) {
+      scopeLabel = currentClubInfo.name || 'Club';
+      if (myIndexInList !== -1) {
+        displayRank = myIndexInList + 1;
+        displayTotal = leaderboardData.length;
       }
+    }
+
+    if (displayRank !== '--' && currentProfile) {
+      const votes = currentProfile.votes_cast || 0;
+      document.getElementById('sticky-user-avatar').src = currentProfile.avatar_url || DEFAULT_AVATAR;
+      
+      const threshold = 500;
+      if (votes < threshold) {
+        document.getElementById('sticky-user-location').innerText = `${scopeLabel} (${threshold - votes} more votes needed)`;
+        stickyRow.querySelector('.user-rank').innerText = '--';
+      } else {
+        document.getElementById('sticky-user-location').innerText = `${scopeLabel} (Rank #${displayRank} of ${displayTotal})`;
+        stickyRow.querySelector('.user-rank').innerText = displayRank;
+      }
+
+      const stickyEloEl = document.getElementById('sticky-user-elo');
+      if (stickyEloEl) stickyEloEl.classList.add('hidden');
+      stickyRow.classList.remove('hidden');
+    } else {
+      stickyRow.classList.add('hidden');
     }
 
   } catch (err) {
