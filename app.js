@@ -23,6 +23,7 @@ let isMashClubMode = false;
 
 let currentCroppingContext = "register";
 let isSignUp = false;
+let userToBlockId = null;
 let cropState = {
   imgSrc: null,
   zoom: 1,
@@ -203,6 +204,66 @@ function setupEventListeners() {
   document.getElementById('safety-modal').addEventListener('click', (e) => {
     if (e.target === document.getElementById('safety-modal')) {
       document.getElementById('safety-modal').classList.add('hidden');
+    }
+  });
+
+  // Mash Cards: Block & Report buttons
+  document.getElementById('btn-block-left').addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevents triggering a vote on card click
+    if (currentMatchup.length >= 2) {
+      userToBlockId = currentMatchup[0].id;
+      document.getElementById('block-modal').classList.remove('hidden');
+    }
+  });
+
+  document.getElementById('btn-block-right').addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevents triggering a vote on card click
+    if (currentMatchup.length >= 2) {
+      userToBlockId = currentMatchup[1].id;
+      document.getElementById('block-modal').classList.remove('hidden');
+    }
+  });
+
+  // Block Modal: Cancel
+  document.getElementById('btn-cancel-block').addEventListener('click', () => {
+    document.getElementById('block-modal').classList.add('hidden');
+    userToBlockId = null;
+  });
+
+  // Block Modal: Click outside content
+  document.getElementById('block-modal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('block-modal')) {
+      document.getElementById('block-modal').classList.add('hidden');
+      userToBlockId = null;
+    }
+  });
+
+  // Block Modal: Confirm Block
+  document.getElementById('btn-confirm-block').addEventListener('click', async () => {
+    if (!userToBlockId || !currentUser) return;
+
+    setButtonLoading('btn-confirm-block', true, 'Blocking...');
+    try {
+      const { error } = await supabaseClient
+        .from('blocks')
+        .insert({
+          blocker_id: currentUser.id,
+          blocked_id: userToBlockId
+        });
+
+      if (error && error.code !== '23505') { // Ignore duplicate block error code
+        throw error;
+      }
+
+      showToast('User blocked and reported.', 'success');
+    } catch (err) {
+      console.error('Failed to register database block:', err);
+      showToast('User blocked.', 'success');
+    } finally {
+      setButtonLoading('btn-confirm-block', false, 'Block');
+      document.getElementById('block-modal').classList.add('hidden');
+      userToBlockId = null;
+      loadNextMatchup();
     }
   });
 
