@@ -376,10 +376,17 @@
       </header>
 
       <!-- Tabs -->
-      <div class="tabs">
+      <div class="tabs" style="margin-bottom: 8px;">
         <button class="tab-btn active" data-tab="global">Global</button>
         <button class="tab-btn" data-tab="state">Region</button>
         <button class="tab-btn" data-tab="club">Club</button>
+      </div>
+
+      <!-- Gender Filter sub-tabs -->
+      <div class="gender-filter-container" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;">
+        <button class="gender-filter-btn active" data-gender="everyone" style="padding: 6px 16px; font-size: 0.8rem; font-family: var(--font-display); font-weight: bold; border: 2px solid var(--border-color); background-color: var(--bg-secondary); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-main); transition: var(--transition);">Everyone</button>
+        <button class="gender-filter-btn" data-gender="male" style="padding: 6px 16px; font-size: 0.8rem; font-family: var(--font-display); font-weight: bold; border: 2px solid var(--border-color); background-color: var(--bg-primary); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-muted); transition: var(--transition);">Boys</button>
+        <button class="gender-filter-btn" data-gender="female" style="padding: 6px 16px; font-size: 0.8rem; font-family: var(--font-display); font-weight: bold; border: 2px solid var(--border-color); background-color: var(--bg-primary); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-muted); transition: var(--transition);">Girls</button>
       </div>
 
       <!-- Leaderboard List -->
