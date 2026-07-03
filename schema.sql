@@ -230,13 +230,14 @@ END;
 $$;
 
 
--- 5. Retrieve paginated leaderboards (Live query)
+-- 5. Retrieve paginated leaderboards (Live query, limited to top 99)
 CREATE OR REPLACE FUNCTION public.get_leaderboard_data(
   viewer_id uuid,
   viewer_lat double precision,
   viewer_lon double precision,
   viewer_state text,
-  lb_type text
+  lb_type text,
+  gender_filter text DEFAULT 'everyone'
 )
 RETURNS TABLE (
   user_id uuid,
@@ -256,6 +257,7 @@ BEGIN
         row_number() OVER (ORDER BY p.elo DESC)::integer as g_rank
       FROM public.profiles p
       WHERE p.avatar_url IS NOT NULL
+        AND (gender_filter = 'everyone' OR p.gender = gender_filter)
     )
     SELECT 
       rp.id as user_id, rp.avatar_url, rp.state, rp.elo,
@@ -274,6 +276,7 @@ BEGIN
         row_number() OVER (ORDER BY p.elo DESC)::integer as g_rank
       FROM public.profiles p
       WHERE p.avatar_url IS NOT NULL
+        AND (gender_filter = 'everyone' OR p.gender = gender_filter)
     )
     SELECT 
       rp.id as user_id, rp.avatar_url, rp.state, rp.elo,
@@ -584,8 +587,11 @@ BEGIN
 END;
 $$;
 
--- Club leaderboard (returns members ranked by ELO, for Summit tab)
-CREATE OR REPLACE FUNCTION public.get_club_leaderboard(target_club_id uuid)
+-- Club leaderboard (returns members ranked by ELO, for Summit tab, limited to top 99)
+CREATE OR REPLACE FUNCTION public.get_club_leaderboard(
+  target_club_id uuid,
+  gender_filter text DEFAULT 'everyone'
+)
 RETURNS TABLE (
   user_id uuid,
   first_name text,
@@ -606,7 +612,9 @@ BEGIN
   FROM public.club_members cm
   JOIN public.profiles p ON p.id = cm.user_id
   WHERE cm.club_id = target_club_id
-  ORDER BY p.elo DESC;
+    AND (gender_filter = 'everyone' OR p.gender = gender_filter)
+  ORDER BY p.elo DESC
+  LIMIT 99;
 END;
 $$;
 
