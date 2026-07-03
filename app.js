@@ -106,9 +106,6 @@ async function fetchUserProfile() {
 
     currentProfile = data;
     updateNavigationLocks();
-    
-    // Initialize RevenueCat SDK
-    initRevenueCat(currentUser.id);
 
     // Check if user has completed profile (photo + name + gender)
     if (!currentProfile.avatar_url || !currentProfile.first_name || !currentProfile.gender) {
@@ -270,24 +267,7 @@ function setupEventListeners() {
     }
   });
 
-  // Paywall Modal: Close
-  document.getElementById('btn-close-paywall').addEventListener('click', () => {
-    document.getElementById('paywall-modal').classList.add('hidden');
-  });
 
-  // Paywall Modal: Click outside
-  document.getElementById('paywall-modal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('paywall-modal')) {
-      document.getElementById('paywall-modal').classList.add('hidden');
-    }
-  });
-
-  // Grade Stat Box: Trigger paywall if not Climb Pro
-  document.getElementById('stat-box-grade').addEventListener('click', () => {
-    if (!isClimbPro) {
-      showPaywall();
-    }
-  });
 
   // Welcome Screen: Create Account Button
   document.getElementById('btn-welcome-create').addEventListener('click', () => {
@@ -1350,21 +1330,10 @@ async function loadProfileData() {
       document.getElementById('rank-val-state').innerText = '--';
     }
 
-    const statEloEl = document.getElementById('stat-elo');
-    const statBoxGrade = document.getElementById('stat-box-grade');
-
     if (votes < 250) {
-      statEloEl.innerText = `${250 - votes} more votes needed`;
-      statBoxGrade.style.cursor = 'default';
-      statBoxGrade.title = '';
-    } else if (!isClimbPro) {
-      statEloEl.innerHTML = '🔒 <span style="font-size: 0.8rem; color: var(--error-color); font-family: var(--font-display); font-weight: bold; display: block; margin-top: 4px;">Climb Pro</span>';
-      statBoxGrade.style.cursor = 'pointer';
-      statBoxGrade.title = 'Click to unlock with Climb Pro';
+      document.getElementById('stat-elo').innerText = `${250 - votes} more votes needed`;
     } else {
-      statEloEl.innerText = eloToGrade(profile.elo);
-      statBoxGrade.style.cursor = 'default';
-      statBoxGrade.title = '';
+      document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
     }
 
     if (votes < 500) {
@@ -1974,95 +1943,5 @@ function applyOnboardingRotations() {
   document.querySelectorAll('#screen-auth .mash-card, #screen-register .mash-card').forEach(card => {
     const rot = (Math.random() * 4 - 2).toFixed(1); // Random angle between -2 and 2 degrees
     card.style.transform = `rotate(${rot}deg)`;
-  });
-}
-
-// --- RevenueCat Integration Helper Functions ---
-let purchases = null;
-let isClimbPro = false;
-
-async function initRevenueCat(userId) {
-  if (purchases) return; // Already configured for current session
-
-  try {
-    const purchasesSdk = window.Purchases;
-    if (!purchasesSdk) {
-      console.warn("RevenueCat purchases-js SDK is not loaded.");
-      return;
-    }
-
-    purchases = purchasesSdk.configure({
-      apiKey: "test_MdptGVAmNGaNIaHHkrVFBRlvCTU",
-      appUserID: userId
-    });
-
-    console.log("RevenueCat SDK configured successfully for user:", userId);
-
-    // Initial check of customer active entitlements
-    await refreshCustomerEntitlements();
-
-    // Start listening for transaction updates
-    listenToPurchases();
-  } catch (error) {
-    console.error("RevenueCat configuration error:", error);
-  }
-}
-
-async function refreshCustomerEntitlements() {
-  if (!purchases) return;
-
-  try {
-    const customerInfo = await purchases.getCustomerInfo();
-    isClimbPro = !!(customerInfo.entitlements.active["climb_pro"]?.isActive);
-    console.log("Climb Pro Active Status:", isClimbPro);
-
-    // Update active UI elements if we are currently looking at the profile tab
-    if (document.getElementById('screen-profile').classList.contains('active')) {
-      loadProfileData();
-    }
-  } catch (error) {
-    console.error("Error fetching customer info:", error);
-  }
-}
-
-async function showPaywall() {
-  if (!purchases) {
-    showToast("Subscription billing service is offline.", "error");
-    return;
-  }
-
-  try {
-    document.getElementById('paywall-modal').classList.remove('hidden');
-    const container = document.getElementById("paywall-container");
-    container.innerHTML = '<div class="spinner"></div>'; // Reset container with loader
-
-    // Present paywall inside container element
-    await purchases.presentPaywall({
-      containerElement: container
-    });
-
-    console.log("Paywall presented successfully.");
-  } catch (error) {
-    console.error("Error loading paywall:", error);
-    document.getElementById("paywall-container").innerHTML = `
-      <p style="color: var(--error-color); text-align: center; font-size: 0.95rem;">Failed to load payment options. Please check your internet connection and try again.</p>
-    `;
-  }
-}
-
-function listenToPurchases() {
-  if (!purchases) return;
-
-  // The SDK automatically triggers updates on checkout completion
-  purchases.addCustomerInfoUpdateListener((customerInfo) => {
-    isClimbPro = !!(customerInfo.entitlements.active["climb_pro"]?.isActive);
-    console.log("CustomerInfo updated. Climb Pro status:", isClimbPro);
-    if (isClimbPro) {
-      showToast("Climb Pro activated! Thank you for subscribing.", "success");
-      document.getElementById('paywall-modal').classList.add('hidden');
-      if (document.getElementById('screen-profile').classList.contains('active')) {
-        loadProfileData();
-      }
-    }
   });
 }
