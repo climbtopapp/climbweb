@@ -1216,9 +1216,7 @@ async function loadLeaderboard() {
         let displayElo = '';
         
         if (isSelf) {
-          let rankThreshold = 1000;
-          if (currentLeaderboardTab === 'global') rankThreshold = 500;
-          else if (currentLeaderboardTab === 'club') rankThreshold = 1500;
+          let rankThreshold = 500;
 
           if (votes < rankThreshold) {
             displayRank = '--';
@@ -1269,8 +1267,9 @@ async function loadLeaderboard() {
         const votes = currentProfile.votes_cast || 0;
         document.getElementById('sticky-user-avatar').src = currentProfile.avatar_url || DEFAULT_AVATAR;
         
-        if (votes < 1000) {
-          document.getElementById('sticky-user-location').innerText = `${userState} (${1000 - votes} more votes needed)`;
+        const threshold = 500;
+        if (votes < threshold) {
+          document.getElementById('sticky-user-location').innerText = `${userState} (${threshold - votes} more votes needed)`;
           stickyRow.querySelector('.user-rank').innerText = '--';
         } else {
           document.getElementById('sticky-user-location').innerText = `${userState} (Rank #${displayRank} of ${displayTotal})`;
@@ -1323,8 +1322,8 @@ async function loadProfileData() {
       document.getElementById('rank-val-global').innerText = '--';
     }
 
-    if (votes < 1000) {
-      document.getElementById('rank-val-state').innerText = `${1000 - votes} more votes needed`;
+    if (votes < 500) {
+      document.getElementById('rank-val-state').innerText = `${500 - votes} more votes needed`;
     } else {
       document.getElementById('rank-val-state').innerText = '--';
     }
@@ -1335,8 +1334,8 @@ async function loadProfileData() {
       document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
     }
 
-    if (votes < 1500) {
-      document.getElementById('rank-val-club').innerText = `${1500 - votes} more votes needed`;
+    if (votes < 500) {
+      document.getElementById('rank-val-club').innerText = `${500 - votes} more votes needed`;
     } else if (!currentClubInfo) {
       document.getElementById('rank-val-club').innerText = 'No Club';
     } else {
@@ -1362,7 +1361,7 @@ async function loadProfileData() {
       if (votes >= 500) {
         document.getElementById('rank-val-global').innerText = rankStats[0].total_global > 0 ? `${rankStats[0].global_rank} / ${rankStats[0].total_global}` : '--';
       }
-      if (votes >= 1000) {
+      if (votes >= 500) {
         document.getElementById('rank-val-state').innerText = rankStats[0].total_state > 0 ? `${rankStats[0].state_rank} / ${rankStats[0].total_state}` : '--';
       }
     }
