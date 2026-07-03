@@ -46,6 +46,28 @@ CREATE POLICY "Users can view their own votes" ON public.votes
 CREATE POLICY "Authenticated users can insert votes" ON public.votes
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
+-- Create Blocks Table
+CREATE TABLE public.blocks (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  blocker_id uuid REFERENCES auth.users ON DELETE CASCADE,
+  blocked_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  UNIQUE (blocker_id, blocked_id)
+);
+
+-- Enable RLS on Blocks
+ALTER TABLE public.blocks ENABLE ROW LEVEL SECURITY;
+
+-- Blocks Policies
+CREATE POLICY "Users can view their own blocks" ON public.blocks
+  FOR SELECT USING (auth.uid() = blocker_id);
+
+CREATE POLICY "Users can insert their own blocks" ON public.blocks
+  FOR INSERT WITH CHECK (auth.uid() = blocker_id);
+
+CREATE POLICY "Users can delete their own blocks" ON public.blocks
+  FOR DELETE USING (auth.uid() = blocker_id);
+
 -- Create Leaderboard Snapshot Table for caching
 CREATE TABLE public.leaderboard_snapshot (
   user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -119,7 +141,7 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 
--- 3. Get two random profiles for comparison (filtered by gender preference, excludes recently seen)
+-- 3. Get two random profiles for comparison (filtered by gender preference, excludes recently seen, excludes blocked users)
 CREATE OR REPLACE FUNCTION public.get_matchup(voter_id uuid, pref text DEFAULT 'everyone')
 RETURNS TABLE (
   id uuid,
@@ -138,6 +160,11 @@ BEGIN
         UNION
         SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '15 minutes'
       )
+      AND p.id NOT IN (
+        SELECT blocked_id FROM public.blocks WHERE blocker_id = get_matchup.voter_id
+        UNION
+        SELECT blocker_id FROM public.blocks WHERE blocked_id = get_matchup.voter_id
+      )
     ORDER BY random()
     LIMIT 2;
   ELSE
@@ -149,6 +176,11 @@ BEGIN
         SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '15 minutes'
         UNION
         SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '15 minutes'
+      )
+      AND p.id NOT IN (
+        SELECT blocked_id FROM public.blocks WHERE blocker_id = get_matchup.voter_id
+        UNION
+        SELECT blocker_id FROM public.blocks WHERE blocked_id = get_matchup.voter_id
       )
     ORDER BY random()
     LIMIT 2;
@@ -598,6 +630,11 @@ BEGIN
         UNION
         SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup_club.voter_id AND v.created_at > now() - interval '15 minutes'
       )
+      AND p.id NOT IN (
+        SELECT blocked_id FROM public.blocks WHERE blocker_id = get_matchup_club.voter_id
+        UNION
+        SELECT blocker_id FROM public.blocks WHERE blocked_id = get_matchup_club.voter_id
+      )
     ORDER BY random()
     LIMIT 2;
   ELSE
@@ -610,6 +647,11 @@ BEGIN
         SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup_club.voter_id AND v.created_at > now() - interval '15 minutes'
         UNION
         SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup_club.voter_id AND v.created_at > now() - interval '15 minutes'
+      )
+      AND p.id NOT IN (
+        SELECT blocked_id FROM public.blocks WHERE blocker_id = get_matchup_club.voter_id
+        UNION
+        SELECT blocker_id FROM public.blocks WHERE blocked_id = get_matchup_club.voter_id
       )
     ORDER BY random()
     LIMIT 2;
