@@ -1375,11 +1375,11 @@ input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: none;
 }
 
-/* User Block Button (Mash Cards overlay) */
+/* User Block Button (Mash Cards overlay, positioned to the left in the open space) */
 .btn-block-user {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: calc(50% - 16px);
+  left: -48px;
   width: 32px;
   height: 32px;
   background-color: var(--error-color);
