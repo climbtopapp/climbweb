@@ -155,7 +155,7 @@ function showScreen(screenId) {
   if (screenId === 'auth') {
     document.getElementById('auth-step-welcome').classList.remove('hidden');
     document.getElementById('auth-step-email').classList.add('hidden');
-    document.getElementById('auth-step-success').classList.add('hidden');
+    document.getElementById('auth-step-otp').classList.add('hidden');
   }
 
   const bottomNav = document.querySelector('.bottom-nav');
@@ -182,7 +182,7 @@ function setupEventListeners() {
   document.getElementById('btn-landing-auth').addEventListener('click', () => {
     document.getElementById('auth-step-welcome').classList.remove('hidden');
     document.getElementById('auth-step-email').classList.add('hidden');
-    document.getElementById('auth-step-success').classList.add('hidden');
+    document.getElementById('auth-step-otp').classList.add('hidden');
     showScreen('auth');
   });
 
