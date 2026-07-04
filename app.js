@@ -225,19 +225,25 @@ function updateNotificationsUI() {
   const badge = document.getElementById('notifications-badge');
   const listContainer = document.getElementById('notifications-list');
   if (!badge || !listContainer) return;
-  const unreadCount = notificationsList.filter(n => !n.is_read).length;
-  if (unreadCount > 0) {
-    badge.innerText = unreadCount;
+  
+  const lastOpened = parseInt(localStorage.getItem('climb_last_read_notifications') || '0', 10);
+  const newCount = notificationsList.filter(n => new Date(n.created_at).getTime() > lastOpened).length;
+  
+  if (newCount > 0) {
+    badge.innerText = newCount;
     badge.classList.remove('hidden');
   } else {
     badge.classList.add('hidden');
   }
+  
   if (notificationsList.length === 0) {
     listContainer.innerHTML = '<div class="input-hint" style="text-align: center; padding: 20px 0;">No notifications yet!</div>';
     return;
   }
+  
   listContainer.innerHTML = notificationsList.map(n => {
-    const bgStyle = n.is_read ? 'var(--bg-secondary)' : 'var(--primary-light)';
+    const isNew = new Date(n.created_at).getTime() > lastOpened;
+    const bgStyle = isNew ? 'var(--primary-light)' : 'var(--bg-secondary)';
     const dateStr = new Date(n.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     return `
       <div class="card" style="padding: 12px; border: 2px solid var(--border-color); background-color: ${bgStyle}; text-align: left; display: flex; flex-direction: column; gap: 4px;">
@@ -249,25 +255,6 @@ function updateNotificationsUI() {
       </div>
     `;
   }).join('');
-}
-
-async function markAllNotificationsRead() {
-  if (!currentUser || notificationsList.length === 0) return;
-  try {
-    const unreadIds = notificationsList.filter(n => !n.is_read).map(n => n.id);
-    if (unreadIds.length === 0) return;
-    const { error } = await supabaseClient
-      .from('notifications')
-      .update({ is_read: true })
-      .in('id', unreadIds);
-    if (error) throw error;
-    notificationsList.forEach(n => {
-      if (unreadIds.includes(n.id)) n.is_read = true;
-    });
-    updateNotificationsUI();
-  } catch (err) {
-    console.error('Error marking notifications as read:', err);
-  }
 }
 
 // --- Event Listeners Setup ---
@@ -287,6 +274,7 @@ function setupEventListeners() {
 
   // Safety Info popup triggers (Landing + Mash screen)
   document.querySelectorAll('.safety-btn').forEach(btn => {
+    if (btn.id === 'btn-open-notifications') return;
     btn.addEventListener('click', () => {
       document.getElementById('safety-modal').classList.remove('hidden');
     });
@@ -309,6 +297,7 @@ function setupEventListeners() {
   if (btnOpenNotif) {
     btnOpenNotif.addEventListener('click', () => {
       document.getElementById('notifications-modal').classList.remove('hidden');
+      localStorage.setItem('climb_last_read_notifications', Date.now().toString());
       fetchNotifications();
     });
   }
@@ -328,14 +317,6 @@ function setupEventListeners() {
       if (e.target === notifModal) {
         notifModal.classList.add('hidden');
       }
-    });
-  }
-
-  // Notifications Modal: Mark all as read
-  const btnMarkRead = document.getElementById('btn-mark-all-read');
-  if (btnMarkRead) {
-    btnMarkRead.addEventListener('click', () => {
-      markAllNotificationsRead();
     });
   }
 
