@@ -416,7 +416,7 @@ function setupEventListeners() {
       const { error: uploadError } = await supabaseClient.storage
         .from('avatars')
         .upload(filePath, selectedRegistrationFileBlob, {
-          cacheControl: '3600',
+          cacheControl: '604800',
           contentType: selectedRegistrationFileType,
           upsert: true
         });
@@ -771,7 +771,7 @@ function setupEventListeners() {
     showToast('Cropping and saving...', 'info');
     
     try {
-      const croppedBlob = await getCroppedImageBlob(500);
+      const croppedBlob = await getCroppedImageBlob(300);
       
       if (currentCroppingContext === 'register') {
         selectedRegistrationFileBlob = croppedBlob;
@@ -795,7 +795,7 @@ function setupEventListeners() {
           const { error: uploadError } = await supabaseClient.storage
             .from('avatars')
             .upload(filePath, croppedBlob, {
-              cacheControl: '3600',
+              cacheControl: '604800',
               contentType: 'image/jpeg'
             });
             
