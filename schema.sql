@@ -751,3 +751,143 @@ REVOKE EXECUTE ON FUNCTION public.delete_own_account() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.delete_own_account() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_own_account() TO service_role;
 
+
+-- =========================================================================
+-- IN-APP NOTIFICATIONS SYSTEM
+-- =========================================================================
+
+-- Create Notifications Table
+CREATE TABLE public.notifications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  title text NOT NULL,
+  message text NOT NULL,
+  type text NOT NULL, -- 'grade_up', 'club_join', etc.
+  is_read boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+-- Enable RLS on Notifications
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+-- Notifications RLS Policies
+CREATE POLICY "Users can view their own notifications" ON public.notifications
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own notifications (mark as read)" ON public.notifications
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "System can insert notifications" ON public.notifications
+  FOR INSERT WITH CHECK (true);
+
+-- ELO to Grade Converter Helper for triggers
+CREATE OR REPLACE FUNCTION public.get_elo_grade(elo double precision)
+RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+BEGIN
+  IF elo IS NULL THEN RETURN 'F'; END IF;
+  IF elo >= 1600 THEN RETURN 'A+'; END IF;
+  IF elo >= 1500 THEN RETURN 'A'; END IF;
+  IF elo >= 1400 THEN RETURN 'A-'; END IF;
+  IF elo >= 1300 THEN RETURN 'B+'; END IF;
+  IF elo >= 1200 THEN RETURN 'B'; END IF;
+  IF elo >= 1100 THEN RETURN 'B-'; END IF;
+  IF elo >= 1000 THEN RETURN 'C+'; END IF;
+  IF elo >= 900 THEN RETURN 'C'; END IF;
+  IF elo >= 800 THEN RETURN 'C-'; END IF;
+  IF elo >= 700 THEN RETURN 'D'; END IF;
+  RETURN 'F';
+END;
+$$;
+
+-- Trigger to notify on grade promotion
+CREATE OR REPLACE FUNCTION public.on_profile_elo_update()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  old_grade text;
+  new_grade text;
+BEGIN
+  old_grade := public.get_elo_grade(OLD.elo);
+  new_grade := public.get_elo_grade(NEW.elo);
+  
+  IF old_grade <> new_grade THEN
+    DECLARE
+      old_rank int;
+      new_rank int;
+      grade_ranks text[] := ARRAY['F', 'D', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'];
+    BEGIN
+      old_rank := array_position(grade_ranks, old_grade);
+      new_rank := array_position(grade_ranks, new_grade);
+      
+      IF new_rank > old_rank THEN
+        INSERT INTO public.notifications (user_id, title, message, type)
+        VALUES (
+          NEW.id,
+          'Grade Promoted! 📈',
+          'Congratulations! You just climbed to a new grade: ' || new_grade || '! Keep it up!',
+          'grade_up'
+        );
+      END IF;
+    END;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER trigger_profile_elo_update
+  AFTER UPDATE OF elo ON public.profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.on_profile_elo_update();
+
+-- Trigger to notify on new club member joins
+CREATE OR REPLACE FUNCTION public.on_club_member_join()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  joining_user_name text;
+  joined_club_name text;
+  club_creator_id uuid;
+  member_record record;
+BEGIN
+  -- Get the joining user's name
+  SELECT COALESCE(first_name, 'A new climber') INTO joining_user_name
+  FROM public.profiles WHERE id = NEW.user_id;
+  
+  -- Get the club name and creator
+  SELECT name, created_by INTO joined_club_name, club_creator_id
+  FROM public.clubs WHERE id = NEW.club_id;
+  
+  -- 1. Notify the club creator (if they are not the joining user)
+  IF club_creator_id <> NEW.user_id THEN
+    INSERT INTO public.notifications (user_id, title, message, type)
+    VALUES (
+      club_creator_id,
+      'New Club Member! 👥',
+      joining_user_name || ' has joined your club ' || joined_club_name || '!',
+      'club_join'
+    );
+  END IF;
+  
+  -- 2. Notify all existing club members (except the joining user and creator)
+  FOR member_record IN 
+    SELECT user_id FROM public.club_members 
+    WHERE club_id = NEW.club_id AND user_id <> NEW.user_id AND user_id <> club_creator_id
+  LOOP
+    INSERT INTO public.notifications (user_id, title, message, type)
+    VALUES (
+      member_record.user_id,
+      'New Club Mate! 🤝',
+      joining_user_name || ' joined your club ' || joined_club_name || '!',
+      'club_join'
+    );
+  END LOOP;
+  
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER trigger_club_member_join
+  AFTER INSERT ON public.club_members
+  FOR EACH ROW
+  EXECUTE FUNCTION public.on_club_member_join();
+
+
