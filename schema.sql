@@ -132,6 +132,16 @@ BEGIN
     1200.0, 
     0
   );
+
+  -- Welcome notification
+  INSERT INTO public.notifications (user_id, title, message, type)
+  VALUES (
+    new.id,
+    'Welcome to Climb! 🧗',
+    'Step up, upload a photo, and make your way to the top. Happy climbing!',
+    'welcome'
+  );
+
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
