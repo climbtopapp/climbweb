@@ -79,6 +79,10 @@ async function handleAuthStateChange(user) {
   currentUser = user;
   if (!user) {
     currentProfile = null;
+    if (notificationsSubscription) {
+      supabaseClient.removeChannel(notificationsSubscription);
+      notificationsSubscription = null;
+    }
     showScreen('landing');
     return;
   }
@@ -133,6 +137,7 @@ async function fetchUserProfile() {
       }
 
       // Go to main Mash screen
+      initNotifications();
       showScreen('mash');
       loadNextMatchup();
     }
@@ -176,6 +181,95 @@ function showScreen(screenId) {
   }
 }
 
+let notificationsList = [];
+let notificationsSubscription = null;
+
+async function initNotifications() {
+  if (!currentUser) return;
+  await fetchNotifications();
+  if (notificationsSubscription) {
+    supabaseClient.removeChannel(notificationsSubscription);
+  }
+  notificationsSubscription = supabaseClient
+    .channel('public:notifications')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'notifications',
+      filter: `user_id=eq.${currentUser.id}`
+    }, (payload) => {
+      notificationsList.unshift(payload.new);
+      updateNotificationsUI();
+      showToast(`🔔 ${payload.new.title}: ${payload.new.message}`, 'info');
+    })
+    .subscribe();
+}
+
+async function fetchNotifications() {
+  if (!currentUser) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from('notifications')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    notificationsList = data || [];
+    updateNotificationsUI();
+  } catch (err) {
+    console.error('Error fetching notifications:', err);
+  }
+}
+
+function updateNotificationsUI() {
+  const badge = document.getElementById('notifications-badge');
+  const listContainer = document.getElementById('notifications-list');
+  if (!badge || !listContainer) return;
+  const unreadCount = notificationsList.filter(n => !n.is_read).length;
+  if (unreadCount > 0) {
+    badge.innerText = unreadCount;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+  if (notificationsList.length === 0) {
+    listContainer.innerHTML = '<div class="input-hint" style="text-align: center; padding: 20px 0;">No notifications yet!</div>';
+    return;
+  }
+  listContainer.innerHTML = notificationsList.map(n => {
+    const bgStyle = n.is_read ? 'var(--bg-secondary)' : 'var(--primary-light)';
+    const dateStr = new Date(n.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return `
+      <div class="card" style="padding: 12px; border: 2px solid var(--border-color); background-color: ${bgStyle}; text-align: left; display: flex; flex-direction: column; gap: 4px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+          <span style="font-family: var(--font-display); font-weight: bold; font-size: 0.9rem; color: var(--text-main);">${n.title}</span>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">${dateStr}</span>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-main); margin: 0; line-height: 1.4;">${n.message}</p>
+      </div>
+    `;
+  }).join('');
+}
+
+async function markAllNotificationsRead() {
+  if (!currentUser || notificationsList.length === 0) return;
+  try {
+    const unreadIds = notificationsList.filter(n => !n.is_read).map(n => n.id);
+    if (unreadIds.length === 0) return;
+    const { error } = await supabaseClient
+      .from('notifications')
+      .update({ is_read: true })
+      .in('id', unreadIds);
+    if (error) throw error;
+    notificationsList.forEach(n => {
+      if (unreadIds.includes(n.id)) n.is_read = true;
+    });
+    updateNotificationsUI();
+  } catch (err) {
+    console.error('Error marking notifications as read:', err);
+  }
+}
+
 // --- Event Listeners Setup ---
 function setupEventListeners() {
   // Landing Screen: Log In / Sign Up Button
@@ -209,6 +303,41 @@ function setupEventListeners() {
       document.getElementById('safety-modal').classList.add('hidden');
     }
   });
+
+  // Notifications Modal: Open button
+  const btnOpenNotif = document.getElementById('btn-open-notifications');
+  if (btnOpenNotif) {
+    btnOpenNotif.addEventListener('click', () => {
+      document.getElementById('notifications-modal').classList.remove('hidden');
+      fetchNotifications();
+    });
+  }
+
+  // Notifications Modal: Close button
+  const btnCloseNotif = document.getElementById('btn-close-notifications');
+  if (btnCloseNotif) {
+    btnCloseNotif.addEventListener('click', () => {
+      document.getElementById('notifications-modal').classList.add('hidden');
+    });
+  }
+
+  // Notifications Modal: Click outside
+  const notifModal = document.getElementById('notifications-modal');
+  if (notifModal) {
+    notifModal.addEventListener('click', (e) => {
+      if (e.target === notifModal) {
+        notifModal.classList.add('hidden');
+      }
+    });
+  }
+
+  // Notifications Modal: Mark all as read
+  const btnMarkRead = document.getElementById('btn-mark-all-read');
+  if (btnMarkRead) {
+    btnMarkRead.addEventListener('click', () => {
+      markAllNotificationsRead();
+    });
+  }
 
   // Mash Cards: Block & Report buttons
   document.getElementById('btn-block-left').addEventListener('click', (e) => {
@@ -622,7 +751,7 @@ function setupEventListeners() {
       
       const shareTitle = `Climb Profile: ${firstName}`;
       const shareText = `Check out ${firstName}'s profile on Climb! Current Grade: ${eloGrade} (Global Rank: #${globalRank}). Join Climb to step up and make your way to the top!`;
-      const shareUrl = window.location.origin + window.location.pathname;
+      const shareUrl = 'https://climb.side-eye.xyz';
 
       const fullMessage = `${shareText}\n${shareUrl}`;
 
@@ -1809,7 +1938,7 @@ window.removeClubMember = async function(userId) {
 
 function shareClubCode() {
   if (!currentClubInfo) return;
-  const shareText = `Join my Climb club: ${currentClubInfo.name}! Invite Code: ${currentClubInfo.code}`;
+  const shareText = `Join my Climb club: ${currentClubInfo.name}! Invite Code: ${currentClubInfo.code}\n\nJoin here: https://climb.side-eye.xyz`;
   
   if (navigator.share) {
     navigator.share({
