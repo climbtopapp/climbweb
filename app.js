@@ -274,7 +274,7 @@ function setupEventListeners() {
   document.getElementById('btn-welcome-create').addEventListener('click', () => {
     isSignUp = true;
     document.getElementById('label-email-title').innerText = 'Create Account Email';
-    document.getElementById('btn-send-otp').innerText = 'Send Sign Up Link';
+    document.getElementById('btn-send-otp').innerText = 'Send Sign Up Code';
     document.getElementById('auth-step-welcome').classList.add('hidden');
     document.getElementById('auth-step-email').classList.remove('hidden');
   });
@@ -283,7 +283,7 @@ function setupEventListeners() {
   document.getElementById('btn-welcome-signin').addEventListener('click', () => {
     isSignUp = false;
     document.getElementById('label-email-title').innerText = 'Email Address';
-    document.getElementById('btn-send-otp').innerText = 'Send Login Link';
+    document.getElementById('btn-send-otp').innerText = 'Send Login Code';
     document.getElementById('auth-step-welcome').classList.add('hidden');
     document.getElementById('auth-step-email').classList.remove('hidden');
   });
@@ -294,7 +294,7 @@ function setupEventListeners() {
     document.getElementById('auth-step-welcome').classList.remove('hidden');
   });
 
-  // Auth Form: Send Login Link (Magic Link)
+  // Auth Form: Send OTP Verification Code
   document.getElementById('form-email').addEventListener('submit', async (e) => {
     e.preventDefault();
     const emailInput = document.getElementById('input-email').value.trim();
@@ -303,27 +303,50 @@ function setupEventListeners() {
     setButtonLoading('btn-send-otp', true, 'Sending...');
 
     const { data, error } = await supabaseClient.auth.signInWithOtp({
-      email: emailInput,
-      options: {
-        // Set the redirect URL to current location (which will automatically be parsed by Supabase SDK)
-        emailRedirectTo: window.location.origin + window.location.pathname
-      }
+      email: emailInput
     });
 
-    setButtonLoading('btn-send-otp', false, isSignUp ? 'Send Sign Up Link' : 'Send Login Link');
+    setButtonLoading('btn-send-otp', false, isSignUp ? 'Send Sign Up Code' : 'Send Login Code');
 
     if (error) {
       showToast(error.message, 'error');
     } else {
-      showToast('Magic login link sent to your email!', 'success');
+      showToast('Verification code sent to your email!', 'success');
       document.getElementById('auth-step-email').classList.add('hidden');
-      document.getElementById('auth-step-success').classList.remove('hidden');
+      document.getElementById('auth-step-otp').classList.remove('hidden');
+      // Autofocus OTP input
+      document.getElementById('input-otp').focus();
     }
   });
 
-  // Auth: Change email back button
-  document.getElementById('btn-back-email').addEventListener('click', () => {
-    document.getElementById('auth-step-success').classList.add('hidden');
+  // Auth Form: Verify OTP Code
+  document.getElementById('form-otp').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById('input-email').value.trim();
+    const otpInput = document.getElementById('input-otp').value.trim();
+    if (!emailInput || !otpInput) return;
+
+    setButtonLoading('btn-verify-otp', true, 'Verifying...');
+
+    const { data, error } = await supabaseClient.auth.verifyOtp({
+      email: emailInput,
+      token: otpInput,
+      type: 'email'
+    });
+
+    setButtonLoading('btn-verify-otp', false, 'Verify Code');
+
+    if (error) {
+      showToast(error.message, 'error');
+    } else {
+      showToast('Successfully authenticated!', 'success');
+      // The onAuthStateChange listener will automatically route the user
+    }
+  });
+
+  // Auth: Go back from OTP screen
+  document.getElementById('btn-back-otp').addEventListener('click', () => {
+    document.getElementById('auth-step-otp').classList.add('hidden');
     document.getElementById('auth-step-email').classList.remove('hidden');
   });
 
