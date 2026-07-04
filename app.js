@@ -191,9 +191,11 @@ function setupEventListeners() {
     showScreen('landing');
   });
 
-  // Landing Screen: Safety Info popup trigger
-  document.getElementById('btn-safety-info').addEventListener('click', () => {
-    document.getElementById('safety-modal').classList.remove('hidden');
+  // Safety Info popup triggers (Landing + Mash screen)
+  document.querySelectorAll('.safety-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('safety-modal').classList.remove('hidden');
+    });
   });
 
   // Safety Modal: Close button
