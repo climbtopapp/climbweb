@@ -525,25 +525,53 @@ function setupEventListeners() {
   document.getElementById('input-first-name').addEventListener('input', () => checkRegistrationSubmittable());
   document.getElementById('select-state').addEventListener('change', () => checkRegistrationSubmittable());
 
-  // Gender Selection Boxes
+  // Gender Selection Boxes (auto-advance)
   document.querySelectorAll('.gender-vote-box').forEach(box => {
     box.addEventListener('click', () => {
       document.querySelectorAll('.gender-vote-box').forEach(b => b.classList.remove('selected'));
       box.classList.add('selected');
       document.getElementById('select-gender').value = box.dataset.value;
-      document.getElementById('btn-next-step-3').removeAttribute('disabled');
       checkRegistrationSubmittable();
+      
+      // Auto-advance to step 4
+      setTimeout(() => {
+        const currentStep = document.getElementById('reg-step-3');
+        if (currentStep && !currentStep.classList.contains('hidden')) {
+          currentStep.classList.remove('wizard-active');
+          currentStep.classList.add('hidden');
+          const nextStep = document.getElementById('reg-step-4');
+          if (nextStep) {
+            nextStep.classList.remove('hidden');
+            nextStep.classList.add('wizard-active');
+          }
+          applyOnboardingRotations();
+        }
+      }, 250);
     });
   });
 
-  // Vote Preference Selection Boxes
+  // Vote Preference Selection Boxes (auto-advance)
   document.querySelectorAll('.vote-pref-box').forEach(box => {
     box.addEventListener('click', () => {
       document.querySelectorAll('.vote-pref-box').forEach(b => b.classList.remove('selected'));
       box.classList.add('selected');
       document.getElementById('select-vote-pref').value = box.dataset.value;
-      document.getElementById('btn-next-step-4').removeAttribute('disabled');
       checkRegistrationSubmittable();
+      
+      // Auto-advance to step 5
+      setTimeout(() => {
+        const currentStep = document.getElementById('reg-step-4');
+        if (currentStep && !currentStep.classList.contains('hidden')) {
+          currentStep.classList.remove('wizard-active');
+          currentStep.classList.add('hidden');
+          const nextStep = document.getElementById('reg-step-5');
+          if (nextStep) {
+            nextStep.classList.remove('hidden');
+            nextStep.classList.add('wizard-active');
+          }
+          applyOnboardingRotations();
+        }
+      }, 250);
     });
   });
 
@@ -559,7 +587,7 @@ function setupEventListeners() {
 
     if (!selectedRegistrationFileBlob || !currentUser || !firstName || !gender || !votePref || !selectedState) return;
 
-    setButtonLoading('btn-submit-registration', true, 'Uploading details...');
+    setButtonLoading('btn-submit-register', true, 'Uploading details...');
 
     try {
       // 1. Upload avatar to storage bucket 'avatars' in the user's specific folder
@@ -625,7 +653,7 @@ function setupEventListeners() {
       console.error('Registration failed:', err);
       showToast(err.message || 'Failed to complete registration.', 'error');
     } finally {
-      setButtonLoading('btn-submit-registration', false, 'Start Climbing');
+      setButtonLoading('btn-submit-register', false, 'Start Climbing');
     }
   });
 
@@ -672,18 +700,7 @@ function setupEventListeners() {
     applyOnboardingRotations();
   });
 
-  document.getElementById('btn-next-step-3').addEventListener('click', () => {
-    const gender = document.getElementById('select-gender').value;
-    if (!gender) {
-      showToast('Please select your gender.', 'error');
-      return;
-    }
-    document.getElementById('reg-step-3').classList.remove('wizard-active');
-    document.getElementById('reg-step-3').classList.add('hidden');
-    document.getElementById('reg-step-4').classList.remove('hidden');
-    document.getElementById('reg-step-4').classList.add('wizard-active');
-    applyOnboardingRotations();
-  });
+  // Next Step 3 handler removed as gender cards auto-advance
 
   document.getElementById('btn-prev-step-4').addEventListener('click', () => {
     document.getElementById('reg-step-4').classList.remove('wizard-active');
@@ -693,18 +710,7 @@ function setupEventListeners() {
     applyOnboardingRotations();
   });
 
-  document.getElementById('btn-next-step-4').addEventListener('click', () => {
-    const votePref = document.getElementById('select-vote-pref').value;
-    if (!votePref) {
-      showToast('Please select who you want to vote on.', 'error');
-      return;
-    }
-    document.getElementById('reg-step-4').classList.remove('wizard-active');
-    document.getElementById('reg-step-4').classList.add('hidden');
-    document.getElementById('reg-step-5').classList.remove('hidden');
-    document.getElementById('reg-step-5').classList.add('wizard-active');
-    applyOnboardingRotations();
-  });
+  // Next Step 4 handler removed as preference cards auto-advance
 
   document.getElementById('btn-prev-step-5').addEventListener('click', () => {
     document.getElementById('reg-step-5').classList.remove('wizard-active');
@@ -1180,7 +1186,7 @@ function compressImage(file, targetSize, quality) {
 // --- Geolocation (removed — no longer used) ---
 
 function checkRegistrationSubmittable() {
-  const submitBtn = document.getElementById('btn-submit-registration');
+  const submitBtn = document.getElementById('btn-submit-register');
   const firstName = document.getElementById('input-first-name').value.trim();
   const gender = document.getElementById('select-gender').value;
   const votePref = document.getElementById('select-vote-pref').value;
