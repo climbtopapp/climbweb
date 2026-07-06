@@ -265,6 +265,16 @@ function setupEventListeners() {
     landing.scrollTo({ top: landing.clientHeight, behavior: 'smooth' });
   });
 
+  // Landing Screen: Parallax scroll listener
+  const landingScreen = document.getElementById('screen-landing');
+  const parallaxBg = document.querySelector('.parallax-bg');
+  if (landingScreen && parallaxBg) {
+    landingScreen.addEventListener('scroll', () => {
+      const scrollTop = landingScreen.scrollTop;
+      parallaxBg.style.transform = `translateY(${scrollTop * 0.3}px)`;
+    });
+  }
+
   // Landing Screen: Download iOS placeholder button
   document.getElementById('btn-landing-download').addEventListener('click', () => {
     showToast('iOS App download is coming soon to the App Store!', 'info');
