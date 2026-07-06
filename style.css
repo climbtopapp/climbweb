@@ -1498,5 +1498,44 @@ input[type="range"]::-webkit-slider-thumb:hover {
   max-width: 240px;
 }
 
+/* Random rotation tilts for iOS vs Web selectors on landing bottom section */
+#btn-landing-download {
+  transform: rotate(-1.5deg);
+}
+
+#btn-landing-play-web {
+  transform: rotate(2deg);
+}
+
+#btn-landing-download:hover,
+#btn-landing-play-web:hover {
+  transform: scale(1.05) rotate(0deg);
+}
+
+#btn-landing-download:active,
+#btn-landing-play-web:active {
+  transform: scale(0.98) rotate(0deg);
+}
+
+/* Random rotation tilts for Auth Method Selection cards */
+#btn-auth-apple {
+  transform: rotate(-1.8deg);
+}
+
+#btn-auth-email {
+  transform: rotate(1.5deg);
+}
+
+#btn-auth-apple:hover,
+#btn-auth-email:hover {
+  transform: scale(1.05) rotate(0deg);
+}
+
+#btn-auth-apple:active,
+#btn-auth-email:active {
+  transform: scale(0.98) rotate(0deg);
+}
+
+
 
 
