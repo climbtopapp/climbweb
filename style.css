@@ -1414,6 +1414,9 @@ input[type="range"]::-webkit-slider-thumb:hover {
   scroll-snap-type: y mandatory;
   overflow-y: scroll;
   height: 100%;
+}
+
+#screen-landing.screen.active {
   display: block; /* Overrides screen's flexbox */
 }
 
