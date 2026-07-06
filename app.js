@@ -200,7 +200,7 @@ async function initNotifications() {
     }, (payload) => {
       notificationsList.unshift(payload.new);
       updateNotificationsUI();
-      showToast(`🔔 ${payload.new.title}: ${payload.new.message}`, 'info');
+      showToast(`${stripEmojis(payload.new.title)}: ${stripEmojis(payload.new.message)}`, 'info');
     })
     .subscribe();
 }
@@ -219,6 +219,11 @@ async function fetchNotifications() {
   } catch (err) {
     console.error('Error fetching notifications:', err);
   }
+}
+
+function stripEmojis(str) {
+  if (!str) return '';
+  return str.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF]/g, '').trim();
 }
 
 function updateNotificationsUI() {
@@ -245,13 +250,15 @@ function updateNotificationsUI() {
     const isNew = new Date(n.created_at).getTime() > lastOpened;
     const bgStyle = isNew ? 'var(--primary-light)' : 'var(--bg-secondary)';
     const dateStr = new Date(n.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const cleanTitle = stripEmojis(n.title);
+    const cleanMessage = stripEmojis(n.message);
     return `
       <div class="card" style="padding: 12px; border: 2px solid var(--border-color); background-color: ${bgStyle}; text-align: left; display: flex; flex-direction: column; gap: 4px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-          <span style="font-family: var(--font-display); font-weight: bold; font-size: 0.9rem; color: var(--text-main);">${n.title}</span>
+          <span style="font-family: var(--font-display); font-weight: bold; font-size: 0.9rem; color: var(--text-main);">${cleanTitle}</span>
           <span style="font-size: 0.7rem; color: var(--text-muted);">${dateStr}</span>
         </div>
-        <p style="font-size: 0.8rem; color: var(--text-main); margin: 0; line-height: 1.4;">${n.message}</p>
+        <p style="font-size: 0.8rem; color: var(--text-main); margin: 0; line-height: 1.4;">${cleanMessage}</p>
       </div>
     `;
   }).join('');
