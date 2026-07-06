@@ -259,9 +259,21 @@ function updateNotificationsUI() {
 
 // --- Event Listeners Setup ---
 function setupEventListeners() {
-  // Landing Screen: Log In / Sign Up Button
-  document.getElementById('btn-landing-auth').addEventListener('click', () => {
+  // Landing Screen: Scroll down indicator
+  document.getElementById('btn-scroll-down').addEventListener('click', () => {
+    const landing = document.getElementById('screen-landing');
+    landing.scrollTo({ top: landing.clientHeight, behavior: 'smooth' });
+  });
+
+  // Landing Screen: Download iOS placeholder button
+  document.getElementById('btn-landing-download').addEventListener('click', () => {
+    showToast('iOS App download is coming soon to the App Store!', 'info');
+  });
+
+  // Landing Screen: Play on Web Button
+  document.getElementById('btn-landing-play-web').addEventListener('click', () => {
     document.getElementById('auth-step-welcome').classList.remove('hidden');
+    document.getElementById('auth-step-method').classList.add('hidden');
     document.getElementById('auth-step-email').classList.add('hidden');
     document.getElementById('auth-step-otp').classList.add('hidden');
     showScreen('auth');
@@ -385,25 +397,48 @@ function setupEventListeners() {
   // Welcome Screen: Create Account Button
   document.getElementById('btn-welcome-create').addEventListener('click', () => {
     isSignUp = true;
+    document.getElementById('auth-method-title').innerText = 'Sign Up Method';
+    document.getElementById('label-auth-apple').innerText = 'Sign Up with Apple';
+    document.getElementById('label-auth-email').innerText = 'Sign Up with Email';
     document.getElementById('label-email-title').innerText = 'Create Account Email';
     document.getElementById('btn-send-otp').innerText = 'Send Sign Up Code';
     document.getElementById('auth-step-welcome').classList.add('hidden');
-    document.getElementById('auth-step-email').classList.remove('hidden');
+    document.getElementById('auth-step-method').classList.remove('hidden');
   });
 
   // Welcome Screen: Sign In Button
   document.getElementById('btn-welcome-signin').addEventListener('click', () => {
     isSignUp = false;
+    document.getElementById('auth-method-title').innerText = 'Log In Method';
+    document.getElementById('label-auth-apple').innerText = 'Log In with Apple';
+    document.getElementById('label-auth-email').innerText = 'Log In with Email';
     document.getElementById('label-email-title').innerText = 'Email Address';
     document.getElementById('btn-send-otp').innerText = 'Send Login Code';
     document.getElementById('auth-step-welcome').classList.add('hidden');
+    document.getElementById('auth-step-method').classList.remove('hidden');
+  });
+
+  // Auth Method Selection: Apple Authentication placeholder
+  document.getElementById('btn-auth-apple').addEventListener('click', () => {
+    showToast('Sign in with Apple is coming soon!', 'info');
+  });
+
+  // Auth Method Selection: Email Authentication redirect
+  document.getElementById('btn-auth-email').addEventListener('click', () => {
+    document.getElementById('auth-step-method').classList.add('hidden');
     document.getElementById('auth-step-email').classList.remove('hidden');
   });
 
-  // Welcome Screen: Go Back from email
-  document.getElementById('btn-back-welcome').addEventListener('click', () => {
-    document.getElementById('auth-step-email').classList.add('hidden');
+  // Auth Method Selection: Go Back
+  document.getElementById('btn-method-back-welcome').addEventListener('click', () => {
+    document.getElementById('auth-step-method').classList.add('hidden');
     document.getElementById('auth-step-welcome').classList.remove('hidden');
+  });
+
+  // Email Step: Go Back
+  document.getElementById('btn-email-back-method').addEventListener('click', () => {
+    document.getElementById('auth-step-email').classList.add('hidden');
+    document.getElementById('auth-step-method').classList.remove('hidden');
   });
 
   // Auth Form: Send OTP Verification Code
