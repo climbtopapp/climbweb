@@ -1454,7 +1454,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transition: transform 0.05s linear; /* Smooth scrolling transition */
 }
 
-.landing-section-top > * {
+.landing-section-top > *:not(.parallax-bg) {
   position: relative;
   z-index: 2;
 }
