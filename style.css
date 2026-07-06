@@ -1407,4 +1407,93 @@ input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: none;
 }
 
+/* Homepage Redesign with Snap Scrolling */
+#screen-landing.screen {
+  padding: 0 !important;
+  padding-bottom: 0 !important;
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100%;
+  display: block; /* Overrides screen's flexbox */
+}
+
+.landing-section {
+  scroll-snap-align: start;
+  height: 100%;
+  min-height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+}
+
+.landing-section-top {
+  background-image: url('climb home scene.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  text-align: center;
+}
+
+.landing-top-header {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: rgba(235, 241, 250, 0.95); /* High opacity backdrop for clear readability */
+  padding: 20px 24px;
+  border: 3px solid var(--border-color);
+  width: calc(100% - 10px);
+  max-width: 320px;
+}
+
+.landing-top-header h1.brand-title {
+  margin: 0;
+  font-size: 3.8rem;
+}
+
+.landing-top-header .favicon-container svg {
+  border: 2px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.scroll-indicator-box {
+  background: var(--bg-secondary);
+  border: 3px solid var(--border-color);
+  padding: 10px 20px;
+  margin-bottom: 30px;
+  animation: bounceUpDown 1.5s infinite ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.scroll-indicator-box span {
+  font-family: var(--font-display);
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+@keyframes bounceUpDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.landing-section-bottom {
+  background-color: var(--bg-primary);
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Adjust auth page button overrides for intermediate auth methods selection */
+#screen-auth .mash-card.method-card {
+  max-width: 240px;
+}
+
+
 
