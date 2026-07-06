@@ -27,48 +27,60 @@
 
     <!-- Screen: Landing Page (The initial page users see) -->
     <section id="screen-landing" class="screen">
-      <div class="card auth-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 80vh; position: relative;">
-        <!-- Safety Info Button in top left, nested inside the card to prevent outer overlap -->
-        <button id="btn-safety-info" class="safety-btn">?</button>
+      <!-- Safety Info Button in top left -->
+      <button id="btn-safety-info" class="safety-btn">?</button>
 
-        <div>
-          <h1 class="brand-title" style="margin-top: 10px;">Climb</h1>
-          <p class="brand-subtitle">Step up and make your way to the top.</p>
-
-          <!-- Middle graphics/vibe: Big Favicon Brand Logo -->
-          <div style="display: flex; justify-content: center; align-items: center; padding: 25px 0;">
-            <svg class="retro-icon" viewBox="0 0 16 16" width="160" height="160" style="image-rendering: pixelated; border: 4px solid var(--border-color); box-shadow: var(--shadow-md); border-radius: var(--radius-sm);">
+      <!-- Top Section -->
+      <div class="landing-section landing-section-top">
+        <div class="landing-top-header">
+          <div class="favicon-container">
+            <svg class="retro-icon" viewBox="0 0 16 16" width="64" height="64" style="image-rendering: pixelated; display: block;">
               <rect width="16" height="16" fill="#bbdefb"/>
               <path d="M7 4h2v2H7zm-1 2h4v2H6zm-1 2h6v2H5zm-1 2h8v2H4zm-1 2h10v2H3z" fill="#ffffff"/>
             </svg>
           </div>
+          <h1 class="brand-title">Climb</h1>
+          <p class="brand-subtitle" style="margin-bottom: 0;">Step up and make your way to the top.</p>
         </div>
 
-        <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px; width: 100%;">
-          <!-- Download on iOS button -->
-          <button class="btn btn-secondary btn-block" style="display: flex; align-items: center; justify-content: center; gap: 10px; cursor: default;">
-            <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
-              <rect x="9" y="1" width="2" height="1" />
-              <rect x="8" y="2" width="2" height="1" />
-              <rect x="5" y="4" width="6" height="1" />
-              <rect x="4" y="5" width="8" height="1" />
-              <rect x="3" y="6" width="10" height="1" />
-              <rect x="3" y="7" width="10" height="1" />
-              <rect x="3" y="8" width="9" height="1" />
-              <rect x="3" y="9" width="8" height="1" />
-              <rect x="3" y="10" width="9" height="1" />
-              <rect x="3" y="11" width="10" height="1" />
-              <rect x="3" y="12" width="10" height="1" />
-              <rect x="4" y="13" width="8" height="1" />
-              <rect x="5" y="14" width="2" height="1" />
-              <rect x="9" y="14" width="2" height="1" />
-            </svg>
-            <span>Download on iOS</span>
+        <div class="scroll-indicator-box" id="btn-scroll-down">
+          <span>Scroll Down</span>
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+            <path d="M8 12l-4-4h8z"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Bottom Section -->
+      <div class="landing-section landing-section-bottom">
+        <h2 style="font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; text-transform: uppercase; margin-bottom: 10px; text-align: center;">Choose Your Path</h2>
+        <div class="mash-arena" style="width: 100%; max-width: 280px; flex: none;">
+          <!-- Card 1: Download for iOS -->
+          <button type="button" class="mash-card" id="btn-landing-download" style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
+            <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center; color: var(--text-main); aspect-ratio: 1.6 / 1;">
+              <!-- Apple Blocky Icon -->
+              <svg class="retro-icon" viewBox="0 0 16 16" width="48" height="48" fill="currentColor">
+                <path d="M9 1h2v1H9zm-1 1h2v1H8zm-3 2h6v1H5zm-1 1h8v1H4zm-1 1h10v1H3zm0 1h10v1H3zm0 1h9v1H3zm0 1h8v1H3zm0 1h9v1H3zm0 1h10v1H3zm0 1h10v1H3zm1 1h8v1H4zm1 1h2v1H5zm4 0h2v1H9z" />
+              </svg>
+            </div>
+            <div class="mash-card-info">
+              <span class="profile-elo-tag" style="font-size: 0.95rem; padding: 4px 12px; width: 100%; text-align: center;">Download iOS</span>
+            </div>
           </button>
 
-          <!-- Log In / Sign Up button -->
-          <button id="btn-landing-auth" class="btn btn-primary btn-block">
-            Log In / Sign Up
+          <div class="mash-vs">or</div>
+
+          <!-- Card 2: Play on Web -->
+          <button type="button" class="mash-card" id="btn-landing-play-web" style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
+            <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center; color: var(--accent-color); aspect-ratio: 1.6 / 1;">
+              <!-- Web Blocky Screen Icon -->
+              <svg class="retro-icon" viewBox="0 0 16 16" width="48" height="48" fill="currentColor">
+                <path d="M1 2h14v9H1zm0 10h14v2H1zm5 2h4v1H6z" />
+              </svg>
+            </div>
+            <div class="mash-card-info">
+              <span class="profile-elo-tag" style="font-size: 0.95rem; padding: 4px 12px; width: 100%; text-align: center;">Play on Web</span>
+            </div>
           </button>
         </div>
       </div>
@@ -80,7 +92,7 @@
         <h1 class="brand-title">Climb</h1>
         <p class="brand-subtitle">Step up and make your way to the top.</p>
 
-        <!-- Step 0: Welcome Screen -->
+        <!-- Step 0: Welcome Screen (Log In / Sign Up Selector) -->
         <div id="auth-step-welcome">
           <div class="mash-arena">
             <button type="button" class="mash-card" id="btn-welcome-create" style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
@@ -105,9 +117,42 @@
               </div>
             </button>
           </div>
-          <button type="button" class="btn btn-text btn-block" id="btn-welcome-back-landing" style="margin-top: 15px;">
-            Go Back
-          </button>
+          <button type="button" class="btn btn-text btn-block" id="btn-welcome-back-landing" style="margin-top: 15px;">Go Back</button>
+        </div>
+
+        <!-- Step 0.5: Auth Method Selection (Apple vs Email) -->
+        <div id="auth-step-method" class="hidden">
+          <h2 id="auth-method-title" style="font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 15px; text-align: center;">Select Method</h2>
+          <div class="mash-arena">
+            <!-- Card 1: Apple Auth -->
+            <button type="button" class="mash-card method-card" id="btn-auth-apple" style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
+              <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center; color: var(--text-main); aspect-ratio: 1.6 / 1;">
+                <!-- Apple Icon -->
+                <svg class="retro-icon" viewBox="0 0 16 16" width="40" height="40" fill="currentColor">
+                  <path d="M9 1h2v1H9zm-1 1h2v1H8zm-3 2h6v1H5zm-1 1h8v1H4zm-1 1h10v1H3zm0 1h10v1H3zm0 1h9v1H3zm0 1h8v1H3zm0 1h9v1H3zm0 1h10v1H3zm0 1h10v1H3zm1 1h8v1H4zm1 1h2v1H5zm4 0h2v1H9z" />
+                </svg>
+              </div>
+              <div class="mash-card-info">
+                <span class="profile-elo-tag" id="label-auth-apple" style="font-size: 0.9rem; padding: 4px 12px; width: 100%; text-align: center;">Continue with Apple</span>
+              </div>
+            </button>
+
+            <div class="mash-vs">or</div>
+
+            <!-- Card 2: Email Auth -->
+            <button type="button" class="mash-card method-card" id="btn-auth-email" style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
+              <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center; color: var(--accent-color); aspect-ratio: 1.6 / 1;">
+                <!-- Mail Icon -->
+                <svg class="retro-icon" viewBox="0 0 16 16" width="40" height="40" fill="currentColor">
+                  <path d="M1 2h14v2L8 8 1 4zm0 3l7 4 7-4v9H1z" />
+                </svg>
+              </div>
+              <div class="mash-card-info">
+                <span class="profile-elo-tag" id="label-auth-email" style="font-size: 0.9rem; padding: 4px 12px; width: 100%; text-align: center;">Continue with Email</span>
+              </div>
+            </button>
+          </div>
+          <button type="button" class="btn btn-text btn-block" id="btn-method-back-welcome" style="margin-top: 15px;">Go Back</button>
         </div>
 
         <!-- Step 1: Email Entry -->
@@ -121,7 +166,7 @@
             <button type="submit" class="btn btn-primary btn-block" id="btn-send-otp">
               Send Code
             </button>
-            <button type="button" class="btn btn-text btn-block" id="btn-back-welcome" style="margin-top: 10px;">
+            <button type="button" class="btn btn-text btn-block" id="btn-email-back-method" style="margin-top: 10px;">
               Go Back
             </button>
           </form>
