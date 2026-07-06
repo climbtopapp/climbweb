@@ -52,13 +52,13 @@
           <h2 style="font-family: var(--font-display); font-weight: 800; font-size: 1rem; text-transform: uppercase; margin-bottom: 10px; text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 6px; letter-spacing: 0.05em;">The World's Leaderboard</h2>
           <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-family: var(--font-display); font-size: 0.85rem; font-weight: bold; color: var(--text-main);">
             <li style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 1.1rem; line-height: 1;">👥</span> Clubs: Climb with Friends
+              <span style="font-size: 0.7rem; color: var(--accent-color); line-height: 1;">■</span> Clubs: Climb with Friends
             </li>
             <li style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 1.1rem; line-height: 1;">📸</span> Modeling & Casting Invites
+              <span style="font-size: 0.7rem; color: var(--accent-color); line-height: 1;">■</span> Modeling & Casting Invites
             </li>
             <li style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 1.1rem; line-height: 1;">🏆</span> Rise up the Global Grades
+              <span style="font-size: 0.7rem; color: var(--accent-color); line-height: 1;">■</span> Rise up the Global Grades
             </li>
           </ul>
         </div>
@@ -249,8 +249,7 @@
 
           <!-- Step 1: Name -->
           <div id="reg-step-1" class="wizard-step wizard-active">
-            <h2 class="section-title" style="text-align: center;">What's your name?</h2>
-            <p class="section-desc" style="text-align: center;">This is how others will see you on Climb.</p>
+            <h2 class="section-title" style="text-align: center;">What is your name?</h2>
             <div class="input-group">
               <label for="input-first-name">First Name</label>
               <input type="text" id="input-first-name" placeholder="Your first name" required>
@@ -278,7 +277,7 @@
             </div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
               <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-prev-step-2">Back</button>
-              <button type="button" class="btn btn-primary" style="flex: 2;" id="btn-next-step-2">Next</button>
+              <button type="button" class="btn btn-primary" style="flex: 1;" id="btn-next-step-2">Next</button>
             </div>
           </div>
 
@@ -302,7 +301,7 @@
                   </svg>
                 </div>
                 <div class="mash-card-info">
-                  <span class="profile-elo-tag" style="font-size: 1rem; padding: 4px 12px;">Boy</span>
+                  <span class="profile-elo-tag" style="font-size: 1rem; padding: 4px 12px; width: 100%; text-align: center;">Boy</span>
                 </div>
               </button>
               <div class="mash-vs">or</div>
@@ -318,19 +317,16 @@
                   </svg>
                 </div>
                 <div class="mash-card-info">
-                  <span class="profile-elo-tag" style="font-size: 1rem; padding: 4px 12px;">Girl</span>
+                  <span class="profile-elo-tag" style="font-size: 1rem; padding: 4px 12px; width: 100%; text-align: center;">Girl</span>
                 </div>
               </button>
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 24px;">
-              <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-prev-step-3">Back</button>
-              <button type="button" class="btn btn-primary" style="flex: 2;" id="btn-next-step-3" disabled>Next</button>
-            </div>
+            <button type="button" class="btn btn-secondary btn-block" style="margin-top: 15px;" id="btn-prev-step-3">Back</button>
           </div>
 
-          <!-- Step 4: Vote Preference -->
+          <!-- Step 4: Voting Preference Selection -->
           <div id="reg-step-4" class="wizard-step hidden">
-            <h2 class="section-title" style="text-align: center;">Do you want to vote on:</h2>
+            <h2 class="section-title" style="text-align: center;">Who do you want to vote on?</h2>
             <p class="section-desc" style="text-align: center;">You can change this later in Settings.</p>
             <input type="hidden" id="select-vote-pref" value="">
             <div class="mash-arena">
@@ -347,7 +343,7 @@
                   </svg>
                 </div>
                 <div class="mash-card-info">
-                  <span class="profile-elo-tag" style="font-size: 1rem; padding: 4px 12px;">Boys</span>
+                  <span class="profile-elo-tag" style="font-size: 1rem; padding: 4px 12px; width: 100%; text-align: center;">Boys</span>
                 </div>
               </button>
               <div class="mash-vs">or</div>
@@ -363,14 +359,11 @@
                   </svg>
                 </div>
                 <div class="mash-card-info">
-                  <span class="profile-elo-tag" style="font-size: 1rem; padding: 4px 12px;">Girls</span>
+                  <span class="profile-elo-tag" style="font-size: 1rem; padding: 4px 12px; width: 100%; text-align: center;">Girls</span>
                 </div>
               </button>
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 24px;">
-              <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-prev-step-4">Back</button>
-              <button type="button" class="btn btn-primary" style="flex: 2;" id="btn-next-step-4" disabled>Next</button>
-            </div>
+            <button type="button" class="btn btn-secondary btn-block" style="margin-top: 15px;" id="btn-prev-step-4">Back</button>
           </div>
 
           <!-- Step 5: Photo Upload + Submit -->
@@ -381,14 +374,8 @@
             <div class="image-upload-container" style="text-align: center;">
               <div class="avatar-preview-wrapper"
                 style="margin: 0 auto 15px; width: 150px; height: 150px; border-radius: var(--radius-md); overflow: hidden; border: 2px dashed var(--border-color); display: flex; justify-content: center; align-items: center; position: relative; background-color: var(--bg-secondary);">
-                <img id="avatar-preview-img" src="" alt="Avatar Preview" class="hidden"
-                  style="width: 100%; height: 100%; object-fit: cover;">
-                <div id="avatar-preview-placeholder" style="color: var(--primary-color);">
-                  <svg class="retro-icon" viewBox="0 0 16 16" width="36" height="36" fill="currentColor">
-                    <path
-                      d="M4 3h2v1h4V3h2v2h3v10H1V5h3zm1 4v6h6V7H5zm2 1.5A1.5 1.5 0 1 1 8.5 10 1.5 1.5 0 0 1 7 8.5z" />
-                  </svg>
-                </div>
+                <div id="upload-avatar-placeholder" style="color: var(--text-muted); font-size: 0.9rem;">No Photo Selected</div>
+                <img id="upload-avatar-preview" class="hidden" style="width: 100%; height: 100%; object-fit: cover;">
               </div>
               <input type="file" id="input-avatar" accept="image/*" class="hidden">
               <label for="input-avatar" class="btn btn-secondary btn-sm"
@@ -399,8 +386,7 @@
             </div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
               <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-prev-step-5">Back</button>
-              <button type="submit" class="btn btn-primary" style="flex: 2;" id="btn-submit-registration" disabled>Start
-                Climbing</button>
+              <button type="submit" class="btn btn-primary" style="flex: 1;" id="btn-submit-register">Submit</button>
             </div>
           </div>
 
@@ -413,8 +399,10 @@
       <!-- Safety Info Button in top left -->
       <button class="safety-btn">?</button>
       <!-- Notifications Button in top right -->
-      <button id="btn-open-notifications" class="safety-btn" style="left: auto; right: 16px;">
-        <span style="font-size: 1.1rem; line-height: 1;">🔔</span>
+      <button id="btn-open-notifications" class="safety-btn" style="left: auto; right: 16px; display: flex; align-items: center; justify-content: center;">
+        <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+          <path d="M8 1a3 3 0 0 0-3 3v4l-2 2v1h10v-1l-2-2V4a3 3 0 0 0-3-3z M6 13a2 2 0 0 0 4 0H6z" />
+        </svg>
         <span id="notifications-badge" class="badge hidden"
           style="position: absolute; top: -6px; right: -6px; background-color: var(--error-color); color: white; border: 2px solid var(--border-color); font-size: 0.65rem; padding: 1px 4px; font-family: var(--font-display); font-weight: bold; border-radius: 0;">0</span>
       </button>
