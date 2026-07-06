@@ -1433,11 +1433,30 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .landing-section-top {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+.parallax-bg {
+  position: absolute;
+  top: -10%;
+  left: 0;
+  width: 100%;
+  height: 120%;
   background-image: url('climb home scene.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  text-align: center;
+  z-index: 1;
+  pointer-events: none;
+  transform: translateY(0);
+  transition: transform 0.05s linear; /* Smooth scrolling transition */
+}
+
+.landing-section-top > * {
+  position: relative;
+  z-index: 2;
 }
 
 .landing-top-header {
