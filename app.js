@@ -2048,7 +2048,14 @@ const CITIES = [
   { name: "Anchorage, AK", lat: 61.2181, lng: -149.9003 },
   { name: "Sacramento, CA", lat: 38.5816, lng: -121.4944 },
   { name: "Cincinnati, OH", lat: 39.1031, lng: -84.5120 },
-  { name: "St. John's, NL", lat: 47.5615, lng: -52.7126 }
+  { name: "St. John's, NL", lat: 47.5615, lng: -52.7126 },
+  { name: "Fort Worth, TX", lat: 32.7555, lng: -97.3308 },
+  { name: "Oakland, CA", lat: 37.8044, lng: -122.2712 },
+  { name: "Fort Lauderdale, FL", lat: 26.1224, lng: -80.1373 },
+  { name: "Raleigh, NC", lat: 35.7796, lng: -78.6382 },
+  { name: "St. Paul, MN", lat: 44.9537, lng: -93.0899 },
+  { name: "Tucson, AZ", lat: 32.2226, lng: -110.9747 },
+  { name: "Richmond, VA", lat: 37.5407, lng: -77.4360 }
 ];
 
 // --- Searchable Combobox logic ---
