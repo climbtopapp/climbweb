@@ -157,53 +157,6 @@
             style="margin-top: 15px;">Go Back</button>
         </div>
 
-        <!-- Step 0.5: Auth Method Selection (Apple vs Email) -->
-        <div id="auth-step-method" class="hidden">
-          <h2 id="auth-method-title"
-            style="font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 15px; text-align: center;">
-            Select Method</h2>
-          <div class="mash-arena">
-            <!-- Card 1: Apple Auth -->
-            <button type="button" class="mash-card method-card" id="btn-auth-apple"
-              style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
-              <div class="image-wrapper"
-                style="display: flex; align-items: center; justify-content: center; color: var(--text-main); aspect-ratio: 1.6 / 1;">
-                <!-- Apple Icon -->
-                <svg class="retro-icon" viewBox="0 0 16 16" width="40" height="40" fill="currentColor">
-                  <path
-                    d="M9 1h2v1H9zm-1 1h2v1H8zm-3 2h6v1H5zm-1 1h8v1H4zm-1 1h10v1H3zm0 1h10v1H3zm0 1h9v1H3zm0 1h8v1H3zm0 1h9v1H3zm0 1h10v1H3zm0 1h10v1H3zm1 1h8v1H4zm1 1h2v1H5zm4 0h2v1H9z" />
-                </svg>
-              </div>
-              <div class="mash-card-info">
-                <span class="profile-elo-tag" id="label-auth-apple"
-                  style="font-size: 0.9rem; padding: 4px 12px; width: 100%; text-align: center;">Continue with
-                  Apple</span>
-              </div>
-            </button>
-
-            <div class="mash-vs">or</div>
-
-            <!-- Card 2: Email Auth -->
-            <button type="button" class="mash-card method-card" id="btn-auth-email"
-              style="background: var(--bg-secondary); padding: 0; text-align: inherit; width: 100%;">
-              <div class="image-wrapper"
-                style="display: flex; align-items: center; justify-content: center; color: var(--accent-color); aspect-ratio: 1.6 / 1;">
-                <!-- Mail Icon -->
-                <svg class="retro-icon" viewBox="0 0 16 16" width="40" height="40" fill="currentColor">
-                  <path d="M1 2h14v2L8 8 1 4zm0 3l7 4 7-4v9H1z" />
-                </svg>
-              </div>
-              <div class="mash-card-info">
-                <span class="profile-elo-tag" id="label-auth-email"
-                  style="font-size: 0.9rem; padding: 4px 12px; width: 100%; text-align: center;">Continue with
-                  Email</span>
-              </div>
-            </button>
-          </div>
-          <button type="button" class="btn btn-text btn-block" id="btn-method-back-welcome" style="margin-top: 15px;">Go
-            Back</button>
-        </div>
-
         <!-- Step 1: Email Entry -->
         <div id="auth-step-email" class="hidden">
           <form id="form-email">
@@ -215,7 +168,7 @@
             <button type="submit" class="btn btn-primary btn-block" id="btn-send-otp">
               Send Code
             </button>
-            <button type="button" class="btn btn-text btn-block" id="btn-email-back-method" style="margin-top: 10px;">
+            <button type="button" class="btn btn-text btn-block" id="btn-email-back-welcome" style="margin-top: 10px;">
               Go Back
             </button>
           </form>
@@ -599,45 +552,18 @@
     <section id="screen-challenges" class="screen">
       <header class="app-header">
         <h1 class="brand-title-sm">Challenges</h1>
-        <p class="header-desc">Exclusive opportunities for top climbers</p>
       </header>
 
-      <div class="challenges-coming-soon">
-        <div class="challenges-icon" style="color: var(--primary-color);">
-          <svg class="retro-icon" viewBox="0 0 16 16" width="48" height="48" fill="currentColor">
-            <path d="M1 2h14v12H1zm2 2v2h2V4zm4 0v2h2V4zm4 0v2h2V4zM3 8v4h10V8H3z" />
+      <div class="challenges-coming-soon" style="padding: 40px 20px; text-align: center;">
+        <div class="challenges-icon" style="color: var(--primary-color); margin-bottom: 20px;">
+          <svg class="retro-icon" viewBox="0 0 16 16" width="64" height="64" fill="currentColor">
+            <path d="M7 1h2v2H7zm3 2h2v2h-2zm2 3h2v2h-2zm0 4h-2v2h2zm-3 3H7v2h2zm-5-3H2v-2h2zm0-5H2v-2h2zm3 0h2v4H7z" />
           </svg>
         </div>
-        <h2 class="challenges-title">Coming Soon</h2>
-        <p class="challenges-desc">The top 99 climbers in each region will be eligible for exclusive casting calls and
-          modeling opportunities in their area.</p>
-        <div class="challenges-features">
-          <div class="challenge-feature">
-            <span class="feature-icon" style="color: var(--primary-color);">
-              <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
-                <path d="M4 3h2v1h4V3h2v2h3v10H1V5h3zm1 4v6h6V7H5zm2 1.5A1.5 1.5 0 1 1 8.5 10 1.5 1.5 0 0 1 7 8.5z" />
-              </svg>
-            </span>
-            <span class="feature-text">Modeling Opportunities</span>
-          </div>
-          <div class="challenge-feature">
-            <span class="feature-icon" style="color: var(--primary-color);">
-              <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
-                <path d="M1 3h9v10H1zm11 2l3-3v12l-3-3V5z" />
-              </svg>
-            </span>
-            <span class="feature-text">Casting Calls</span>
-          </div>
-          <div class="challenge-feature">
-            <span class="feature-icon" style="color: var(--primary-color);">
-              <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
-                <path d="M6 1h4v2H6zm-2 2h8v2H4zm-1 2h10v2H3zm0 2h10v2H3zm1 2h8v2H4zm2 2h4v2H6zm1 2h2v1H7z" />
-              </svg>
-            </span>
-            <span class="feature-text">Region-Based Matching</span>
-          </div>
-        </div>
-        <p class="challenges-footer">Keep climbing to secure your spot in the top 99!</p>
+        <h2 class="challenges-title" style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 15px;">iOS App Exclusive</h2>
+        <p class="challenges-desc" style="font-size: 1rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 25px;">
+          Challenges are only available on the Climb iOS app. Download the app to unlock regional matches, exclusive modeling casting calls, and local opportunities.
+        </p>
       </div>
     </section>
 
@@ -645,87 +571,18 @@
     <section id="screen-clubs" class="screen">
       <header class="app-header">
         <h1 class="brand-title-sm">Clubs</h1>
-        <p class="header-desc">Climb with your friends, school, or work.</p>
       </header>
 
-      <!-- No Club View -->
-      <div id="view-no-club" style="display: none; flex-direction: column; gap: 20px; padding: 20px;">
-
-        <div class="card" style="padding: 24px; text-align: center;">
-          <h3 style="margin-bottom: 15px; font-family: var(--font-display);">Join a Club</h3>
-          <div class="input-group" style="margin-bottom: 15px;">
-            <input type="text" id="input-join-club-code" placeholder="Invite Code" maxlength="6"
-              style="text-align: center; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase;">
-          </div>
-          <button class="btn btn-primary btn-block" id="btn-join-club">Join Club</button>
+      <div class="challenges-coming-soon" style="padding: 40px 20px; text-align: center;">
+        <div class="challenges-icon" style="color: var(--accent-color); margin-bottom: 20px;">
+          <svg class="retro-icon" viewBox="0 0 16 16" width="64" height="64" fill="currentColor">
+            <path d="M7 1h2v2H7zM6 3h4v2H6zM5 5h6v2H5zM4 7h8v2H4zM3 9h10v7H9v-4H7v4H3z" />
+          </svg>
         </div>
-
-        <div style="text-align: center; color: var(--text-muted); font-weight: 600; font-size: 0.9rem;">— OR —</div>
-
-        <div class="card" style="padding: 24px; text-align: center;">
-          <h3 style="margin-bottom: 15px; font-family: var(--font-display);">Create a Club</h3>
-          <p class="input-hint" style="margin-bottom: 15px;">You can only create one club.</p>
-          <div class="input-group" style="margin-bottom: 15px;">
-            <input type="text" id="input-create-club-name" placeholder="Club Name (e.g., UMich 2026)" maxlength="30">
-          </div>
-          <button class="btn btn-secondary btn-block" id="btn-create-club">Create Club</button>
-        </div>
-
-      </div>
-
-      <!-- Has Club View -->
-      <div id="view-has-club" style="display: none; flex-direction: column; height: 100%;">
-
-        <!-- Club Header Info -->
-        <div class="card" style="margin: 20px; text-align: center; padding: 20px;">
-          <div id="club-name-display"
-            style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px;">
-            <h2 id="text-club-name" style="font-family: var(--font-display); font-weight: 700; margin: 0;">Club Name
-            </h2>
-            <button id="btn-edit-club-name" class="btn btn-sm hidden"
-              style="padding: 4px 8px; background: var(--bg-secondary); border: 1px solid var(--border-color); font-size: 0.9rem; color: var(--text-main); border-radius: var(--radius-sm); margin-left: 8px;">Edit</button>
-          </div>
-
-          <div id="club-name-edit" class="hidden" style="margin-bottom: 15px;">
-            <div class="input-group" style="display: flex; gap: 10px; margin-bottom: 0;">
-              <input type="text" id="input-edit-club-name" maxlength="30" style="flex: 1;">
-              <button class="btn btn-primary btn-sm" id="btn-save-club-name">Save</button>
-            </div>
-          </div>
-
-          <div
-            style="background-color: var(--bg-secondary); padding: 12px; border-radius: var(--radius-sm); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-            <div>
-              <div
-                style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">
-                Invite Code</div>
-              <div id="text-club-code"
-                style="font-size: 1.4rem; font-weight: 800; letter-spacing: 3px; font-family: monospace; color: var(--primary-color);">
-                ------</div>
-            </div>
-            <button class="btn btn-secondary btn-sm" id="btn-share-club">Share</button>
-          </div>
-
-          <div style="font-size: 0.85rem; color: var(--text-muted);">
-            <span id="text-club-member-count">0</span> members
-          </div>
-        </div>
-
-        <!-- Members List -->
-        <h3 style="padding: 0 20px; margin-bottom: 10px; font-size: 1rem; color: var(--text-muted);">Members</h3>
-        <div class="leaderboard-container" style="flex-grow: 1;">
-          <div id="club-members-list" class="leaderboard-list">
-            <!-- Dynamically populated rows -->
-          </div>
-        </div>
-
-        <div style="padding: 20px;">
-          <button class="btn btn-secondary btn-block" id="btn-leave-club"
-            style="border-color: #ff4d4d; color: #ff4d4d; background-color: transparent;">Leave Club</button>
-          <p id="text-leave-club-warning" class="input-hint text-center hidden"
-            style="color: #ff4d4d; margin-top: 8px;">Since you are the creator, leaving will delete the club.</p>
-        </div>
-
+        <h2 class="challenges-title" style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 15px;">iOS App Exclusive</h2>
+        <p class="challenges-desc" style="font-size: 1rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 25px;">
+          Clubs are only available on the Climb iOS app. Download the app to create or join a club with your friends, school, or team.
+        </p>
       </div>
     </section>
 
