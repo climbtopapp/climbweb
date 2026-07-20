@@ -947,8 +947,8 @@ function setupEventListeners() {
         selectedRegistrationFileBlob = croppedBlob;
         selectedRegistrationFileType = 'image/jpeg';
         
-        const previewImg = document.getElementById('avatar-preview-img');
-        const placeholder = document.getElementById('avatar-preview-placeholder');
+        const previewImg = document.getElementById('upload-avatar-preview');
+        const placeholder = document.getElementById('upload-avatar-placeholder');
         
         previewImg.src = URL.createObjectURL(croppedBlob);
         placeholder.classList.add('hidden');
