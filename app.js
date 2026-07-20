@@ -282,9 +282,9 @@ function setupEventListeners() {
     });
   }
 
-  // Landing Screen: Download iOS placeholder button
+  // Landing Screen: Download iOS button
   document.getElementById('btn-landing-download').addEventListener('click', () => {
-    showToast('iOS App download is coming soon to the App Store!', 'info');
+    window.open('https://testflight.apple.com/join/APqbZqjx', '_blank');
   });
 
   // Landing Screen: Play on Web Button
