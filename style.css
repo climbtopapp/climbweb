@@ -1536,24 +1536,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(0.98) rotate(0deg);
 }
 
-/* Random rotation tilts for Auth Method Selection cards */
-#btn-auth-apple {
-  transform: rotate(-1.8deg);
-}
 
-#btn-auth-email {
-  transform: rotate(1.5deg);
-}
-
-#btn-auth-apple:hover,
-#btn-auth-email:hover {
-  transform: scale(1.05) rotate(0deg);
-}
-
-#btn-auth-apple:active,
-#btn-auth-email:active {
-  transform: scale(0.98) rotate(0deg);
-}
 
 
 
