@@ -253,12 +253,19 @@ function updateNotificationsUI() {
     const cleanTitle = stripEmojis(n.title);
     const cleanMessage = stripEmojis(n.message);
     return `
-      <div class="card" style="padding: 12px; border: 2px solid var(--border-color); background-color: ${bgStyle}; text-align: left; display: flex; flex-direction: column; gap: 4px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-          <span style="font-family: var(--font-display); font-weight: bold; font-size: 0.9rem; color: var(--text-main);">${cleanTitle}</span>
-          <span style="font-size: 0.7rem; color: var(--text-muted);">${dateStr}</span>
+      <div class="card" style="padding: 12px; border: 2px solid var(--border-color); background-color: ${bgStyle}; text-align: left; display: flex; align-items: flex-start; gap: 12px;">
+        <div style="width: 36px; height: 36px; background-color: var(--bg-primary); border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor" style="color: var(--primary-color);">
+            <path d="M7 1h2v2H7zm-2 2h6v2H5zm-1 2h8v5l2 2v1H2v-1l2-2V5zm4 9h2v2H8z"/>
+          </svg>
         </div>
-        <p style="font-size: 0.8rem; color: var(--text-main); margin: 0; line-height: 1.4;">${cleanMessage}</p>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+            <span style="font-family: var(--font-display); font-weight: bold; font-size: 0.9rem; color: var(--text-main);">${cleanTitle}</span>
+            <span style="font-size: 0.7rem; color: var(--text-muted);">${dateStr}</span>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-main); margin: 0; line-height: 1.4;">${cleanMessage}</p>
+        </div>
       </div>
     `;
   }).join('');
@@ -1079,6 +1086,15 @@ function setupEventListeners() {
     await supabaseClient.auth.signOut();
   });
 
+  // Profile: Personal Grade Stat Box Click
+  const statBoxGrade = document.getElementById('stat-box-grade');
+  if (statBoxGrade) {
+    statBoxGrade.addEventListener('click', () => {
+      showToast('Download the Climb iOS app to see your Personal Grade!', 'info');
+      window.open('https://testflight.apple.com/join/APqbZqjx', '_blank');
+    });
+  }
+
   // Profile: Delete Account Button
   const btnDeleteAccount = document.getElementById('btn-delete-account');
   if (btnDeleteAccount) {
@@ -1539,11 +1555,7 @@ async function loadProfileData() {
       document.getElementById('rank-val-state').innerText = '--';
     }
 
-    if (votes < 250) {
-      document.getElementById('stat-elo').innerText = `${250 - votes} more votes needed`;
-    } else {
-      document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
-    }
+    document.getElementById('stat-elo').innerText = 'iOS App Only';
 
     if (votes < 500) {
       document.getElementById('rank-val-club').innerText = `${500 - votes} more votes needed`;
