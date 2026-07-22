@@ -290,7 +290,6 @@ function setupEventListeners() {
   // Landing Screen: Play on Web Button
   document.getElementById('btn-landing-play-web').addEventListener('click', () => {
     document.getElementById('auth-step-welcome').classList.remove('hidden');
-    document.getElementById('auth-step-method').classList.add('hidden');
     document.getElementById('auth-step-email').classList.add('hidden');
     document.getElementById('auth-step-otp').classList.add('hidden');
     showScreen('auth');
