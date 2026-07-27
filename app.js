@@ -2086,7 +2086,7 @@ function setupCityCombobox(containerId, inputId, hiddenId, optionsId) {
       emptyDiv.className = "combobox-option";
       emptyDiv.style.color = "var(--text-muted)";
       emptyDiv.style.cursor = "default";
-      emptyDiv.innerText = "No cities found";
+      emptyDiv.innerText = "No states found";
       optionsEl.appendChild(emptyDiv);
       return;
     }
