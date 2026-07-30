@@ -1090,8 +1090,12 @@ function setupEventListeners() {
   const statBoxGrade = document.getElementById('stat-box-grade');
   if (statBoxGrade) {
     statBoxGrade.addEventListener('click', () => {
-      showToast('Download the Climb iOS app to see your Personal Grade!', 'info');
-      window.open('https://testflight.apple.com/join/APqbZqjx', '_blank');
+      const votes = (currentProfile && currentProfile.votes_cast) || 0;
+      if (votes < 100) {
+        showToast(`Cast ${100 - votes} more votes to reveal your Personal Grade!`, 'info');
+      } else {
+        showToast(`Your Personal Grade is ${eloToGrade(currentProfile.elo)}!`, 'success');
+      }
     });
   }
 
@@ -1555,7 +1559,11 @@ async function loadProfileData() {
       document.getElementById('rank-val-state').innerText = '--';
     }
 
-    document.getElementById('stat-elo').innerText = 'iOS App Only';
+    if (votes < 100) {
+      document.getElementById('stat-elo').innerText = `${100 - votes} more`;
+    } else {
+      document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
+    }
 
     if (votes < 500) {
       document.getElementById('rank-val-club').innerText = `${500 - votes} more votes needed`;
