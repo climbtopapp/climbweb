@@ -761,7 +761,6 @@ async function unlockFeature(featureId, cost) {
     updateNavigationLocks();
     updateProfileUI();
 
-    showToast(`Feature Unlocked! 🎉 (-${cost} Steps)`, 'success');
     return true;
   } catch (err) {
     console.error('Failed to unlock feature:', err);
@@ -798,11 +797,52 @@ async function unlockInstagram(targetUserId, cost = 25) {
     updateStepsDisplay();
     updateProfileUI();
 
-    showToast(`Instagram Unlocked! 🎉 (-${cost} Steps)`, 'success');
     return true;
   } catch (err) {
     console.error('Failed to unlock Instagram:', err);
     showToast('Failed to unlock Instagram. Please try again.', 'error');
+    return false;
+  }
+}
+
+async function saveInstagramHandle(rawHandle) {
+  if (!currentProfile || !currentUser) return false;
+  let cleanIg = (rawHandle || '').replace(/^@/, '').trim();
+  if (cleanIg === '') cleanIg = null;
+
+  let claimedBonus = currentProfile.claimed_ig_bonus || false;
+  let awardedBonus = false;
+  if (!claimedBonus && cleanIg) {
+    claimedBonus = true;
+    awardedBonus = true;
+  }
+
+  try {
+    const { error } = await supabaseClient
+      .from('profiles')
+      .update({
+        instagram_handle: cleanIg,
+        claimed_ig_bonus: claimedBonus
+      })
+      .eq('id', currentUser.id);
+
+    if (error) throw error;
+
+    currentProfile.instagram_handle = cleanIg;
+    currentProfile.claimed_ig_bonus = claimedBonus;
+
+    updateStepsDisplay();
+    updateProfileUI();
+
+    if (awardedBonus) {
+      showToast('Instagram handle saved! +50 FREE Steps added! 🎉', 'success');
+    } else {
+      showToast('Instagram handle saved!', 'success');
+    }
+    return true;
+  } catch (err) {
+    console.error('Failed to save Instagram handle:', err);
+    showToast('Failed to save Instagram handle. Please try again.', 'error');
     return false;
   }
 }
@@ -938,6 +978,13 @@ function updateStepsDisplay() {
   if (btnCloseSettings) {
     btnCloseSettings.addEventListener('click', () => {
       settingsModal.classList.add('hidden');
+    });
+  }
+  const btnSaveProfileIg = document.getElementById('btn-save-profile-ig');
+  if (btnSaveProfileIg) {
+    btnSaveProfileIg.addEventListener('click', async () => {
+      const val = document.getElementById('input-profile-ig').value.trim();
+      await saveInstagramHandle(val);
     });
   }
   
@@ -1852,6 +1899,22 @@ async function loadProfileData() {
     document.getElementById('profile-avatar').src = profile.avatar_url || DEFAULT_AVATAR;
     document.getElementById('profile-email-display').innerText = displayName;
     document.getElementById('profile-location-display').innerText = `Region: ${profile.state || 'Unknown'}`;
+
+    const profileIgInput = document.getElementById('input-profile-ig');
+    if (profileIgInput) {
+      profileIgInput.value = profile.instagram_handle ? profile.instagram_handle.replace(/^@/, '') : '';
+    }
+
+    const profileIgHint = document.getElementById('hint-profile-ig-bonus');
+    if (profileIgHint) {
+      if (profile.claimed_ig_bonus) {
+        profileIgHint.innerText = '✅ +50 FREE Steps claimed!';
+        profileIgHint.style.color = 'var(--text-muted)';
+      } else {
+        profileIgHint.innerText = '🎁 Save your Instagram handle to claim +50 FREE Steps!';
+        profileIgHint.style.color = 'var(--primary-color)';
+      }
+    }
 
     updateStepsDisplay();
     updateNavigationLocks();
