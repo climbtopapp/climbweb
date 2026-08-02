@@ -1407,6 +1407,38 @@ input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: none;
 }
 
+.btn-ig-user {
+  position: absolute;
+  top: calc(50% + 24px);
+  left: -48px;
+  width: 32px;
+  height: 32px;
+  background-color: var(--primary-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: #000000;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  box-shadow: 1px 1px 0 var(--border-color);
+  transition: var(--transition);
+}
+
+.btn-ig-user:hover:not(.disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--border-color);
+}
+
+.btn-ig-user.disabled {
+  opacity: 0.35;
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 /* Homepage Redesign with Snap Scrolling */
 #screen-landing.screen {
   padding: 0 !important;
