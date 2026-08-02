@@ -714,16 +714,132 @@ function setupEventListeners() {
     });
   }
 
+function getAvailableSteps(profile = currentProfile) {
+  if (!profile) return 0;
+  const votes = profile.votes_cast || 0;
+  const igBonus = profile.claimed_ig_bonus ? 50 : 0;
+  const spent = profile.steps_spent || 0;
+  return Math.max(0, votes + igBonus - spent);
+}
+
+function isFeatureUnlocked(featureId, profile = currentProfile) {
+  if (!profile) return false;
+  const unlocked = profile.unlocked_features || [];
+  return unlocked.includes(featureId);
+}
+
+async function unlockFeature(featureId, cost) {
+  if (!currentProfile || !currentUser) return false;
+  const avail = getAvailableSteps(currentProfile);
+  if (avail < cost) return false;
+
+  const currentUnlocked = currentProfile.unlocked_features || [];
+  if (currentUnlocked.includes(featureId)) return true;
+
+  const updatedUnlocked = [...currentUnlocked, featureId];
+  const newSpent = (currentProfile.steps_spent || 0) + cost;
+
+  try {
+    const { error } = await supabaseClient
+      .from('profiles')
+      .update({
+        unlocked_features: updatedUnlocked,
+        steps_spent: newSpent
+      })
+      .eq('id', currentUser.id);
+
+    if (error) throw error;
+
+    currentProfile.unlocked_features = updatedUnlocked;
+    currentProfile.steps_spent = newSpent;
+
+    updateStepsDisplay();
+    updateNavigationLocks();
+    updateProfileUI();
+
+    showToast(`Feature Unlocked! 🎉 (-${cost} Steps)`, 'success');
+    return true;
+  } catch (err) {
+    console.error('Failed to unlock feature:', err);
+    showToast('Failed to unlock feature. Please try again.', 'error');
+    return false;
+  }
+}
+
+async function unlockInstagram(targetUserId, cost = 25) {
+  if (!currentProfile || !currentUser) return false;
+  const avail = getAvailableSteps(currentProfile);
+  if (avail < cost) return false;
+
+  const currentUnlocked = currentProfile.unlocked_instagrams || [];
+  if (currentUnlocked.includes(targetUserId)) return true;
+
+  const updatedUnlocked = [...currentUnlocked, targetUserId];
+  const newSpent = (currentProfile.steps_spent || 0) + cost;
+
+  try {
+    const { error } = await supabaseClient
+      .from('profiles')
+      .update({
+        unlocked_instagrams: updatedUnlocked,
+        steps_spent: newSpent
+      })
+      .eq('id', currentUser.id);
+
+    if (error) throw error;
+
+    currentProfile.unlocked_instagrams = updatedUnlocked;
+    currentProfile.steps_spent = newSpent;
+
+    updateStepsDisplay();
+    updateProfileUI();
+
+    showToast(`Instagram Unlocked! 🎉 (-${cost} Steps)`, 'success');
+    return true;
+  } catch (err) {
+    console.error('Failed to unlock Instagram:', err);
+    showToast('Failed to unlock Instagram. Please try again.', 'error');
+    return false;
+  }
+}
+
+function updateStepsDisplay() {
+  const avail = getAvailableSteps();
+  const mashCount = document.getElementById('mash-steps-count');
+  if (mashCount) mashCount.innerText = `${avail} Steps`;
+  const statVotes = document.getElementById('stat-votes');
+  if (statVotes) statVotes.innerText = avail;
+}
+
   // Navigation Items
   document.querySelectorAll('.bottom-nav .nav-item').forEach(button => {
-    button.addEventListener('click', (e) => {
+    button.addEventListener('click', async (e) => {
       const targetScreen = e.currentTarget.getAttribute('data-screen');
       if (targetScreen) {
-        if ((targetScreen === 'leaderboard' || targetScreen === 'clubs') && (!currentProfile || currentProfile.votes_cast < 25)) {
-          const votes = currentProfile ? currentProfile.votes_cast : 0;
-          const screenName = targetScreen === 'clubs' ? 'Clubs' : 'the Summit';
-          showToast(`Cast ${25 - votes} more votes to unlock ${screenName}.`, 'error');
-          return;
+        if (targetScreen === 'leaderboard') {
+          if (!isFeatureUnlocked('leaderboard')) {
+            const avail = getAvailableSteps();
+            if (avail < 25) {
+              showToast(`Need 25 Steps to unlock Summit. (You have ${avail} Steps)`, 'error');
+              return;
+            }
+            const confirmUnlock = window.confirm(`Unlock Summit (Leaderboard) for 25 Steps? (Your Steps: ${avail})`);
+            if (!confirmUnlock) return;
+            const success = await unlockFeature('leaderboard', 25);
+            if (!success) return;
+          }
+        } else if (targetScreen === 'clubs') {
+          if (!isFeatureUnlocked('clubs')) {
+            const avail = getAvailableSteps();
+            if (avail < 10) {
+              showToast(`Need 10 Steps to unlock Clubs. (You have ${avail} Steps)`, 'error');
+              return;
+            }
+            const confirmUnlock = window.confirm(`Unlock Clubs for 10 Steps? (Your Steps: ${avail})`);
+            if (!confirmUnlock) return;
+            const success = await unlockFeature('clubs', 10);
+            if (!success) return;
+          }
         }
         showScreen(targetScreen);
         if (targetScreen === 'mash') {
@@ -757,6 +873,20 @@ function setupEventListeners() {
       document.getElementById('select-settings-state').value = currentProfile.state || '';
       document.getElementById('input-settings-state-search').value = currentProfile.state || '';
       document.getElementById('settings-avatar-preview').src = currentProfile.avatar_url || DEFAULT_AVATAR;
+
+      const igInput = document.getElementById('input-settings-ig');
+      if (igInput) igInput.value = currentProfile.instagram_handle || '';
+
+      const igHint = document.getElementById('hint-ig-bonus');
+      if (igHint) {
+        if (currentProfile.claimed_ig_bonus) {
+          igHint.innerText = '✅ +50 FREE Steps claimed!';
+          igHint.style.color = 'var(--text-muted)';
+        } else {
+          igHint.innerText = '🎁 Save your Instagram handle to claim +50 FREE Steps!';
+          igHint.style.color = 'var(--primary-color)';
+        }
+      }
       
       settingsModal.classList.remove('hidden');
     });
@@ -813,6 +943,17 @@ function setupEventListeners() {
       const name = document.getElementById('input-settings-name').value.trim();
       const votePref = document.getElementById('select-settings-vote-pref').value;
       const selectedState = document.getElementById('select-settings-state').value;
+      const rawIg = document.getElementById('input-settings-ig') ? document.getElementById('input-settings-ig').value.trim() : '';
+      
+      let cleanIg = rawIg.replace(/^@/, '').trim();
+      if (cleanIg === '') cleanIg = null;
+
+      let claimedBonus = currentProfile.claimed_ig_bonus || false;
+      let awardedBonus = false;
+      if (!claimedBonus && cleanIg) {
+        claimedBonus = true;
+        awardedBonus = true;
+      }
       
       // Update coordinates based on selected state (city)
       const cityObj = CITIES.find(c => c.name === selectedState);
@@ -832,7 +973,9 @@ function setupEventListeners() {
             vote_preference: votePref,
             state: selectedState,
             latitude: newLat,
-            longitude: newLng
+            longitude: newLng,
+            instagram_handle: cleanIg,
+            claimed_ig_bonus: claimedBonus
           })
           .eq('id', currentUser.id);
         
@@ -844,6 +987,9 @@ function setupEventListeners() {
         currentProfile.state = selectedState;
         currentProfile.latitude = newLat;
         currentProfile.longitude = newLng;
+        currentProfile.instagram_handle = cleanIg;
+        currentProfile.claimed_ig_bonus = claimedBonus;
+
         userState = selectedState;
         userVotePreference = votePref;
         userCoordinates.lat = newLat;
@@ -851,7 +997,12 @@ function setupEventListeners() {
         
         await loadProfileData();
         settingsModal.classList.add('hidden');
-        showToast('Settings saved successfully!', 'success');
+
+        if (awardedBonus) {
+          showToast('Instagram handle saved! +50 FREE Steps added! 🎉', 'success');
+        } else {
+          showToast('Settings saved successfully!', 'success');
+        }
         
         // Reload matchup matching new preferences/coordinates immediately
         loadNextMatchup();
@@ -1089,12 +1240,138 @@ function setupEventListeners() {
   // Profile: Personal Grade Stat Box Click
   const statBoxGrade = document.getElementById('stat-box-grade');
   if (statBoxGrade) {
-    statBoxGrade.addEventListener('click', () => {
-      const votes = (currentProfile && currentProfile.votes_cast) || 0;
-      if (votes < 100) {
-        showToast(`Cast ${100 - votes} more votes to reveal your Personal Grade!`, 'info');
-      } else {
-        showToast(`Your Personal Grade is ${eloToGrade(currentProfile.elo)}!`, 'success');
+    statBoxGrade.addEventListener('click', async () => {
+      if (isFeatureUnlocked('grade')) {
+        showToast(`Your Personal Grade is ${eloToGrade(currentProfile.elo)}!`, 'info');
+        return;
+      }
+      const avail = getAvailableSteps();
+      if (avail < 75) {
+        showToast(`Need 75 Steps to unlock Personal Grade. (You have ${avail} Steps)`, 'error');
+        return;
+      }
+      const confirmUnlock = window.confirm(`Unlock Personal Grade for 75 Steps? (Your Steps: ${avail})`);
+      if (confirmUnlock) {
+        await unlockFeature('grade', 75);
+      }
+    });
+  }
+
+  // Profile: Steps Stat Box Click
+  const statBoxSteps = document.getElementById('stat-box-steps');
+  if (statBoxSteps) {
+    statBoxSteps.addEventListener('click', () => {
+      document.getElementById('steps-explainer-modal').classList.remove('hidden');
+    });
+  }
+
+  const mashStepsBar = document.getElementById('mash-steps-bar');
+  if (mashStepsBar) {
+    mashStepsBar.addEventListener('click', () => {
+      document.getElementById('steps-explainer-modal').classList.remove('hidden');
+    });
+  }
+
+  const btnCloseStepsExplainer = document.getElementById('btn-close-steps-explainer');
+  if (btnCloseStepsExplainer) {
+    btnCloseStepsExplainer.addEventListener('click', () => {
+      document.getElementById('steps-explainer-modal').classList.add('hidden');
+    });
+  }
+
+  // Profile: Ranks Item Click
+  document.querySelectorAll('.ranks-section .rank-item').forEach(item => {
+    item.addEventListener('click', async () => {
+      if (isFeatureUnlocked('ranks')) return;
+      const avail = getAvailableSteps();
+      if (avail < 250) {
+        showToast(`Need 250 Steps to unlock Official Leaderboard Ranks. (You have ${avail} Steps)`, 'error');
+        return;
+      }
+      const confirmUnlock = window.confirm(`Unlock Official Leaderboard Ranks for 250 Steps? (Your Steps: ${avail})`);
+      if (confirmUnlock) {
+        await unlockFeature('ranks', 250);
+      }
+    });
+  });
+
+  // Mash: Instagram Buttons
+  const btnIgLeft = document.getElementById('btn-ig-left');
+  const btnIgRight = document.getElementById('btn-ig-right');
+
+  if (btnIgLeft) {
+    btnIgLeft.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleInstagramClick(0);
+    });
+  }
+
+  if (btnIgRight) {
+    btnIgRight.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleInstagramClick(1);
+    });
+  }
+
+  function handleInstagramClick(index) {
+    if (!currentMatchup || currentMatchup.length <= index) return;
+    const targetUser = currentMatchup[index];
+    if (!targetUser || !targetUser.instagram_handle) {
+      showToast('This user has not added an Instagram handle yet.', 'info');
+      return;
+    }
+
+    const cleanHandle = targetUser.instagram_handle.replace(/^@/, '').trim();
+    const unlockedIgs = (currentProfile && currentProfile.unlocked_instagrams) || [];
+
+    if (unlockedIgs.includes(targetUser.id)) {
+      window.open(`https://instagram.com/${cleanHandle}`, '_blank');
+      return;
+    }
+
+    // Prompt to unlock for 25 steps
+    const modal = document.getElementById('ig-unlock-modal');
+    const msg = document.getElementById('ig-unlock-message');
+    const bal = document.getElementById('ig-unlock-balance');
+    const btnConfirm = document.getElementById('btn-confirm-ig-unlock');
+
+    const avail = getAvailableSteps();
+    msg.innerText = `Unlock @${cleanHandle}'s Instagram profile for 25 Steps?`;
+    bal.innerText = `Your Steps: ${avail}`;
+
+    if (avail < 25) {
+      btnConfirm.disabled = true;
+      btnConfirm.innerText = 'Need 25 Steps';
+    } else {
+      btnConfirm.disabled = false;
+      btnConfirm.innerText = 'Unlock (25 Steps)';
+    }
+
+    modal.dataset.targetId = targetUser.id;
+    modal.dataset.targetHandle = cleanHandle;
+    modal.classList.remove('hidden');
+  }
+
+  const btnConfirmIg = document.getElementById('btn-confirm-ig-unlock');
+  const btnCancelIg = document.getElementById('btn-cancel-ig-unlock');
+  const igModal = document.getElementById('ig-unlock-modal');
+
+  if (btnCancelIg) {
+    btnCancelIg.addEventListener('click', () => {
+      igModal.classList.add('hidden');
+    });
+  }
+
+  if (btnConfirmIg) {
+    btnConfirmIg.addEventListener('click', async () => {
+      const targetId = igModal.dataset.targetId;
+      const cleanHandle = igModal.dataset.targetHandle;
+      if (!targetId) return;
+
+      const success = await unlockInstagram(targetId, 25);
+      if (success) {
+        igModal.classList.add('hidden');
+        window.open(`https://instagram.com/${cleanHandle}`, '_blank');
       }
     });
   }
@@ -1247,6 +1524,30 @@ async function loadNextMatchup() {
     // Load right card image
     const imgRight = document.getElementById('img-right');
     imgRight.src = data[1].avatar_url || DEFAULT_AVATAR;
+
+    // Update Instagram button states
+    const btnIgLeft = document.getElementById('btn-ig-left');
+    const btnIgRight = document.getElementById('btn-ig-right');
+
+    if (btnIgLeft) {
+      if (data[0] && data[0].instagram_handle) {
+        btnIgLeft.classList.remove('disabled');
+        btnIgLeft.title = `View @${data[0].instagram_handle.replace(/^@/, '')}'s Instagram`;
+      } else {
+        btnIgLeft.classList.add('disabled');
+        btnIgLeft.title = 'No Instagram handle added';
+      }
+    }
+
+    if (btnIgRight) {
+      if (data[1] && data[1].instagram_handle) {
+        btnIgRight.classList.remove('disabled');
+        btnIgRight.title = `View @${data[1].instagram_handle.replace(/^@/, '')}'s Instagram`;
+      } else {
+        btnIgRight.classList.add('disabled');
+        btnIgRight.title = 'No Instagram handle added';
+      }
+    }
 
     // Reset error states
     document.querySelectorAll('.card-error').forEach(err => err.classList.add('hidden'));
@@ -1526,7 +1827,6 @@ async function loadProfileData() {
   if (!currentUser) return;
 
   try {
-    // Fetch fresh profile state to get latest ELO
     const { data: profile, error } = await supabaseClient
       .from('profiles')
       .select('*')
@@ -1536,63 +1836,59 @@ async function loadProfileData() {
     if (error) throw error;
     currentProfile = profile;
 
-    // Display name
+    // First time opening profile: auto-present steps explainer
+    if (!localStorage.getItem('climb_seen_steps_explainer')) {
+      const explainer = document.getElementById('steps-explainer-modal');
+      if (explainer) explainer.classList.remove('hidden');
+      localStorage.setItem('climb_seen_steps_explainer', 'true');
+    }
+
     const displayName = profile.first_name || maskEmail(profile.email);
 
-    // Update profile HTML info
     document.getElementById('profile-avatar').src = profile.avatar_url || DEFAULT_AVATAR;
     document.getElementById('profile-email-display').innerText = displayName;
     document.getElementById('profile-location-display').innerText = `Region: ${profile.state || 'Unknown'}`;
 
-    const votes = profile.votes_cast || 0;
-    document.getElementById('stat-votes').innerText = votes;
+    updateStepsDisplay();
+    updateNavigationLocks();
 
-    if (votes < 500) {
-      document.getElementById('rank-val-global').innerText = `${500 - votes} more votes needed`;
+    const gradeUnlocked = isFeatureUnlocked('grade', profile);
+    if (gradeUnlocked) {
+      document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
+    } else {
+      document.getElementById('stat-elo').innerText = '🔒 75 Steps';
+    }
+
+    const ranksUnlocked = isFeatureUnlocked('ranks', profile);
+    if (!ranksUnlocked) {
+      document.getElementById('rank-val-global').innerText = '🔒 250 Steps';
+      document.getElementById('rank-val-state').innerText = '🔒 250 Steps';
+      document.getElementById('rank-val-club').innerText = '🔒 250 Steps';
     } else {
       document.getElementById('rank-val-global').innerText = '--';
-    }
-
-    if (votes < 500) {
-      document.getElementById('rank-val-state').innerText = `${500 - votes} more votes needed`;
-    } else {
       document.getElementById('rank-val-state').innerText = '--';
-    }
 
-    if (votes < 100) {
-      document.getElementById('stat-elo').innerText = `${100 - votes} more`;
-    } else {
-      document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
-    }
-
-    if (votes < 500) {
-      document.getElementById('rank-val-club').innerText = `${500 - votes} more votes needed`;
-    } else if (!currentClubInfo) {
-      document.getElementById('rank-val-club').innerText = 'No Club';
-    } else {
-      let myClubRank = '--';
-      if (currentClubMembers && currentClubMembers.length > 0) {
-        const myIndex = currentClubMembers.findIndex(m => m.user_id === currentUser.id);
-        if (myIndex !== -1) myClubRank = `${myIndex + 1} / ${currentClubMembers.length}`;
+      if (!currentClubInfo) {
+        document.getElementById('rank-val-club').innerText = 'No Club';
+      } else {
+        let myClubRank = '--';
+        if (currentClubMembers && currentClubMembers.length > 0) {
+          const myIndex = currentClubMembers.findIndex(m => m.user_id === currentUser.id);
+          if (myIndex !== -1) myClubRank = `${myIndex + 1} / ${currentClubMembers.length}`;
+        }
+        document.getElementById('rank-val-club').innerText = myClubRank;
       }
-      document.getElementById('rank-val-club').innerText = myClubRank;
-    }
 
+      // Fetch user ranks for stats list
+      const { data: rankStats, error: statsError } = await supabaseClient.rpc('get_user_ranks', {
+        user_id_param: currentUser.id,
+        viewer_lat: profile.latitude,
+        viewer_lon: profile.longitude,
+        viewer_state: profile.state || 'Unknown State'
+      });
 
-
-    // Fetch user ranks for stats list
-    const { data: rankStats, error: statsError } = await supabaseClient.rpc('get_user_ranks', {
-      user_id_param: currentUser.id,
-      viewer_lat: profile.latitude,
-      viewer_lon: profile.longitude,
-      viewer_state: profile.state || 'Unknown State'
-    });
-
-    if (!statsError && rankStats && rankStats.length > 0) {
-      if (votes >= 500) {
+      if (!statsError && rankStats && rankStats.length > 0) {
         document.getElementById('rank-val-global').innerText = rankStats[0].total_global > 0 ? `${rankStats[0].global_rank} / ${rankStats[0].total_global}` : '--';
-      }
-      if (votes >= 500) {
         document.getElementById('rank-val-state').innerText = rankStats[0].total_state > 0 ? `${rankStats[0].state_rank} / ${rankStats[0].total_state}` : '--';
       }
     }
@@ -1647,8 +1943,7 @@ function showToast(message, type = 'info') {
 }
 
 function eloToGrade(elo) {
-  if (elo === null || elo === undefined) return '--';
-  const val = Math.round(elo);
+  const val = elo || 1200;
   if (val >= 1600) return 'A+';
   if (val >= 1500) return 'A';
   if (val >= 1400) return 'A-';
@@ -1663,23 +1958,22 @@ function eloToGrade(elo) {
 }
 
 function updateNavigationLocks() {
-  const votes = (currentProfile && currentProfile.votes_cast) || 0;
-  const isLocked = votes < 25;
-  
+  const summitUnlocked = isFeatureUnlocked('leaderboard');
   document.querySelectorAll('.bottom-nav .nav-item[data-screen="leaderboard"]').forEach(btn => {
-    if (isLocked) {
+    if (!summitUnlocked) {
       btn.classList.add('locked-nav');
-      btn.querySelector('.nav-label').innerText = `${25 - votes} Votes`;
+      btn.querySelector('.nav-label').innerText = '🔒 25 Steps';
     } else {
       btn.classList.remove('locked-nav');
       btn.querySelector('.nav-label').innerText = 'Summit';
     }
   });
 
+  const clubsUnlocked = isFeatureUnlocked('clubs');
   document.querySelectorAll('.bottom-nav .nav-item[data-screen="clubs"]').forEach(btn => {
-    if (isLocked) {
+    if (!clubsUnlocked) {
       btn.classList.add('locked-nav');
-      btn.querySelector('.nav-label').innerText = `${25 - votes} Votes`;
+      btn.querySelector('.nav-label').innerText = '🔒 10 Steps';
     } else {
       btn.classList.remove('locked-nav');
       btn.querySelector('.nav-label').innerText = 'Clubs';
