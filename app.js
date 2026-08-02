@@ -137,8 +137,12 @@ async function fetchUserProfile() {
       }
 
       // Go to main Mash screen
-      initNotifications();
       showScreen('mash');
+      try {
+        initNotifications();
+      } catch (e) {
+        console.warn('Error initializing notifications:', e);
+      }
       loadNextMatchup();
     }
   } catch (err) {
@@ -1958,27 +1962,37 @@ function eloToGrade(elo) {
 }
 
 function updateNavigationLocks() {
-  const summitUnlocked = isFeatureUnlocked('leaderboard');
-  document.querySelectorAll('.bottom-nav .nav-item[data-screen="leaderboard"]').forEach(btn => {
-    if (!summitUnlocked) {
-      btn.classList.add('locked-nav');
-      btn.querySelector('.nav-label').innerText = '🔒 25 Steps';
-    } else {
-      btn.classList.remove('locked-nav');
-      btn.querySelector('.nav-label').innerText = 'Summit';
-    }
-  });
+  try {
+    const summitUnlocked = isFeatureUnlocked('leaderboard');
+    document.querySelectorAll('.bottom-nav .nav-item[data-screen="leaderboard"]').forEach(btn => {
+      const label = btn.querySelector('.nav-label');
+      if (label) {
+        if (!summitUnlocked) {
+          btn.classList.add('locked-nav');
+          label.innerText = '🔒 25 Steps';
+        } else {
+          btn.classList.remove('locked-nav');
+          label.innerText = 'Summit';
+        }
+      }
+    });
 
-  const clubsUnlocked = isFeatureUnlocked('clubs');
-  document.querySelectorAll('.bottom-nav .nav-item[data-screen="clubs"]').forEach(btn => {
-    if (!clubsUnlocked) {
-      btn.classList.add('locked-nav');
-      btn.querySelector('.nav-label').innerText = '🔒 10 Steps';
-    } else {
-      btn.classList.remove('locked-nav');
-      btn.querySelector('.nav-label').innerText = 'Clubs';
-    }
-  });
+    const clubsUnlocked = isFeatureUnlocked('clubs');
+    document.querySelectorAll('.bottom-nav .nav-item[data-screen="clubs"]').forEach(btn => {
+      const label = btn.querySelector('.nav-label');
+      if (label) {
+        if (!clubsUnlocked) {
+          btn.classList.add('locked-nav');
+          label.innerText = '🔒 10 Steps';
+        } else {
+          btn.classList.remove('locked-nav');
+          label.innerText = 'Clubs';
+        }
+      }
+    });
+  } catch (e) {
+    console.warn('Warning updating navigation locks:', e);
+  }
 }
 
 function openCropModal(file, context) {
