@@ -1364,11 +1364,20 @@ function updateStepsDisplay() {
     });
   }
 
+  const btnCloseNoIg = document.getElementById('btn-close-no-ig');
+  if (btnCloseNoIg) {
+    btnCloseNoIg.addEventListener('click', () => {
+      const noIgModal = document.getElementById('no-ig-modal');
+      if (noIgModal) noIgModal.classList.add('hidden');
+    });
+  }
+
   function handleInstagramClick(index) {
     if (!currentMatchup || currentMatchup.length <= index) return;
     const targetUser = currentMatchup[index];
     if (!targetUser || !targetUser.instagram_handle) {
-      showToast('This user has not added an Instagram handle yet.', 'info');
+      const noIgModal = document.getElementById('no-ig-modal');
+      if (noIgModal) noIgModal.classList.remove('hidden');
       return;
     }
 
@@ -1797,8 +1806,48 @@ async function loadLeaderboard() {
             <div class="rank-name">${isSelf ? 'You' : (row.first_name || 'Climber')}</div>
             <div class="rank-meta">${row.state || 'Unknown State'}</div>
           </div>
-          <div class="rank-elo">${displayElo}</div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            ${!isSelf ? `
+            <button type="button" class="btn-ig-user ${row.instagram_handle ? '' : 'disabled'}" data-userid="${row.user_id}" data-ig="${row.instagram_handle || ''}" title="View Instagram" style="position: static; width: 32px; height: 32px; min-width: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+              <svg class="retro-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+                <path d="M8 1l2.3 4.7 5.2.8-3.8 3.7.9 5.2L8 13l-4.6 2.4.9-5.2L.5 6.5l5.2-.8z"/>
+              </svg>
+            </button>` : ''}
+            <div class="rank-elo">${displayElo}</div>
+          </div>
         `;
+
+        const starBtn = rowEl.querySelector('.btn-ig-user');
+        if (starBtn) {
+          starBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const targetId = starBtn.getAttribute('data-userid');
+            const igHandle = starBtn.getAttribute('data-ig');
+
+            if (!igHandle) {
+              const noIgModal = document.getElementById('no-ig-modal');
+              if (noIgModal) noIgModal.classList.remove('hidden');
+              return;
+            }
+
+            const cleanHandle = igHandle.replace(/^@/, '').trim();
+            const unlockedIgs = (currentProfile && currentProfile.unlocked_instagrams) || [];
+
+            if (unlockedIgs.includes(targetId)) {
+              window.open(`https://instagram.com/${cleanHandle}`, '_blank');
+            } else {
+              targetIgUserId = targetId;
+              targetIgHandle = cleanHandle;
+              const modal = document.getElementById('ig-unlock-modal');
+              const msg = document.getElementById('ig-unlock-message');
+              const bal = document.getElementById('ig-unlock-balance');
+              if (msg) msg.innerText = `Unlock @${cleanHandle}'s Instagram profile for 25 Steps?`;
+              if (bal) bal.innerText = `Your Steps: ${getAvailableSteps()}`;
+              if (modal) modal.classList.remove('hidden');
+            }
+          });
+        }
+
         listContainer.appendChild(rowEl);
       });
     }
@@ -1908,29 +1957,40 @@ async function loadProfileData() {
     const profileIgHint = document.getElementById('hint-profile-ig-bonus');
     if (profileIgHint) {
       if (profile.claimed_ig_bonus) {
-        profileIgHint.innerText = '✅ +50 FREE Steps claimed!';
-        profileIgHint.style.color = 'var(--text-muted)';
+        profileIgHint.style.display = 'none';
       } else {
-        profileIgHint.innerText = '🎁 Save your Instagram handle to claim +50 FREE Steps!';
+        profileIgHint.style.display = 'block';
+        profileIgHint.innerText = 'Save your Instagram handle to claim +50 FREE Steps!';
         profileIgHint.style.color = 'var(--primary-color)';
+      }
+    }
+
+    const stepsPromoHint = document.getElementById('hint-steps-promo');
+    if (stepsPromoHint) {
+      if (profile.claimed_ig_bonus || profile.instagram_handle) {
+        stepsPromoHint.style.display = 'none';
+      } else {
+        stepsPromoHint.style.display = 'block';
       }
     }
 
     updateStepsDisplay();
     updateNavigationLocks();
 
+    const lockIconSvg = '<svg class="retro-icon" viewBox="0 0 16 16" width="12" height="12" fill="currentColor" style="margin-right: 4px;"><path d="M4 6V4a4 4 0 1 1 8 0v2h1v8H3V6h1zm2 0h4V4a2 2 0 1 0-4 0v2z"/></svg>';
+
     const gradeUnlocked = isFeatureUnlocked('grade', profile);
     if (gradeUnlocked) {
       document.getElementById('stat-elo').innerText = eloToGrade(profile.elo);
     } else {
-      document.getElementById('stat-elo').innerText = '🔒 75 Steps';
+      document.getElementById('stat-elo').innerHTML = `${lockIconSvg} 75 Steps`;
     }
 
     const ranksUnlocked = isFeatureUnlocked('ranks', profile);
     if (!ranksUnlocked) {
-      document.getElementById('rank-val-global').innerText = '🔒 250 Steps';
-      document.getElementById('rank-val-state').innerText = '🔒 250 Steps';
-      document.getElementById('rank-val-club').innerText = '🔒 250 Steps';
+      document.getElementById('rank-val-global').innerHTML = `${lockIconSvg} 250 Steps`;
+      document.getElementById('rank-val-state').innerHTML = `${lockIconSvg} 250 Steps`;
+      document.getElementById('rank-val-club').innerHTML = `${lockIconSvg} 250 Steps`;
     } else {
       document.getElementById('rank-val-global').innerText = '--';
       document.getElementById('rank-val-state').innerText = '--';
