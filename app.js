@@ -1308,10 +1308,42 @@ function updateStepsDisplay() {
     });
   }
 
+  function updateStepsExplainerButtons() {
+    document.querySelectorAll('.btn-explainer-unlock').forEach(btn => {
+      const feat = btn.getAttribute('data-feature');
+      const cost = parseInt(btn.getAttribute('data-cost') || '0', 10);
+      if (isFeatureUnlocked(feat)) {
+        btn.innerText = '✓ Unlocked';
+        btn.className = 'btn btn-secondary btn-sm';
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+      } else {
+        btn.innerText = `Unlock (${cost})`;
+        btn.className = 'btn btn-primary btn-sm btn-explainer-unlock';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }
+    });
+  }
+
+  document.querySelectorAll('.btn-explainer-unlock').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const feat = btn.getAttribute('data-feature');
+      const cost = parseInt(btn.getAttribute('data-cost') || '0', 10);
+      if (isFeatureUnlocked(feat)) return;
+      const success = await unlockFeature(feat, cost);
+      if (success) {
+        updateStepsExplainerButtons();
+      }
+    });
+  });
+
   // Profile: Steps Stat Box Click
   const statBoxSteps = document.getElementById('stat-box-steps');
   if (statBoxSteps) {
     statBoxSteps.addEventListener('click', () => {
+      updateStepsExplainerButtons();
       document.getElementById('steps-explainer-modal').classList.remove('hidden');
     });
   }
@@ -1319,6 +1351,7 @@ function updateStepsDisplay() {
   const mashStepsBar = document.getElementById('mash-steps-bar');
   if (mashStepsBar) {
     mashStepsBar.addEventListener('click', () => {
+      updateStepsExplainerButtons();
       document.getElementById('steps-explainer-modal').classList.remove('hidden');
     });
   }
@@ -1861,6 +1894,11 @@ async function loadLeaderboard() {
     });
 
     const stickyRow = document.getElementById('user-sticky-rank');
+
+    if (!isFeatureUnlocked('ranks', currentProfile)) {
+      if (stickyRow) stickyRow.classList.add('hidden');
+      return;
+    }
 
     const stats = (!statsError && rankStats && rankStats.length > 0) ? rankStats[0] : null;
     let displayRank = '--';
