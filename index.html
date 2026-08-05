@@ -968,17 +968,31 @@
           <path d="M6 1h2v2H6zm3 3h2v2H9zm2 3h2v2h-2zm-8 1h2v2H3zm-2 3h2v2H1zm6 1h2v2H7zm3-2h2v2h-2z"/>
         </svg>
       </div>
-      <h3 style="font-family: var(--font-display); font-weight: 700; margin-bottom: 8px; color: var(--primary-color);">STEPS SYSTEM</h3>
+      <h3 style="font-family: var(--font-display); font-weight: 700; margin-bottom: 8px; color: var(--primary-color);">STEPS</h3>
       <p style="color: var(--text-main); font-size: 0.9rem; line-height: 1.5; margin-bottom: 16px;">
-        For each vote you cast on Climb, you gain <strong>1 Step</strong>! You can spend your Steps to unlock features and perks across the app.
+        You can spend your steps to gain access to new features and stars to use on other users.
       </p>
-      <div class="card" style="padding: 12px; background: var(--bg-secondary); border: 2px solid var(--border-color); text-align: left; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem;">
-        <div><strong>Summit / Leaderboard:</strong> 25 Steps</div>
-        <div><strong>Clubs:</strong> 10 Steps</div>
-        <div><strong>Personal Grade:</strong> 75 Steps</div>
-        <div><strong>Official Leaderboard Ranks:</strong> 250 Steps</div>
-        <div><strong>View User Instagram:</strong> 25 Steps</div>
-        <div id="hint-steps-promo" style="margin-top: 4px; color: var(--primary-color); font-weight: bold;">Save your Instagram handle on your Me tab for +50 FREE Steps!</div>
+      <div class="card" style="padding: 12px; background: var(--bg-secondary); border: 2px solid var(--border-color); text-align: left; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div><strong style="color: var(--text-main);">Summit:</strong> <span style="color: var(--text-muted);">25 Steps</span></div>
+          <button type="button" class="btn btn-primary btn-sm btn-explainer-unlock" data-feature="leaderboard" data-cost="25" style="padding: 4px 10px; font-size: 0.75rem;">Unlock</button>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div><strong style="color: var(--text-main);">Clubs:</strong> <span style="color: var(--text-muted);">10 Steps</span></div>
+          <button type="button" class="btn btn-primary btn-sm btn-explainer-unlock" data-feature="clubs" data-cost="10" style="padding: 4px 10px; font-size: 0.75rem;">Unlock</button>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div><strong style="color: var(--text-main);">Personal Grade:</strong> <span style="color: var(--text-muted);">75 Steps</span></div>
+          <button type="button" class="btn btn-primary btn-sm btn-explainer-unlock" data-feature="grade" data-cost="75" style="padding: 4px 10px; font-size: 0.75rem;">Unlock</button>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div><strong style="color: var(--text-main);">Leaderboard Ranks:</strong> <span style="color: var(--text-muted);">250 Steps</span></div>
+          <button type="button" class="btn btn-primary btn-sm btn-explainer-unlock" data-feature="ranks" data-cost="250" style="padding: 4px 10px; font-size: 0.75rem;">Unlock</button>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div><strong style="color: var(--text-main);">View User Instagram:</strong> <span style="color: var(--text-muted);">25 Steps</span></div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: bold;">Per Profile</span>
+        </div>
       </div>
       <button type="button" class="btn btn-primary btn-block" id="btn-close-steps-explainer">Got It!</button>
     </div>
