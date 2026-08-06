@@ -1008,7 +1008,7 @@
       </div>
       <h3 style="font-family: var(--font-display); font-weight: 700; margin-bottom: 8px; color: var(--primary-color);">UNLOCK INSTAGRAM</h3>
       <p id="ig-unlock-message" style="color: var(--text-main); font-size: 0.95rem; line-height: 1.5; margin-bottom: 12px;">
-        Unlock @username's Instagram for 25 Steps?
+        Unlock this user's Instagram profile for 25 Steps?
       </p>
       <p id="ig-unlock-balance" style="color: var(--text-muted); font-size: 0.85rem; font-family: var(--font-display); font-weight: bold; margin-bottom: 20px;">
         Your Steps: 0
@@ -1016,6 +1016,26 @@
       <div style="display: flex; gap: 10px;">
         <button type="button" class="btn btn-secondary" id="btn-cancel-ig-unlock" style="flex: 1;">Cancel</button>
         <button type="button" class="btn btn-primary" id="btn-confirm-ig-unlock" style="flex: 1;">Unlock (25 Steps)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instagram View / Open Modal -->
+  <div id="ig-view-modal" class="modal-overlay hidden">
+    <div class="modal-content card" style="max-width: 360px; padding: 24px; text-align: center;">
+      <div style="color: var(--primary-color); margin-bottom: 8px; display: flex; justify-content: center;">
+        <svg class="retro-icon" viewBox="0 0 16 16" width="40" height="40" fill="currentColor">
+          <path d="M8 1l2.3 4.7 5.2.8-3.8 3.7.9 5.2L8 13l-4.6 2.4.9-5.2L.5 6.5l5.2-.8z"/>
+        </svg>
+      </div>
+      <h3 style="font-family: var(--font-display); font-weight: 700; margin-bottom: 4px; color: var(--primary-color);">INSTAGRAM UNLOCKED</h3>
+      <h4 id="ig-view-handle" style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 12px; color: var(--text-main);">@username</h4>
+      <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.4; margin-bottom: 20px;">
+        Would you like to open their Instagram profile now?
+      </p>
+      <div style="display: flex; gap: 10px;">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-ig-view" style="flex: 1;">Done</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-ig-view" style="flex: 1;">Open Instagram</button>
       </div>
     </div>
   </div>
