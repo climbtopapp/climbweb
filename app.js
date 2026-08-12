@@ -204,7 +204,6 @@ const screens = {
   register: document.getElementById('screen-register'),
   mash: document.getElementById('screen-mash'),
   leaderboard: document.getElementById('screen-leaderboard'),
-  challenges: document.getElementById('screen-challenges'),
   clubs: document.getElementById('screen-clubs'),
   profile: document.getElementById('screen-profile')
 };
@@ -1244,18 +1243,85 @@ function setupEventListeners() {
     });
   });
 
-  // Climb Tab Toggle Buttons
+  // Climb Tab Toggle Buttons & Global/Region Dropdown
   const btnClimbGlobal = document.getElementById('btn-climb-global');
   const btnClimbClub = document.getElementById('btn-climb-club');
-  
+  const globalDropdownMenu = document.getElementById('global-dropdown-menu');
+  const globalChevron = document.querySelector('.dropdown-chevron');
+  const globalSelectorLabel = document.getElementById('global-selector-label');
+
   if (btnClimbGlobal && btnClimbClub) {
-    btnClimbGlobal.addEventListener('click', () => {
-      btnClimbGlobal.classList.add('active');
-      btnClimbClub.classList.remove('active');
-      isMashClubMode = false;
-      loadNextMatchup();
+    btnClimbGlobal.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isMashClubMode) {
+        // If coming from Club mode, activate global tab
+        btnClimbGlobal.classList.add('active');
+        btnClimbClub.classList.remove('active');
+        isMashClubMode = false;
+        loadNextMatchup();
+      }
+      // Toggle dropdown menu
+      if (globalDropdownMenu) {
+        const isHidden = globalDropdownMenu.classList.contains('hidden');
+        globalDropdownMenu.classList.toggle('hidden');
+        if (globalChevron) globalChevron.classList.toggle('open', isHidden);
+      }
     });
-    
+
+    // Dropdown Option Selection
+    document.querySelectorAll('.dropdown-option').forEach(optionBtn => {
+      optionBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const selectedScope = optionBtn.getAttribute('data-scope');
+        
+        if (selectedScope === 'region') {
+          const region = (currentProfile && currentProfile.state) ? currentProfile.state : userState;
+          if (!region) {
+            showToast('Please select your region in Settings first.', 'error');
+            if (globalDropdownMenu) globalDropdownMenu.classList.add('hidden');
+            if (globalChevron) globalChevron.classList.remove('open');
+            return;
+          }
+          mashScope = 'region';
+          if (globalSelectorLabel) globalSelectorLabel.innerText = region;
+        } else {
+          mashScope = 'global';
+          if (globalSelectorLabel) globalSelectorLabel.innerText = 'Global';
+        }
+
+        // Update active checkmarks and classes
+        document.querySelectorAll('.dropdown-option').forEach(opt => {
+          const check = opt.querySelector('.option-check');
+          if (opt.getAttribute('data-scope') === mashScope) {
+            opt.classList.add('active');
+            if (check) check.classList.remove('hidden');
+          } else {
+            opt.classList.remove('active');
+            if (check) check.classList.add('hidden');
+          }
+        });
+
+        // Close dropdown menu
+        if (globalDropdownMenu) globalDropdownMenu.classList.add('hidden');
+        if (globalChevron) globalChevron.classList.remove('open');
+
+        // Ensure global tab is active
+        btnClimbGlobal.classList.add('active');
+        btnClimbClub.classList.remove('active');
+        isMashClubMode = false;
+
+        loadNextMatchup();
+      });
+    });
+
+    // Close dropdown on click outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dropdown-wrapper')) {
+        if (globalDropdownMenu) globalDropdownMenu.classList.add('hidden');
+        if (globalChevron) globalChevron.classList.remove('open');
+      }
+    });
+
     btnClimbClub.addEventListener('click', () => {
       const votes = currentProfile ? currentProfile.votes_cast : 0;
       if (votes < 25) {
@@ -1272,6 +1338,8 @@ function setupEventListeners() {
       
       btnClimbClub.classList.add('active');
       btnClimbGlobal.classList.remove('active');
+      if (globalDropdownMenu) globalDropdownMenu.classList.add('hidden');
+      if (globalChevron) globalChevron.classList.remove('open');
       isMashClubMode = true;
       loadNextMatchup();
     });
@@ -1641,9 +1709,48 @@ async function loadNextMatchup() {
         pref: userVotePreference || 'everyone',
         filter_club_id: currentClubInfo.id
       };
+    } else if (mashScope === 'region') {
+      const region = (currentProfile && currentProfile.state) ? currentProfile.state : userState;
+      if (region) {
+        rpcName = 'get_matchup_region';
+        rpcArgs = {
+          voter_id: currentUser.id,
+          pref: userVotePreference || 'everyone',
+          filter_state: region
+        };
+      }
     }
 
-    const { data, error } = await supabaseClient.rpc(rpcName, rpcArgs);
+    let data = null;
+    let error = null;
+
+    if (mashScope === 'region') {
+      const res = await supabaseClient.rpc(rpcName, rpcArgs);
+      data = res.data;
+      error = res.error;
+      if (error) {
+        // Fallback query directly from profiles table for state match
+        const region = (currentProfile && currentProfile.state) ? currentProfile.state : userState;
+        let query = supabaseClient
+          .from('profiles')
+          .select('id, avatar_url, elo, first_name, instagram_handle')
+          .neq('id', currentUser.id)
+          .not('avatar_url', 'is', null)
+          .eq('state', region);
+        if (userVotePreference && userVotePreference !== 'everyone') {
+          query = query.eq('gender', userVotePreference);
+        }
+        const { data: fbData, error: fbError } = await query.limit(20);
+        if (!fbError && fbData && fbData.length >= 2) {
+          data = fbData.sort(() => 0.5 - Math.random()).slice(0, 2);
+          error = null;
+        }
+      }
+    } else {
+      const res = await supabaseClient.rpc(rpcName, rpcArgs);
+      data = res.data;
+      error = res.error;
+    }
 
     if (error) throw error;
 
