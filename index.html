@@ -365,7 +365,24 @@
       <header class="app-header"
         style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding-bottom: 0; gap: 8px;">
         <div class="tabs" style="margin-bottom: 0;">
-          <button class="tab-btn active" id="btn-climb-global" style="padding: 8px 16px;">Global</button>
+          <div class="dropdown-wrapper" style="position: relative; display: inline-block;">
+            <button class="tab-btn active" id="btn-climb-global" style="padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+              <span id="global-selector-label">Global</span>
+              <svg class="retro-icon dropdown-chevron" viewBox="0 0 16 16" width="12" height="12" fill="currentColor" style="transition: transform 0.2s ease;">
+                <path d="M4 6l4 4 4-4z"/>
+              </svg>
+            </button>
+            <div id="global-dropdown-menu" class="dropdown-menu hidden" style="position: absolute; top: calc(100% + 4px); left: 0; background: var(--bg-secondary); border: 2px solid var(--border-color); box-shadow: var(--shadow-sm); z-index: 200; min-width: 140px; text-align: left; padding: 4px 0;">
+              <button type="button" class="dropdown-option active" data-scope="global" style="width: 100%; padding: 8px 12px; background: transparent; border: none; font-family: var(--font-display); font-size: 0.85rem; font-weight: bold; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase;">
+                <span>Global</span>
+                <span class="option-check" style="color: var(--primary-color);">✓</span>
+              </button>
+              <button type="button" class="dropdown-option" data-scope="region" style="width: 100%; padding: 8px 12px; background: transparent; border: none; font-family: var(--font-display); font-size: 0.85rem; font-weight: bold; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase;">
+                <span id="dropdown-region-label">Region</span>
+                <span class="option-check hidden" style="color: var(--primary-color);">✓</span>
+              </button>
+            </div>
+          </div>
           <button class="tab-btn" id="btn-climb-club" style="padding: 8px 16px;">Club</button>
         </div>
         <!-- Steps Counter Bar -->
@@ -578,28 +595,6 @@
       </div>
     </section>
 
-    <!-- Screen: Challenges -->
-    <section id="screen-challenges" class="screen">
-      <header class="app-header">
-        <h1 class="brand-title-sm">Challenges</h1>
-      </header>
-
-      <div class="challenges-coming-soon" style="padding: 40px 20px; text-align: center;">
-        <div class="challenges-icon" style="color: var(--primary-color); margin-bottom: 20px;">
-          <svg class="retro-icon" viewBox="0 0 16 16" width="64" height="64" fill="currentColor">
-            <path d="M7 1h2v2H7zm3 2h2v2h-2zm2 3h2v2h-2zm0 4h-2v2h2zm-3 3H7v2h2zm-5-3H2v-2h2zm0-5H2v-2h2zm3 0h2v4H7z" />
-          </svg>
-        </div>
-        <h2 class="challenges-title" style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 15px;">iOS App Exclusive</h2>
-        <p class="challenges-desc" style="font-size: 1rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 25px;">
-          Challenges are only available on the Climb iOS app. Download the app to unlock regional matches, exclusive modeling casting calls, and local opportunities.
-        </p>
-        <a href="https://testflight.apple.com/join/APqbZqjx" target="_blank" class="btn btn-primary" style="display: inline-block; text-decoration: none; width: auto; padding: 12px 24px; font-weight: bold; text-transform: uppercase;">
-          Download on TestFlight
-        </a>
-      </div>
-    </section>
-
     <!-- Screen: Clubs -->
     <section id="screen-clubs" class="screen">
       <header class="app-header">
@@ -639,14 +634,6 @@
           </svg>
         </span>
         <span class="nav-label">Summit</span>
-      </button>
-      <button class="nav-item" data-screen="challenges">
-        <span class="nav-icon">
-          <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
-            <path d="M7 1h2v2H7zm3 2h2v2h-2zm2 3h2v2h-2zm0 4h-2v2h2zm-3 3H7v2h2zm-5-3H2v-2h2zm0-5H2v-2h2zm3 0h2v4H7z" />
-          </svg>
-        </span>
-        <span class="nav-label">Challenges</span>
       </button>
       <button class="nav-item" data-screen="clubs">
         <span class="nav-icon">
