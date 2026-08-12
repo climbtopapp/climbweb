@@ -1131,80 +1131,26 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.1);
 }
 
-/* Challenges Coming Soon Screen */
-.challenges-coming-soon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 40px 24px;
-  flex: 1;
-  opacity: 0.65;
-  filter: grayscale(100%);
+/* Global Selector Dropdown */
+.dropdown-wrapper {
+  position: relative;
+  display: inline-block;
 }
 
-.challenges-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
+.dropdown-chevron.open {
+  transform: rotate(180deg);
 }
 
-.challenges-title {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  color: var(--primary-color);
-  margin-bottom: 12px;
-  text-transform: uppercase;
+.dropdown-option {
+  transition: background-color 0.15s ease;
 }
 
-.challenges-desc {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  max-width: 340px;
-  line-height: 1.6;
-  margin-bottom: 28px;
+.dropdown-option:hover {
+  background-color: var(--bg-primary) !important;
 }
 
-.challenges-features {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  max-width: 300px;
-  margin-bottom: 28px;
-}
-
-.challenge-feature {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background-color: var(--bg-secondary);
-  padding: 14px 18px;
-  border-radius: 0;
-  border: 3px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-}
-
-.feature-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.feature-text {
-  font-family: var(--font-body);
-  font-weight: bold;
-  font-size: 0.9rem;
-  color: var(--text-main);
-}
-
-.challenges-footer {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  font-style: italic;
+.dropdown-option.active {
+  background-color: rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Selected state for selection screens using mash-cards */
