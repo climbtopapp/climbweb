@@ -42,8 +42,9 @@ function getAvailableSteps(profile = currentProfile) {
   if (!profile) return 0;
   const votes = profile.votes_cast || 0;
   const igBonus = profile.claimed_ig_bonus ? 50 : 0;
+  const bonus = profile.bonus_steps || 0;
   const spent = profile.steps_spent || 0;
-  return Math.max(0, votes + igBonus - spent);
+  return Math.max(0, votes + igBonus + bonus - spent);
 }
 
 function isFeatureUnlocked(featureId, profile = currentProfile) {
@@ -608,6 +609,31 @@ function setupEventListeners() {
     e.preventDefault();
     const emailInput = document.getElementById('input-email').value.trim();
     if (!emailInput) return;
+
+    setButtonLoading('btn-send-otp', true, 'Checking...');
+
+    // Check if account exists with this email
+    try {
+      const { data: existingProfiles, error: checkError } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .ilike('email', emailInput.toLowerCase())
+        .limit(1);
+
+      const exists = existingProfiles && existingProfiles.length > 0;
+
+      if (!isSignUp && !exists) {
+        setButtonLoading('btn-send-otp', false, 'Send Login Code');
+        showToast('No account found for this email. Please Sign Up to create an account.', 'error');
+        return;
+      }
+
+      if (isSignUp && exists) {
+        showToast('Account found! Sending login code...', 'info');
+      }
+    } catch (err) {
+      console.warn('Error checking email exists:', err);
+    }
 
     setButtonLoading('btn-send-otp', true, 'Sending...');
 
