@@ -672,7 +672,7 @@ function setupEventListeners() {
     setButtonLoading('btn-verify-otp', false, 'Verify Code');
 
     if (error) {
-      showToast(error.message, 'error');
+      showToast('Invalid verification code. Please check your code and try again.', 'error');
     } else {
       showToast('Successfully authenticated!', 'success');
       // The onAuthStateChange listener will automatically route the user
