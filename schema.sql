@@ -11,6 +11,9 @@ CREATE TABLE public.profiles (
   state text,
   elo double precision NOT NULL DEFAULT 1200.0,
   votes_cast integer NOT NULL DEFAULT 0,
+  bonus_steps integer NOT NULL DEFAULT 0,
+  steps_spent integer NOT NULL DEFAULT 0,
+  claimed_ig_bonus boolean DEFAULT false,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
@@ -191,6 +194,55 @@ BEGIN
         SELECT blocked_id FROM public.blocks WHERE blocker_id = get_matchup.voter_id
         UNION
         SELECT blocker_id FROM public.blocks WHERE blocked_id = get_matchup.voter_id
+      )
+    ORDER BY random()
+    LIMIT 2;
+  END IF;
+END;
+$$;
+
+-- Get matchup filtered by region
+CREATE OR REPLACE FUNCTION public.get_matchup_region(voter_id uuid, pref text DEFAULT 'everyone', filter_state text DEFAULT NULL)
+RETURNS TABLE (
+  id uuid,
+  avatar_url text,
+  elo double precision,
+  first_name text
+) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF pref = 'everyone' THEN
+    RETURN QUERY
+    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    FROM public.profiles p
+    WHERE p.id != voter_id AND p.avatar_url IS NOT NULL
+      AND (filter_state IS NULL OR p.state = filter_state)
+      AND p.id NOT IN (
+        SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup_region.voter_id AND v.created_at > now() - interval '15 minutes'
+        UNION
+        SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup_region.voter_id AND v.created_at > now() - interval '15 minutes'
+      )
+      AND p.id NOT IN (
+        SELECT blocked_id FROM public.blocks WHERE blocker_id = get_matchup_region.voter_id
+        UNION
+        SELECT blocker_id FROM public.blocks WHERE blocked_id = get_matchup_region.voter_id
+      )
+    ORDER BY random()
+    LIMIT 2;
+  ELSE
+    RETURN QUERY
+    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    FROM public.profiles p
+    WHERE p.id != voter_id AND p.avatar_url IS NOT NULL AND p.gender = pref
+      AND (filter_state IS NULL OR p.state = filter_state)
+      AND p.id NOT IN (
+        SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup_region.voter_id AND v.created_at > now() - interval '15 minutes'
+        UNION
+        SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup_region.voter_id AND v.created_at > now() - interval '15 minutes'
+      )
+      AND p.id NOT IN (
+        SELECT blocked_id FROM public.blocks WHERE blocker_id = get_matchup_region.voter_id
+        UNION
+        SELECT blocker_id FROM public.blocks WHERE blocked_id = get_matchup_region.voter_id
       )
     ORDER BY random()
     LIMIT 2;
@@ -899,5 +951,29 @@ CREATE OR REPLACE TRIGGER trigger_club_member_join
   AFTER INSERT ON public.club_members
   FOR EACH ROW
   EXECUTE FUNCTION public.on_club_member_join();
+
+
+-- Helper function to record a starred profile view notification
+CREATE OR REPLACE FUNCTION public.notify_profile_star_view(target_user_id uuid, viewer_name text DEFAULT NULL)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Do not notify self
+  IF auth.uid() = target_user_id THEN
+    RETURN;
+  END IF;
+
+  INSERT INTO public.notifications (user_id, title, message, type)
+  VALUES (
+    target_user_id,
+    'Starred Profile View!',
+    COALESCE(NULLIF(viewer_name, ''), 'Someone') || ' checked out your Instagram profile!',
+    'star_view'
+  );
+END;
+$$;
+
 
 
