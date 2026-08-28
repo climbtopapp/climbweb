@@ -179,13 +179,33 @@ async function saveInstagramHandle(rawHandle) {
   }
 }
 
-function showIgViewModal(cleanHandle) {
+async function sendProfileViewNotification(targetUserId) {
+  if (!currentUser || !targetUserId || currentUser.id === String(targetUserId)) return;
+  const viewerName = (currentProfile && currentProfile.first_name) ? currentProfile.first_name : 'Someone';
+  try {
+    await supabaseClient
+      .from('notifications')
+      .insert({
+        user_id: targetUserId,
+        title: 'Starred Profile View!',
+        message: `${viewerName} checked out your Instagram profile!`,
+        type: 'star_view'
+      });
+  } catch (err) {
+    console.warn('Failed to send star view notification:', err);
+  }
+}
+
+function showIgViewModal(cleanHandle, targetUserId = null) {
   const modal = document.getElementById('ig-view-modal');
   const handleEl = document.getElementById('ig-view-handle');
   if (handleEl) handleEl.innerText = `@${cleanHandle.replace(/^@/, '')}`;
   if (modal) {
     modal.dataset.handle = cleanHandle.replace(/^@/, '');
     modal.classList.remove('hidden');
+  }
+  if (targetUserId) {
+    sendProfileViewNotification(targetUserId);
   }
 }
 
@@ -194,6 +214,7 @@ window.isFeatureUnlocked = isFeatureUnlocked;
 window.unlockFeature = unlockFeature;
 window.unlockInstagram = unlockInstagram;
 window.saveInstagramHandle = saveInstagramHandle;
+window.sendProfileViewNotification = sendProfileViewNotification;
 window.updateStepsDisplay = updateStepsDisplay;
 window.showIgViewModal = showIgViewModal;
 
@@ -437,18 +458,11 @@ function updateNotificationsUI() {
 // --- Event Listeners Setup ---
 function setupEventListeners() {
   // Landing Screen: Scroll down indicator
-  document.getElementById('btn-scroll-down').addEventListener('click', () => {
-    const landing = document.getElementById('screen-landing');
-    landing.scrollTo({ top: landing.clientHeight, behavior: 'smooth' });
-  });
-
-  // Landing Screen: Parallax scroll listener
-  const landingScreen = document.getElementById('screen-landing');
-  const parallaxBg = document.querySelector('.parallax-bg');
-  if (landingScreen && parallaxBg) {
-    landingScreen.addEventListener('scroll', () => {
-      const scrollTop = landingScreen.scrollTop;
-      parallaxBg.style.transform = `translateY(${scrollTop * 0.3}px)`;
+  const btnScrollDown = document.getElementById('btn-scroll-down');
+  if (btnScrollDown) {
+    btnScrollDown.addEventListener('click', () => {
+      const landing = document.getElementById('screen-landing');
+      if (landing) landing.scrollTo({ top: landing.clientHeight, behavior: 'smooth' });
     });
   }
 
@@ -1536,7 +1550,7 @@ function setupEventListeners() {
     const unlockedIgs = (currentProfile && currentProfile.unlocked_instagrams) || [];
 
     if (unlockedIgs.includes(targetUser.id)) {
-      showIgViewModal(cleanHandle);
+      showIgViewModal(cleanHandle, targetUser.id);
       return;
     }
 
@@ -1582,7 +1596,7 @@ function setupEventListeners() {
       const success = await unlockInstagram(targetId, 25);
       if (success) {
         igModal.classList.add('hidden');
-        showIgViewModal(cleanHandle);
+        showIgViewModal(cleanHandle, targetId);
       }
     });
   }
@@ -2044,7 +2058,7 @@ async function loadLeaderboard() {
             const unlockedIgs = (currentProfile && currentProfile.unlocked_instagrams) || [];
 
             if (unlockedIgs.includes(targetId)) {
-              showIgViewModal(cleanHandle);
+              showIgViewModal(cleanHandle, targetId);
             } else {
               targetIgUserId = targetId;
               targetIgHandle = cleanHandle;
