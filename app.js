@@ -668,14 +668,31 @@ function setupEventListeners() {
     }
   });
 
+  // Auth Form: Input listener to clear error
+  document.getElementById('input-otp').addEventListener('input', () => {
+    const errBox = document.getElementById('otp-error-box');
+    if (errBox) errBox.classList.add('hidden');
+  });
+
   // Auth Form: Verify OTP Code
   document.getElementById('form-otp').addEventListener('submit', async (e) => {
     e.preventDefault();
     const emailInput = document.getElementById('input-email').value.trim();
     const otpInput = document.getElementById('input-otp').value.trim();
+    const errBox = document.getElementById('otp-error-box');
     if (!emailInput || !otpInput) return;
 
+    if (otpInput.length !== 6) {
+      if (errBox) {
+        errBox.innerText = 'Please enter the full 6-digit verification code.';
+        errBox.classList.remove('hidden');
+      }
+      showToast('Please enter the full 6-digit verification code.', 'error');
+      return;
+    }
+
     setButtonLoading('btn-verify-otp', true, 'Verifying...');
+    if (errBox) errBox.classList.add('hidden');
 
     const { data, error } = await supabaseClient.auth.verifyOtp({
       email: emailInput,
@@ -686,15 +703,19 @@ function setupEventListeners() {
     setButtonLoading('btn-verify-otp', false, 'Verify Code');
 
     if (error) {
-      showToast('Invalid verification code. Please check your code and try again.', 'error');
-    } else {
-      showToast('Successfully authenticated!', 'success');
-      // The onAuthStateChange listener will automatically route the user
+      const errMsg = 'Invalid verification code. Please check your code and try again.';
+      if (errBox) {
+        errBox.innerText = errMsg;
+        errBox.classList.remove('hidden');
+      }
+      showToast(errMsg, 'error');
     }
   });
 
   // Auth: Go back from OTP screen
   document.getElementById('btn-back-otp').addEventListener('click', () => {
+    const errBox = document.getElementById('otp-error-box');
+    if (errBox) errBox.classList.add('hidden');
     document.getElementById('auth-step-otp').classList.add('hidden');
     document.getElementById('auth-step-email').classList.remove('hidden');
   });
