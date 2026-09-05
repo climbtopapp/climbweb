@@ -21,7 +21,8 @@ let currentLeaderboardGender = "everyone";
 let currentClubInfo = null;
 let currentClubMembers = [];
 let isMashClubMode = false;
-let mashScope = 'global';
+var mashScope = 'global';
+window.mashScope = 'global';
 
 let currentCroppingContext = "register";
 let isSignUp = false;
@@ -240,25 +241,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // --- Auth State Listener ---
+let lastAuthUserId = null;
+let isAuthHandling = false;
+
 async function initAuthListener() {
-  // Check initial session
-  const { data: { session }, error } = await supabaseClient.auth.getSession();
-  if (error) {
-    console.error('Error fetching session:', error);
-  }
-
-  handleAuthStateChange(session?.user || null);
-
-  // Listen for auth state modifications
+  // Listen for auth state modifications (fires INITIAL_SESSION automatically in Supabase v2)
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
     console.log('Auth state event:', event);
     handleAuthStateChange(session?.user || null);
   });
+
+  // Check initial session as safety fallback
+  const { data: { session }, error } = await supabaseClient.auth.getSession();
+  if (error) {
+    console.error('Error fetching session:', error);
+  } else if (session?.user && !lastAuthUserId) {
+    handleAuthStateChange(session.user);
+  }
 }
 
 async function handleAuthStateChange(user) {
+  const newUserId = user?.id || null;
   currentUser = user;
+
   if (!user) {
+    lastAuthUserId = null;
     currentProfile = null;
     if (notificationsSubscription) {
       supabaseClient.removeChannel(notificationsSubscription);
@@ -268,9 +275,21 @@ async function handleAuthStateChange(user) {
     return;
   }
 
-  // User is authenticated, check profile completion
-  showScreen('loader');
-  await fetchUserProfile();
+  // Prevent duplicate runs if this user is already active and profile is loaded
+  if (lastAuthUserId === newUserId && currentProfile) {
+    return;
+  }
+  if (isAuthHandling) return;
+  isAuthHandling = true;
+
+  try {
+    lastAuthUserId = newUserId;
+    // User is authenticated, check profile completion
+    showScreen('loader');
+    await fetchUserProfile();
+  } finally {
+    isAuthHandling = false;
+  }
 }
 
 async function fetchUserProfile() {
@@ -1740,8 +1759,12 @@ function checkRegistrationSubmittable() {
 }
 
 // --- Mash Arena Game Functions ---
+let isLoadingMatchup = false;
+
 async function loadNextMatchup() {
   if (!currentUser) return;
+  if (isLoadingMatchup) return;
+  isLoadingMatchup = true;
 
   const cardLeft = document.getElementById('card-left');
   const cardRight = document.getElementById('card-right');
@@ -1758,6 +1781,8 @@ async function loadNextMatchup() {
   document.querySelectorAll('.card-loader').forEach(loader => loader.classList.remove('hidden'));
 
   try {
+    const activeScope = (typeof mashScope !== 'undefined' ? mashScope : (window.mashScope || 'global'));
+
     let rpcName = 'get_matchup';
     let rpcArgs = {
       voter_id: currentUser.id,
@@ -1771,7 +1796,7 @@ async function loadNextMatchup() {
         pref: userVotePreference || 'everyone',
         filter_club_id: currentClubInfo.id
       };
-    } else if (mashScope === 'region') {
+    } else if (activeScope === 'region') {
       const region = (currentProfile && currentProfile.state) ? currentProfile.state : userState;
       if (region) {
         rpcName = 'get_matchup_region';
@@ -1786,7 +1811,7 @@ async function loadNextMatchup() {
     let data = null;
     let error = null;
 
-    if (mashScope === 'region') {
+    if (activeScope === 'region') {
       const res = await supabaseClient.rpc(rpcName, rpcArgs);
       data = res.data;
       error = res.error;
@@ -1900,7 +1925,9 @@ async function loadNextMatchup() {
 
   } catch (err) {
     console.error('Failed to load matchup:', err);
-    showToast(`Failed to load matchup: ${err.message || JSON.stringify(err)}`, 'error');
+    showToast('Failed to load matchup. Make sure other users exist.', 'error');
+  } finally {
+    isLoadingMatchup = false;
   }
 }
 
@@ -2307,8 +2334,19 @@ function setButtonLoading(buttonId, isLoading, text) {
   }
 }
 
+let lastToastMsg = '';
+let lastToastTime = 0;
+
 function showToast(message, type = 'info') {
+  const now = Date.now();
+  if (message === lastToastMsg && (now - lastToastTime) < 1500) {
+    return;
+  }
+  lastToastMsg = message;
+  lastToastTime = now;
+
   const container = document.getElementById('toast-container');
+  if (!container) return;
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.innerText = message;

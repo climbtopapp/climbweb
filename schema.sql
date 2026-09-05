@@ -160,12 +160,13 @@ RETURNS TABLE (
   id uuid,
   avatar_url text,
   elo double precision,
-  first_name text
+  first_name text,
+  instagram_handle text
 ) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   IF pref = 'everyone' THEN
     RETURN QUERY
-    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    SELECT p.id, p.avatar_url, p.elo, p.first_name, p.instagram_handle
     FROM public.profiles p
     WHERE p.id != voter_id AND p.avatar_url IS NOT NULL
       AND p.id NOT IN (
@@ -182,7 +183,7 @@ BEGIN
     LIMIT 2;
   ELSE
     RETURN QUERY
-    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    SELECT p.id, p.avatar_url, p.elo, p.first_name, p.instagram_handle
     FROM public.profiles p
     WHERE p.id != voter_id AND p.avatar_url IS NOT NULL AND p.gender = pref
       AND p.id NOT IN (
@@ -207,12 +208,13 @@ RETURNS TABLE (
   id uuid,
   avatar_url text,
   elo double precision,
-  first_name text
+  first_name text,
+  instagram_handle text
 ) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   IF pref = 'everyone' THEN
     RETURN QUERY
-    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    SELECT p.id, p.avatar_url, p.elo, p.first_name, p.instagram_handle
     FROM public.profiles p
     WHERE p.id != voter_id AND p.avatar_url IS NOT NULL
       AND (filter_state IS NULL OR p.state = filter_state)
@@ -230,7 +232,7 @@ BEGIN
     LIMIT 2;
   ELSE
     RETURN QUERY
-    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    SELECT p.id, p.avatar_url, p.elo, p.first_name, p.instagram_handle
     FROM public.profiles p
     WHERE p.id != voter_id AND p.avatar_url IS NOT NULL AND p.gender = pref
       AND (filter_state IS NULL OR p.state = filter_state)
@@ -686,12 +688,13 @@ RETURNS TABLE (
   id uuid,
   avatar_url text,
   elo double precision,
-  first_name text
+  first_name text,
+  instagram_handle text
 ) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   IF pref = 'everyone' THEN
     RETURN QUERY
-    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    SELECT p.id, p.avatar_url, p.elo, p.first_name, p.instagram_handle
     FROM public.profiles p
     JOIN public.club_members cm ON cm.user_id = p.id AND cm.club_id = filter_club_id
     WHERE p.id != voter_id AND p.avatar_url IS NOT NULL
@@ -709,7 +712,7 @@ BEGIN
     LIMIT 2;
   ELSE
     RETURN QUERY
-    SELECT p.id, p.avatar_url, p.elo, p.first_name
+    SELECT p.id, p.avatar_url, p.elo, p.first_name, p.instagram_handle
     FROM public.profiles p
     JOIN public.club_members cm ON cm.user_id = p.id AND cm.club_id = filter_club_id
     WHERE p.id != voter_id AND p.avatar_url IS NOT NULL AND p.gender = pref
@@ -788,6 +791,10 @@ GRANT EXECUTE ON FUNCTION public.get_club_leaderboard(uuid) TO service_role;
 
 GRANT EXECUTE ON FUNCTION public.get_matchup_club(uuid, text, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_matchup_club(uuid, text, uuid) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.get_matchup_region(uuid, text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_matchup_region(uuid, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_matchup_region(uuid, text, text) TO service_role;
 
 
 -- delete_own_account function to allow users to delete their own account
