@@ -21,6 +21,7 @@ let currentLeaderboardGender = "everyone";
 let currentClubInfo = null;
 let currentClubMembers = [];
 let isMashClubMode = false;
+let mashScope = 'global';
 
 let currentCroppingContext = "register";
 let isSignUp = false;
