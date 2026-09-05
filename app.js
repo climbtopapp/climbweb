@@ -1899,7 +1899,7 @@ async function loadNextMatchup() {
 
   } catch (err) {
     console.error('Failed to load matchup:', err);
-    showToast('Failed to load matchup. Make sure other users exist.', 'error');
+    showToast(`Failed to load matchup: ${err.message || JSON.stringify(err)}`, 'error');
   }
 }
 
