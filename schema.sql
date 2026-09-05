@@ -310,14 +310,15 @@ RETURNS TABLE (
   elo double precision,
   global_rank integer,
   relative_rank integer,
-  first_name text
+  first_name text,
+  instagram_handle text
 ) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   IF lb_type = 'global' THEN
     RETURN QUERY
     WITH RankedProfiles AS (
       SELECT 
-        p.id, p.avatar_url, p.state, p.elo, p.first_name,
+        p.id, p.avatar_url, p.state, p.elo, p.first_name, p.instagram_handle,
         row_number() OVER (ORDER BY p.elo DESC)::integer as g_rank
       FROM public.profiles p
       WHERE p.avatar_url IS NOT NULL
@@ -327,7 +328,8 @@ BEGIN
       rp.id as user_id, rp.avatar_url, rp.state, rp.elo,
       rp.g_rank as global_rank,
       rp.g_rank as relative_rank,
-      rp.first_name
+      rp.first_name,
+      rp.instagram_handle
     FROM RankedProfiles rp
     ORDER BY rp.g_rank ASC
     LIMIT 99;
@@ -336,7 +338,7 @@ BEGIN
     RETURN QUERY
     WITH RankedProfiles AS (
       SELECT 
-        p.id, p.avatar_url, p.state, p.elo, p.first_name,
+        p.id, p.avatar_url, p.state, p.elo, p.first_name, p.instagram_handle,
         row_number() OVER (ORDER BY p.elo DESC)::integer as g_rank
       FROM public.profiles p
       WHERE p.avatar_url IS NOT NULL
@@ -346,7 +348,8 @@ BEGIN
       rp.id as user_id, rp.avatar_url, rp.state, rp.elo,
       rp.g_rank as global_rank,
       row_number() OVER (ORDER BY rp.g_rank ASC)::integer as relative_rank,
-      rp.first_name
+      rp.first_name,
+      rp.instagram_handle
     FROM RankedProfiles rp
     WHERE rp.state = viewer_state
     ORDER BY rp.g_rank ASC
@@ -662,7 +665,8 @@ RETURNS TABLE (
   avatar_url text,
   state text,
   elo double precision,
-  relative_rank bigint
+  relative_rank bigint,
+  instagram_handle text
 ) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   RETURN QUERY
@@ -672,7 +676,8 @@ BEGIN
     p.avatar_url,
     p.state,
     p.elo,
-    ROW_NUMBER() OVER (ORDER BY p.elo DESC) AS relative_rank
+    ROW_NUMBER() OVER (ORDER BY p.elo DESC) AS relative_rank,
+    p.instagram_handle
   FROM public.club_members cm
   JOIN public.profiles p ON p.id = cm.user_id
   WHERE cm.club_id = target_club_id
@@ -795,6 +800,92 @@ GRANT EXECUTE ON FUNCTION public.get_matchup_club(uuid, text, uuid) TO service_r
 REVOKE EXECUTE ON FUNCTION public.get_matchup_region(uuid, text, text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_matchup_region(uuid, text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_matchup_region(uuid, text, text) TO service_role;
+
+-- Secure Instagram Unlock RPC (enforces 25 steps strictly on the server)
+CREATE OR REPLACE FUNCTION public.unlock_user_instagram(target_user_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_voter_id uuid := auth.uid();
+  v_profile public.profiles%ROWTYPE;
+  v_avail integer;
+  v_target_handle text;
+  v_unlocked text[];
+BEGIN
+  IF v_voter_id IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  IF target_user_id = v_voter_id THEN
+    RAISE EXCEPTION 'Cannot unlock own profile';
+  END IF;
+
+  -- Lock caller profile row
+  SELECT * INTO v_profile
+  FROM public.profiles
+  WHERE id = v_voter_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Profile not found';
+  END IF;
+
+  -- Get target user's Instagram handle
+  SELECT instagram_handle INTO v_target_handle
+  FROM public.profiles
+  WHERE id = target_user_id;
+
+  IF v_target_handle IS NULL OR trim(v_target_handle) = '' THEN
+    RAISE EXCEPTION 'This user has not attached an Instagram handle';
+  END IF;
+
+  v_unlocked := COALESCE(v_profile.unlocked_instagrams, ARRAY[]::text[]);
+
+  -- If already unlocked, return handle without charging
+  IF target_user_id::text = ANY(v_unlocked) THEN
+    RETURN jsonb_build_object(
+      'success', true,
+      'already_unlocked', true,
+      'instagram_handle', v_target_handle,
+      'steps_spent', v_profile.steps_spent
+    );
+  END IF;
+
+  -- Calculate true available steps on the server
+  v_avail := (
+    COALESCE(v_profile.votes_cast, 0)
+    + CASE WHEN COALESCE(v_profile.claimed_ig_bonus, false) THEN 50 ELSE 0 END
+    + COALESCE(v_profile.bonus_steps, 0)
+    - COALESCE(v_profile.steps_spent, 0)
+  );
+
+  IF v_avail < 25 THEN
+    RAISE EXCEPTION 'Insufficient steps. 25 steps required, you have %', v_avail;
+  END IF;
+
+  -- Deduct 25 steps and add target user to unlocked_instagrams
+  UPDATE public.profiles
+  SET 
+    steps_spent = COALESCE(steps_spent, 0) + 25,
+    unlocked_instagrams = array_append(v_unlocked, target_user_id::text)
+  WHERE id = v_voter_id;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'already_unlocked', false,
+    'instagram_handle', v_target_handle,
+    'steps_spent', COALESCE(v_profile.steps_spent, 0) + 25
+  );
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.unlock_user_instagram(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.unlock_user_instagram(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.unlock_user_instagram(uuid) TO service_role;
+
 
 
 -- delete_own_account function to allow users to delete their own account

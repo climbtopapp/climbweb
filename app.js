@@ -102,25 +102,60 @@ async function unlockFeature(featureId, cost) {
 }
 
 async function unlockInstagram(targetUserId, cost = 25) {
-  if (!currentProfile || !currentUser) return false;
+  if (!currentProfile || !currentUser) return null;
   const avail = getAvailableSteps(currentProfile);
   if (avail < cost) {
     showToast(`Need ${cost} Steps to unlock Instagram. (You have ${avail} Steps)`, 'error');
-    return false;
+    return null;
   }
 
   const targetIdStr = String(targetUserId);
   const currentUnlocked = (currentProfile.unlocked_instagrams || []).map(String);
-  if (currentUnlocked.includes(targetIdStr)) return true;
 
+  // 1. Attempt secure server-side RPC first
+  try {
+    const { data: rpcRes, error: rpcErr } = await supabaseClient.rpc('unlock_user_instagram', {
+      target_user_id: targetUserId
+    });
+
+    if (!rpcErr && rpcRes && rpcRes.success) {
+      if (!currentUnlocked.includes(targetIdStr)) {
+        currentUnlocked.push(targetIdStr);
+      }
+      currentProfile.unlocked_instagrams = currentUnlocked;
+      if (rpcRes.steps_spent !== undefined) {
+        currentProfile.steps_spent = rpcRes.steps_spent;
+      } else {
+        currentProfile.steps_spent = (currentProfile.steps_spent || 0) + (rpcRes.already_unlocked ? 0 : cost);
+      }
+      updateStepsDisplay();
+      if (typeof updateProfileUI === 'function') updateProfileUI();
+      return (rpcRes.instagram_handle || '').replace(/^@/, '').trim();
+    } else if (rpcErr && rpcErr.message && rpcErr.message.includes('Insufficient steps')) {
+      showToast('Need 25 Steps to unlock Instagram.', 'error');
+      return null;
+    }
+  } catch (rpcEx) {
+    console.warn('unlock_user_instagram RPC call issue, attempting fallback:', rpcEx);
+  }
+
+  // 2. Fallback: If already unlocked locally, fetch handle directly
+  if (currentUnlocked.includes(targetIdStr)) {
+    try {
+      const { data: targetProfile } = await supabaseClient
+        .from('profiles')
+        .select('instagram_handle')
+        .eq('id', targetUserId)
+        .single();
+      return (targetProfile?.instagram_handle || '').replace(/^@/, '').trim();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // 3. Fallback: Direct database update with strict error handling
   const updatedUnlocked = [...currentUnlocked, targetIdStr];
   const newSpent = (currentProfile.steps_spent || 0) + cost;
-
-  currentProfile.unlocked_instagrams = updatedUnlocked;
-  currentProfile.steps_spent = newSpent;
-
-  updateStepsDisplay();
-  if (typeof updateProfileUI === 'function') updateProfileUI();
 
   try {
     const { error } = await supabaseClient
@@ -131,11 +166,28 @@ async function unlockInstagram(targetUserId, cost = 25) {
       })
       .eq('id', currentUser.id);
 
-    if (error) console.warn('Supabase unlockInstagram update warning:', error);
-    return true;
+    if (error) {
+      console.error('Failed to sync unlockInstagram:', error);
+      showToast('Failed to unlock Instagram. Please try again.', 'error');
+      return null;
+    }
+
+    currentProfile.unlocked_instagrams = updatedUnlocked;
+    currentProfile.steps_spent = newSpent;
+    updateStepsDisplay();
+    if (typeof updateProfileUI === 'function') updateProfileUI();
+
+    const { data: targetProfile } = await supabaseClient
+      .from('profiles')
+      .select('instagram_handle')
+      .eq('id', targetUserId)
+      .single();
+
+    return (targetProfile?.instagram_handle || '').replace(/^@/, '').trim();
   } catch (err) {
     console.error('Failed to sync unlockInstagram:', err);
-    return true;
+    showToast('Failed to unlock Instagram. Please try again.', 'error');
+    return null;
   }
 }
 
@@ -1614,7 +1666,6 @@ function setupEventListeners() {
     }
 
     modal.dataset.targetId = targetUser.id;
-    modal.dataset.targetHandle = cleanHandle;
     modal.classList.remove('hidden');
   }
 
@@ -1631,13 +1682,21 @@ function setupEventListeners() {
   if (btnConfirmIg) {
     btnConfirmIg.addEventListener('click', async () => {
       const targetId = igModal.dataset.targetId;
-      const cleanHandle = igModal.dataset.targetHandle;
       if (!targetId) return;
 
-      const success = await unlockInstagram(targetId, 25);
-      if (success) {
+      const avail = getAvailableSteps();
+      if (avail < 25) {
+        showToast(`Need 25 Steps to unlock. (You have ${avail} Steps)`, 'error');
+        return;
+      }
+
+      setButtonLoading('btn-confirm-ig-unlock', true, 'Unlocking...');
+      const unlockedHandle = await unlockInstagram(targetId, 25);
+      setButtonLoading('btn-confirm-ig-unlock', false, 'Unlock (25 Steps)');
+
+      if (unlockedHandle) {
         igModal.classList.add('hidden');
-        showIgViewModal(cleanHandle, targetId);
+        showIgViewModal(unlockedHandle, targetId);
       }
     });
   }
@@ -1863,7 +1922,7 @@ async function loadNextMatchup() {
     if (btnIgLeft) {
       if (data[0] && data[0].instagram_handle) {
         btnIgLeft.classList.remove('disabled');
-        btnIgLeft.title = `View @${data[0].instagram_handle.replace(/^@/, '')}'s Instagram`;
+        btnIgLeft.title = 'View Instagram';
       } else {
         btnIgLeft.classList.add('disabled');
         btnIgLeft.title = 'No Instagram handle added';
@@ -1873,7 +1932,7 @@ async function loadNextMatchup() {
     if (btnIgRight) {
       if (data[1] && data[1].instagram_handle) {
         btnIgRight.classList.remove('disabled');
-        btnIgRight.title = `View @${data[1].instagram_handle.replace(/^@/, '')}'s Instagram`;
+        btnIgRight.title = 'View Instagram';
       } else {
         btnIgRight.classList.add('disabled');
         btnIgRight.title = 'No Instagram handle added';
@@ -2070,6 +2129,9 @@ async function loadLeaderboard() {
           }
         }
 
+        const hasIg = Boolean(row.instagram_handle && row.instagram_handle.trim().length > 0);
+        const isUnlocked = currentProfile && currentProfile.unlocked_instagrams && currentProfile.unlocked_instagrams.map(String).includes(String(row.user_id));
+
         const rowEl = document.createElement('div');
         rowEl.className = 'rank-row';
         rowEl.innerHTML = `
@@ -2081,7 +2143,7 @@ async function loadLeaderboard() {
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
             ${!isSelf ? `
-            <button type="button" class="btn-ig-user ${row.instagram_handle ? '' : 'disabled'}" data-userid="${row.user_id}" data-ig="${row.instagram_handle || ''}" title="View Instagram" style="position: static; width: 32px; height: 32px; min-width: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+            <button type="button" class="btn-ig-user ${hasIg ? '' : 'disabled'}" data-userid="${row.user_id}" title="${hasIg ? (isUnlocked ? 'View Instagram (Unlocked)' : 'Unlock Instagram (25 Steps)') : 'No Instagram handle added'}" style="position: static; width: 32px; height: 32px; min-width: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
               <svg class="retro-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
                 <path d="M8 1l2.3 4.7 5.2.8-3.8 3.7.9 5.2L8 13l-4.6 2.4.9-5.2L.5 6.5l5.2-.8z"/>
               </svg>
@@ -2094,31 +2156,45 @@ async function loadLeaderboard() {
         if (starBtn) {
           starBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const targetId = starBtn.getAttribute('data-userid');
-            const igHandle = starBtn.getAttribute('data-ig');
-
-            if (!igHandle) {
+            if (!hasIg) {
               const noIgModal = document.getElementById('no-ig-modal');
               if (noIgModal) noIgModal.classList.remove('hidden');
               return;
             }
 
-            const cleanHandle = igHandle.replace(/^@/, '').trim();
-            const unlockedIgs = (currentProfile && currentProfile.unlocked_instagrams) || [];
+            const targetId = row.user_id;
+            const cleanHandle = (row.instagram_handle || '').replace(/^@/, '').trim();
+            const unlockedList = (currentProfile && currentProfile.unlocked_instagrams) ? currentProfile.unlocked_instagrams.map(String) : [];
 
-            if (unlockedIgs.includes(targetId)) {
+            if (unlockedList.includes(String(targetId))) {
               showIgViewModal(cleanHandle, targetId);
             } else {
-              targetIgUserId = targetId;
-              targetIgHandle = cleanHandle;
               const modal = document.getElementById('ig-unlock-modal');
               const msg = document.getElementById('ig-unlock-message');
               const bal = document.getElementById('ig-unlock-balance');
+              const btnConfirm = document.getElementById('btn-confirm-ig-unlock');
+
+              const avail = getAvailableSteps();
               if (msg) msg.innerText = "Unlock this user's Instagram profile for 25 Steps?";
-              if (bal) bal.innerText = `Your Steps: ${getAvailableSteps()}`;
+              if (bal) {
+                bal.innerText = `Your Steps: ${avail}`;
+                bal.style.color = avail < 25 ? 'var(--error-color, #ff4d4f)' : 'var(--text-muted)';
+              }
+
+              if (btnConfirm) {
+                if (avail < 25) {
+                  btnConfirm.disabled = true;
+                  btnConfirm.innerText = 'Need 25 Steps';
+                  btnConfirm.classList.add('disabled');
+                } else {
+                  btnConfirm.disabled = false;
+                  btnConfirm.innerText = 'Unlock (25 Steps)';
+                  btnConfirm.classList.remove('disabled');
+                }
+              }
+
               if (modal) {
                 modal.dataset.targetId = targetId;
-                modal.dataset.targetHandle = cleanHandle;
                 modal.classList.remove('hidden');
               }
             }
