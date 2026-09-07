@@ -362,6 +362,7 @@ async function fetchUserProfile() {
     }
 
     currentProfile = data;
+    updateStepsDisplay();
     updateNavigationLocks();
 
     // Check if user has completed profile (photo + name + gender)
@@ -412,6 +413,10 @@ function showScreen(screenId) {
       screens[key].classList.remove('active');
     }
   });
+
+  if (screenId === 'mash' || screenId === 'profile') {
+    updateStepsDisplay();
+  }
 
   if (screenId === 'auth') {
     document.getElementById('auth-step-welcome').classList.remove('hidden');
@@ -1089,6 +1094,31 @@ function setupEventListeners() {
       }
       
       settingsModal.classList.remove('hidden');
+    });
+  }
+
+  // Starred Climbers: View button and modal
+  const btnViewStarred = document.getElementById('btn-view-starred');
+  const starredModal = document.getElementById('starred-climbers-modal');
+  const btnCloseStarred = document.getElementById('btn-close-starred-modal');
+  const btnDoneStarred = document.getElementById('btn-done-starred-modal');
+
+  if (btnViewStarred) {
+    btnViewStarred.addEventListener('click', () => {
+      if (starredModal) starredModal.classList.remove('hidden');
+      loadStarredClimbersList();
+    });
+  }
+
+  if (btnCloseStarred) {
+    btnCloseStarred.addEventListener('click', () => {
+      if (starredModal) starredModal.classList.add('hidden');
+    });
+  }
+
+  if (btnDoneStarred) {
+    btnDoneStarred.addEventListener('click', () => {
+      if (starredModal) starredModal.classList.add('hidden');
     });
   }
 
@@ -2335,6 +2365,12 @@ async function loadProfileData() {
     updateStepsDisplay();
     updateNavigationLocks();
 
+    const starredCountEl = document.getElementById('starred-climbers-count');
+    if (starredCountEl) {
+      const unlocked = (profile && profile.unlocked_instagrams) || [];
+      starredCountEl.innerText = `${unlocked.length} profile${unlocked.length === 1 ? '' : 's'} unlocked`;
+    }
+
     const lockIconSvg = '<svg class="retro-icon" viewBox="0 0 16 16" width="12" height="12" fill="currentColor" style="margin-right: 4px;"><path d="M4 6V4a4 4 0 1 1 8 0v2h1v8H3V6h1zm2 0h4V4a2 2 0 1 0-4 0v2z"/></svg>';
 
     const gradeUnlocked = isFeatureUnlocked('grade', profile);
@@ -2381,6 +2417,74 @@ async function loadProfileData() {
   } catch (err) {
     console.error('Failed to load profile information:', err);
     showToast(`Failed to load profile information: ${err.message || err}`, 'error');
+  }
+}
+
+async function loadStarredClimbersList() {
+  const listContainer = document.getElementById('starred-climbers-list');
+  if (!listContainer) return;
+  const unlockedIds = (currentProfile && currentProfile.unlocked_instagrams) || [];
+  if (unlockedIds.length === 0) {
+    listContainer.innerHTML = `
+      <div style="text-align: center; padding: 36px 12px; color: var(--text-muted);">
+        <div style="font-size: 2.2rem; margin-bottom: 8px;">⭐</div>
+        <p style="font-weight: bold; margin-bottom: 6px; color: var(--text-main); font-size: 1rem;">No Starred Climbers Yet</p>
+        <p style="font-size: 0.85rem; line-height: 1.4; max-width: 280px; margin: 0 auto;">Star users on the Summit or in Matchups to unlock and view their Instagram profiles here anytime!</p>
+      </div>`;
+    return;
+  }
+
+  listContainer.innerHTML = '<div style="text-align: center; padding: 36px 0;"><div class="spinner" style="margin: 0 auto 10px;"></div><p style="color: var(--text-muted); font-size: 0.85rem;">Loading starred profiles...</p></div>';
+
+  try {
+    const { data: users, error } = await supabaseClient
+      .from('profiles')
+      .select('id, first_name, avatar_url, state, instagram_handle')
+      .in('id', unlockedIds);
+
+    if (error) throw error;
+    if (!users || users.length === 0) {
+      listContainer.innerHTML = '<div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.85rem;">No active profiles found.</div>';
+      return;
+    }
+
+    listContainer.innerHTML = '';
+    users.forEach(user => {
+      const cleanHandle = (user.instagram_handle || '').replace(/^@/, '').trim();
+      const itemEl = document.createElement('div');
+      itemEl.className = 'card';
+      itemEl.style.cssText = 'padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 2px solid var(--border-color); background: var(--bg-primary);';
+      itemEl.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+          <img src="${user.avatar_url || DEFAULT_AVATAR}" alt="${user.first_name || 'Climber'}" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid var(--border-color); flex-shrink: 0; background: var(--bg-secondary);">
+          <div style="min-width: 0;">
+            <div style="font-weight: bold; font-size: 0.95rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.first_name || 'Climber'}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.state || 'Unknown Region'}</div>
+            <div style="font-size: 0.8rem; color: var(--primary-color); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;">@${cleanHandle || 'unnamed'}</div>
+          </div>
+        </div>
+        ${cleanHandle ? `
+        <button type="button" class="btn btn-primary btn-open-starred-ig" data-handle="${cleanHandle}" style="padding: 7px 14px; font-size: 0.8rem; flex-shrink: 0; display: flex; align-items: center; gap: 4px;">
+          Open IG
+        </button>` : '<span style="color: var(--text-muted); font-size: 0.75rem;">No Handle</span>'}
+      `;
+
+      const btnOpen = itemEl.querySelector('.btn-open-starred-ig');
+      if (btnOpen) {
+        btnOpen.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const h = btnOpen.getAttribute('data-handle');
+          if (h) {
+            window.open(`https://instagram.com/${h}`, '_blank');
+          }
+        });
+      }
+
+      listContainer.appendChild(itemEl);
+    });
+  } catch (err) {
+    console.error('Failed to load starred climbers:', err);
+    listContainer.innerHTML = '<div style="text-align: center; padding: 24px; color: var(--error-color); font-size: 0.85rem;">Failed to load starred climbers. Please try again.</div>';
   }
 }
 

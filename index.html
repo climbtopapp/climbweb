@@ -563,6 +563,26 @@
           <p class="input-hint" style="color: var(--primary-color); font-weight: bold; margin-top: 6px; font-size: 0.8rem;" id="hint-profile-ig-bonus">🎁 Save your Instagram handle to claim +50 FREE Steps!</p>
         </div>
 
+        <!-- Starred Climbers Card -->
+        <div class="card" style="margin: 0 20px 15px 20px; padding: 14px; border: 2px solid var(--border-color); background-color: var(--bg-secondary); text-align: left;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; background-color: var(--primary-color); border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg class="retro-icon" viewBox="0 0 16 16" width="16" height="16" fill="#000">
+                  <path d="M8 1l2.3 4.7 5.2.8-3.8 3.7.9 5.2L8 13l-4.6 2.4.9-5.2L.5 6.5l5.2-.8z"/>
+                </svg>
+              </div>
+              <div>
+                <div style="font-family: var(--font-display); font-weight: bold; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-main);">Starred Climbers</div>
+                <div id="starred-climbers-count" style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1px;">0 profiles unlocked</div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary" id="btn-view-starred" style="padding: 8px 16px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+              View
+            </button>
+          </div>
+        </div>
+
         <div style="padding: 0 20px 20px 20px;">
           <button class="btn btn-primary btn-block" id="btn-share-profile"
             style="display: flex; gap: 8px; justify-content: center; align-items: center;">
@@ -1025,6 +1045,27 @@
     </div>
   </div>
 
+  <!-- Starred Climbers Modal -->
+  <div id="starred-climbers-modal" class="modal-overlay hidden">
+    <div class="modal-content card" style="max-width: 440px; width: 92%; max-height: 82vh; padding: 22px; text-align: left; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid var(--border-color); padding-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <svg class="retro-icon" viewBox="0 0 16 16" width="20" height="20" fill="var(--primary-color)">
+            <path d="M8 1l2.3 4.7 5.2.8-3.8 3.7.9 5.2L8 13l-4.6 2.4.9-5.2L.5 6.5l5.2-.8z"/>
+          </svg>
+          <h3 style="font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--text-main); margin: 0; letter-spacing: 0.5px;">STARRED CLIMBERS</h3>
+        </div>
+        <button type="button" id="btn-close-starred-modal" class="btn-close" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted); padding: 4px; line-height: 1;">✕</button>
+      </div>
+      <div id="starred-climbers-list" style="overflow-y: auto; flex: 1; min-height: 140px; max-height: 52vh; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+        <!-- Dynamically rendered list of unlocked users -->
+      </div>
+      <div style="margin-top: 16px; border-top: 2px solid var(--border-color); padding-top: 14px;">
+        <button type="button" class="btn btn-secondary btn-block" id="btn-done-starred-modal">Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification System -->
   <div id="toast-container" class="toast-container"></div>
 
@@ -1032,7 +1073,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Client Application Code -->
-  <script src="app.js?v=2.2"></script>
+  <script src="app.js?v=2.3"></script>
 </body>
 
 </html>
