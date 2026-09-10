@@ -541,6 +541,43 @@ BEGIN
 END;
 $$;
 
+-- Allow clubs without a creator (for official school clubs)
+ALTER TABLE public.clubs ALTER COLUMN created_by DROP NOT NULL;
+
+-- Join a school club (creates the club with no creator if it doesn't exist yet)
+CREATE OR REPLACE FUNCTION public.join_school_club(school_name text, school_code text)
+RETURNS json LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  target_club public.clubs;
+  caller_id uuid := auth.uid();
+BEGIN
+  -- Leave any current club first
+  DELETE FROM public.club_members WHERE user_id = caller_id;
+
+  -- Find existing school club by code
+  SELECT * INTO target_club FROM public.clubs WHERE upper(code) = upper(school_code);
+
+  -- If not found, create the school club (with no creator)
+  IF target_club.id IS NULL THEN
+    INSERT INTO public.clubs (name, code, created_by)
+    VALUES (school_name, upper(school_code), NULL)
+    RETURNING * INTO target_club;
+  END IF;
+
+  -- Join the club
+  INSERT INTO public.club_members (club_id, user_id)
+  VALUES (target_club.id, caller_id)
+  ON CONFLICT (club_id, user_id) DO NOTHING;
+
+  RETURN json_build_object(
+    'id', target_club.id,
+    'name', target_club.name,
+    'code', target_club.code,
+    'created_by', target_club.created_by
+  );
+END;
+$$;
+
 -- Leave a club (if creator, deletes the club entirely)
 CREATE OR REPLACE FUNCTION public.leave_club()
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
@@ -796,6 +833,10 @@ GRANT EXECUTE ON FUNCTION public.get_club_leaderboard(uuid) TO service_role;
 
 GRANT EXECUTE ON FUNCTION public.get_matchup_club(uuid, text, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_matchup_club(uuid, text, uuid) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.join_school_club(text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.join_school_club(text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.join_school_club(text, text) TO service_role;
 
 REVOKE EXECUTE ON FUNCTION public.get_matchup_region(uuid, text, text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_matchup_region(uuid, text, text) TO authenticated;

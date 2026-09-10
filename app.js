@@ -2543,18 +2543,10 @@ function showToast(message, type = 'info') {
 }
 
 function eloToGrade(elo) {
-  const val = elo || 1200;
-  if (val >= 1600) return 'A+';
-  if (val >= 1500) return 'A';
-  if (val >= 1400) return 'A-';
-  if (val >= 1300) return 'B+';
-  if (val >= 1200) return 'B';
-  if (val >= 1100) return 'B-';
-  if (val >= 1000) return 'C+';
-  if (val >= 900) return 'C';
-  if (val >= 800) return 'C-';
-  if (val >= 700) return 'D';
-  return 'F';
+  if (elo === null || elo === undefined) return '--';
+  const val = Number(elo) || 1200;
+  const score = Math.min(100, Math.max(1, Math.round(80 + (val - 1200) * 0.04)));
+  return `${score}/100`;
 }
 
 function updateNavigationLocks() {
