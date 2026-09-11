@@ -166,35 +166,42 @@ RETURNS TABLE (
 BEGIN
   IF pref = 'everyone' THEN
     RETURN QUERY
-    SELECT p.id, p.avatar_url, p.elo, p.first_name, p.instagram_handle
+    SELECT p.id, p.avatar_url, COALESCE(p.elo, 1200.0), p.first_name, p.instagram_handle
     FROM public.profiles p
-    WHERE p.id != voter_id AND p.avatar_url IS NOT NULL
+    WHERE p.id != voter_id 
+      AND p.avatar_url IS NOT NULL 
+      AND p.avatar_url != ''
+      AND p.elo IS NOT NULL
       AND p.id NOT IN (
         SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '15 minutes'
         UNION
         SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '15 minutes'
       )
       AND p.id NOT IN (
-        SELECT blocked_id FROM public.blocks WHERE blocker_id = get_matchup.voter_id
+        SELECT blocked_id FROM public.blocks WHERE blocker_id = get_matchup.voter_id AND blocked_id IS NOT NULL
         UNION
-        SELECT blocker_id FROM public.blocks WHERE blocked_id = get_matchup.voter_id
+        SELECT blocker_id FROM public.blocks WHERE blocked_id = get_matchup.voter_id AND blocker_id IS NOT NULL
       )
     ORDER BY random()
     LIMIT 2;
   ELSE
     RETURN QUERY
-    SELECT p.id, p.avatar_url, p.elo, p.first_name, p.instagram_handle
+    SELECT p.id, p.avatar_url, COALESCE(p.elo, 1200.0), p.first_name, p.instagram_handle
     FROM public.profiles p
-    WHERE p.id != voter_id AND p.avatar_url IS NOT NULL AND p.gender = pref
+    WHERE p.id != voter_id 
+      AND p.avatar_url IS NOT NULL 
+      AND p.avatar_url != ''
+      AND p.elo IS NOT NULL
+      AND p.gender = pref
       AND p.id NOT IN (
         SELECT v.winner_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '15 minutes'
         UNION
         SELECT v.loser_id FROM public.votes v WHERE v.voter_id = get_matchup.voter_id AND v.created_at > now() - interval '15 minutes'
       )
       AND p.id NOT IN (
-        SELECT blocked_id FROM public.blocks WHERE blocker_id = get_matchup.voter_id
+        SELECT blocked_id FROM public.blocks WHERE blocker_id = get_matchup.voter_id AND blocked_id IS NOT NULL
         UNION
-        SELECT blocker_id FROM public.blocks WHERE blocked_id = get_matchup.voter_id
+        SELECT blocker_id FROM public.blocks WHERE blocked_id = get_matchup.voter_id AND blocker_id IS NOT NULL
       )
     ORDER BY random()
     LIMIT 2;
@@ -266,25 +273,45 @@ DECLARE
 BEGIN
   voter_id := auth.uid();
   
-  -- Get current ELO ratings
-  SELECT elo INTO r_w FROM public.profiles WHERE id = winner_id;
-  SELECT elo INTO r_l FROM public.profiles WHERE id = loser_id;
-  
-  IF r_w IS NULL OR r_l IS NULL THEN
-    RAISE EXCEPTION 'Winner or loser profile not found';
+  -- Prevent self-voting
+  IF winner_id = loser_id THEN
+    RETURN;
   END IF;
+
+  -- Ensure voter exists in auth.users before inserting FK; fallback to NULL if absent
+  IF voter_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM auth.users WHERE id = voter_id) THEN
+    voter_id := NULL;
+  END IF;
+
+  -- Check if both profiles exist; if one was deleted, advance gracefully without crashing
+  IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = winner_id) OR
+     NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = loser_id) THEN
+    IF voter_id IS NOT NULL THEN
+      UPDATE public.profiles SET votes_cast = votes_cast + 1 WHERE id = voter_id;
+    END IF;
+    RETURN;
+  END IF;
+
+  -- Get current ELO ratings (coalesce NULL to 1200.0 so missing elo never crashes)
+  SELECT COALESCE(elo, 1200.0) INTO r_w FROM public.profiles WHERE id = winner_id;
+  SELECT COALESCE(elo, 1200.0) INTO r_l FROM public.profiles WHERE id = loser_id;
   
   -- Expected outcomes
   e_w := 1.0 / (1.0 + power(10.0, (r_l - r_w) / 400.0));
   e_l := 1.0 / (1.0 + power(10.0, (r_w - r_l) / 400.0));
   
   -- Update ELOs in profiles
-  UPDATE public.profiles SET elo = elo + k * (1.0 - e_w) WHERE id = winner_id;
-  UPDATE public.profiles SET elo = elo + k * (0.0 - e_l) WHERE id = loser_id;
+  UPDATE public.profiles SET elo = COALESCE(elo, 1200.0) + k * (1.0 - e_w) WHERE id = winner_id;
+  UPDATE public.profiles SET elo = COALESCE(elo, 1200.0) + k * (0.0 - e_l) WHERE id = loser_id;
   
   -- Insert vote log
-  INSERT INTO public.votes (voter_id, winner_id, loser_id)
-  VALUES (voter_id, winner_id, loser_id);
+  BEGIN
+    INSERT INTO public.votes (voter_id, winner_id, loser_id)
+    VALUES (voter_id, winner_id, loser_id);
+  EXCEPTION WHEN OTHERS THEN
+    -- If duplicate or FK edge case, do not fail transaction
+    NULL;
+  END;
   
   -- Increment voter's vote count if logged in
   IF voter_id IS NOT NULL THEN
@@ -1002,34 +1029,39 @@ $$;
 
 -- Trigger to notify on grade promotion
 CREATE OR REPLACE FUNCTION public.on_profile_elo_update()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   old_grade text;
   new_grade text;
 BEGIN
-  old_grade := public.get_elo_grade(OLD.elo);
-  new_grade := public.get_elo_grade(NEW.elo);
-  
-  IF old_grade <> new_grade THEN
-    DECLARE
-      old_rank int;
-      new_rank int;
-      grade_ranks text[] := ARRAY['F', 'D', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'];
-    BEGIN
-      old_rank := array_position(grade_ranks, old_grade);
-      new_rank := array_position(grade_ranks, new_grade);
-      
-      IF new_rank > old_rank THEN
-        INSERT INTO public.notifications (user_id, title, message, type)
-        VALUES (
-          NEW.id,
-          'Grade Promoted! 📈',
-          'Congratulations! You just climbed to a new grade: ' || new_grade || '! Keep it up!',
-          'grade_up'
-        );
-      END IF;
-    END;
-  END IF;
+  BEGIN
+    old_grade := public.get_elo_grade(OLD.elo);
+    new_grade := public.get_elo_grade(NEW.elo);
+    
+    IF old_grade <> new_grade THEN
+      DECLARE
+        old_rank int;
+        new_rank int;
+        grade_ranks text[] := ARRAY['F', 'D', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'];
+      BEGIN
+        old_rank := array_position(grade_ranks, old_grade);
+        new_rank := array_position(grade_ranks, new_grade);
+        
+        IF new_rank > old_rank THEN
+          INSERT INTO public.notifications (user_id, title, message, type)
+          VALUES (
+            NEW.id,
+            'Grade Promoted! 📈',
+            'Congratulations! You just climbed to a new grade: ' || new_grade || '! Keep it up!',
+            'grade_up'
+          );
+        END IF;
+      END;
+    END IF;
+  EXCEPTION WHEN OTHERS THEN
+    -- Notification issues should NEVER abort profile or voting operations
+    NULL;
+  END;
   
   RETURN NEW;
 END;
