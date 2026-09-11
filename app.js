@@ -2697,7 +2697,19 @@ function loadClubScreen() {
     viewHasClub.style.display = 'flex';
 
     document.getElementById('text-club-name').innerText = currentClubInfo.name;
-    document.getElementById('text-club-code').innerText = currentClubInfo.code;
+    const textClubCode = document.getElementById('text-club-code');
+    if (textClubCode) {
+      textClubCode.innerText = currentClubInfo.code;
+      textClubCode.title = "Click to copy code";
+      textClubCode.style.cursor = "pointer";
+      textClubCode.onclick = () => {
+        if (navigator.clipboard && currentClubInfo?.code) {
+          navigator.clipboard.writeText(currentClubInfo.code).then(() => {
+            showToast('Club code copied to clipboard!', 'success');
+          });
+        }
+      };
+    }
     document.getElementById('text-club-member-count').innerText = currentClubMembers.length;
     
     // Edit features for creator
