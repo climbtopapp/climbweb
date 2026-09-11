@@ -2795,7 +2795,16 @@ async function joinClub() {
       loadClubScreen();
     }
   } catch (err) {
-    showToast(err.message || 'Failed to join club', 'error');
+    const msg = (err && (err.message || err.details || '')) + '';
+    if (msg.toLowerCase().includes('no club') || msg.toLowerCase().includes('not found')) {
+      showToast('No club code found', 'error');
+    } else if (msg.toLowerCase().includes('leave your current club')) {
+      showToast('You must leave your current club before joining another', 'error');
+    } else if (msg.toLowerCase().includes('100 votes')) {
+      showToast('You must cast at least 100 votes to access Clubs.', 'error');
+    } else {
+      showToast('No club code found', 'error');
+    }
   } finally {
     setButtonLoading('btn-join-club', false, 'Join Club');
   }

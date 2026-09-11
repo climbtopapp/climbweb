@@ -553,7 +553,7 @@ BEGIN
   -- Find the club
   SELECT * INTO target_club FROM public.clubs WHERE upper(code) = upper(invite_code);
   IF target_club.id IS NULL THEN
-    RAISE EXCEPTION 'No club found with that code';
+    RAISE EXCEPTION 'No club code found';
   END IF;
 
   -- Join the club
